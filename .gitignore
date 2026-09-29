@@ -1,0 +1,25 @@
+# Secrets
+.env
+
+# Local Claude Code rules and settings
+CLAUDE.md
+.claude/
+
+# Python
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Frontend
+node_modules/
+frontend/dist/
+
+# Uploaded datasets at runtime
+storage/
+
+# OS files
+.DS_Store
+
+# Sample data: 69 MB, and the Kaggle licence must be checked before
+# redistributing it (PRD, Problem statement). Revisit at deploy time.
+data/sample/*.csv
