@@ -1,0 +1,162 @@
+# Golden anchors for the Amazon sample (data/sample/amazon_sale_report.csv).
+# Every expected value is copied from the printed output of notebooks/golden_answers.ipynb,
+# which uses plain pandas and never imports the app. Frozen after Phase 1: fix the code, not this file.
+#
+# Conventions
+#   plan:       PRD plan format (Step 4). date_range bounds are inclusive.
+#   expected:   a number for ungrouped plans; a {group_key: value} map for grouped plans.
+#   rates:      cancellation_rate is a percentage with 4 decimals (14.2759 means 14.2759%).
+#   tolerance:  absolute. Counts 0; rupees 0.01; rates 0.01 percentage points.
+#   cancelled:  an order is cancelled if ANY of its lines has Status exactly "Cancelled".
+
+anchors:
+  - id: total_orders
+    question: How many orders are there in total?
+    plan:
+      status: ok
+      metric: orders
+      group_by: []
+      filters: []
+    expected: 120378
+    tolerance: 0
+
+  - id: overall_cancellation_rate
+    question: What is the overall cancellation rate?
+    plan:
+      status: ok
+      metric: cancellation_rate
+      group_by: []
+      filters: []
+    expected: 14.2759
+    tolerance: 0.01
+
+  - id: revenue_apr_2022
+    question: What was revenue in April 2022?
+    plan:
+      status: ok
+      metric: revenue
+      group_by: []
+      filters: []
+      date_range: {start: "2022-04-01", end: "2022-04-30"}
+    expected: 26234520.00
+    tolerance: 0.01
+
+  - id: revenue_may_2022
+    question: What was revenue in May 2022?
+    plan:
+      status: ok
+      metric: revenue
+      group_by: []
+      filters: []
+      date_range: {start: "2022-05-01", end: "2022-05-31"}
+    expected: 23953534.00
+    tolerance: 0.01
+
+  - id: revenue_jun_2022
+    question: What was revenue in June 2022?
+    plan:
+      status: ok
+      metric: revenue
+      group_by: []
+      filters: []
+      date_range: {start: "2022-06-01", end: "2022-06-30"}
+    expected: 21390530.00
+    tolerance: 0.01
+
+  - id: orders_may_2022
+    question: How many orders were placed in May 2022?
+    plan:
+      status: ok
+      metric: orders
+      group_by: []
+      filters: []
+      date_range: {start: "2022-05-01", end: "2022-05-31"}
+    expected: 39221
+    tolerance: 0
+
+  - id: orders_jun_2022
+    question: How many orders were placed in June 2022?
+    plan:
+      status: ok
+      metric: orders
+      group_by: []
+      filters: []
+      date_range: {start: "2022-06-01", end: "2022-06-30"}
+    expected: 35141
+    tolerance: 0
+
+  - id: rajasthan_orders
+    question: How many orders came from Rajasthan?
+    plan:
+      status: ok
+      metric: orders
+      group_by: []
+      filters:
+        - {column: state, op: eq, values: [Rajasthan]}
+    expected: 2512
+    tolerance: 0
+
+  - id: rajasthan_cancellation_rate
+    question: What is the cancellation rate in Rajasthan?
+    plan:
+      status: ok
+      metric: cancellation_rate
+      group_by: []
+      filters:
+        - {column: state, op: eq, values: [Rajasthan]}
+    expected: 14.2118
+    tolerance: 0.01
+
+  - id: top_state_by_orders
+    question: Which state has the most orders?
+    plan:
+      status: ok
+      metric: orders
+      group_by: [state]
+      filters: []
+      sort: {by: value, dir: desc}
+      limit: 1
+    expected: {Maharashtra: 20780}
+    tolerance: 0
+
+  - id: cancellation_by_fulfilment_all
+    question: What is the cancellation rate by fulfilment type?
+    plan:
+      status: ok
+      metric: cancellation_rate
+      group_by: [fulfilment]
+      filters: []
+    expected: {Amazon: 12.8604, Merchant: 17.5445}
+    tolerance: 0.01
+
+  - id: cancellation_by_fulfilment_apr_may
+    question: Cancellation rate by fulfilment in April and May 2022
+    plan:
+      status: ok
+      metric: cancellation_rate
+      group_by: [fulfilment]
+      filters: []
+      date_range: {start: "2022-04-01", end: "2022-05-31"}
+    expected: {Amazon: 12.8640, Merchant: 17.5666}
+    tolerance: 0.01
+
+  - id: cancellation_by_fulfilment_jun_backtest
+    question: Cancellation rate by fulfilment in June 2022
+    plan:
+      status: ok
+      metric: cancellation_rate
+      group_by: [fulfilment]
+      filters: []
+      date_range: {start: "2022-06-01", end: "2022-06-30"}
+    expected: {Amazon: 12.8731, Merchant: 17.4608}
+    tolerance: 0.01
+
+  - id: profit_margin_by_category
+    question: What is the profit margin by category?
+    expected_status: unsupported
+    reason_contains: cost
+
+  - id: cod_share
+    question: What share of orders were cash on delivery?
+    expected_status: unsupported
+    reason_contains: payment
