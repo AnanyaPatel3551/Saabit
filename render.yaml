@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: saabit
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true

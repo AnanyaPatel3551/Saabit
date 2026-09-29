@@ -1,0 +1,21 @@
+# Secrets and local tooling
+.env
+.git
+.github
+.claude
+CLAUDE.md
+
+# Build outputs and dependencies (rebuilt inside the image)
+**/.venv
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+frontend/dist
+
+# Not needed at runtime yet
+docs
+notebooks
+eval
+data
+storage

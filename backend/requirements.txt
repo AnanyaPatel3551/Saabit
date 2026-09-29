@@ -1,0 +1,17 @@
+# Runtime
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+pydantic==2.13.5
+python-multipart==0.0.32
+duckdb==1.5.6
+pandas==3.0.6
+pyarrow==25.0.1
+openpyxl==3.1.5
+sqlglot==30.20.0
+httpx==0.28.1
+groq==1.7.0
+openai==3.20.0
+
+# Tests and lint
+pytest==9.1.1
+ruff==0.16.9
