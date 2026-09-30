@@ -1,5 +1,6 @@
 """Read CSV/XLSX files, handle encodings, and write Parquet."""
 
+import gzip
 import io
 import zipfile
 from pathlib import Path
@@ -9,6 +10,7 @@ import pandas as pd
 MAX_BYTES = 25 * 1024 * 1024
 MAX_ROWS = 500_000
 ALLOWED_EXTENSIONS = (".csv", ".xlsx")
+GZIP_SUFFIX = ".gz"
 XLSX_SIGNATURE = b"PK\x03\x04"
 BINARY_SIGNATURES = (
     b"%PDF", XLSX_SIGNATURE, b"\xd0\xcf\x11\xe0", b"\x89PNG", b"\xff\xd8\xff", b"GIF8",
@@ -74,8 +76,11 @@ def read_upload(data: bytes, filename: str) -> pd.DataFrame:
 
 
 def read_bundled_file(path: Path) -> pd.DataFrame:
-    """Parse a file shipped with the app (the sample). Same parsing, no upload size limit."""
-    return parse_table(path.read_bytes(), extension_of(path.name))
+    """Parse a file shipped with the app (the sample), gzip allowed. No upload size limit."""
+    data, name = path.read_bytes(), path.name
+    if name.endswith(GZIP_SUFFIX):
+        data, name = gzip.decompress(data), name.removesuffix(GZIP_SUFFIX)
+    return parse_table(data, extension_of(name))
 
 
 def parse_table(data: bytes, extension: str) -> pd.DataFrame:

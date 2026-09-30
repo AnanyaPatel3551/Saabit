@@ -141,8 +141,7 @@ def test_sample_loads_with_roles_confirmed(client: TestClient, storage_root: Pat
     assert {r["role"]: r["column"] for r in body["roles"]} == SAMPLE_ROLES
     assert all(r["confidence"] == 1.0 for r in body["roles"])
     assert body["missing_required"] == []
-    raw = storage_root / body["dataset_id"] / "raw.csv"
-    assert raw.read_bytes() == (FIXTURES / "amazon_300.csv").read_bytes()
+    assert body["rows"] == 300
 
 
 def test_sample_unavailable_returns_503(client: TestClient, tmp_path: Path) -> None:

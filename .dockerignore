@@ -17,5 +17,12 @@ frontend/dist
 docs
 notebooks
 eval
-data
-storage
+
+# Uploaded datasets must never be baked into the image
+**/storage
+
+# Only the compressed sample goes into the image
+data/*
+!data/sample
+data/sample/*
+!data/sample/amazon_sale_report.csv.gz

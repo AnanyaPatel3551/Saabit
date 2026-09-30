@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from app.api.datasets import SAMPLE_ROLES
 from app.core.detect import ROLES, SUGGEST_THRESHOLD, DetectionResult, detect_roles
@@ -143,6 +144,62 @@ def test_detects_roles_in_xlsx_dates_and_numbers() -> None:
     assert roles["order_id"] == "Order ID"
     assert roles["order_date"] == "Order Date"
     assert roles["amount"] == "Amount"
+
+
+def ids(n: int) -> list[str]:
+    return [f"A-{i}" for i in range(n)]
+
+
+def expect(role: str, df: pd.DataFrame, column: str, passes: bool) -> None:
+    suggestion = by_role(detect_roles(df))[role]
+    assert suggestion.column == (column if passes else None)
+    assert suggestion.confidence == (1.0 if passes else 0.5)
+
+
+@pytest.mark.parametrize(
+    ("valid", "passes"),
+    [(94, False), (95, True), (100, True)],
+    ids=["94pct_below", "95pct_at", "100pct_far_past"],
+)
+def test_date_role_needs_95_percent_of_values_to_parse(valid: int, passes: bool) -> None:
+    dates = ["04-30-22"] * valid + ["not a date"] * (100 - valid)
+
+    expect("order_date", pd.DataFrame({"Order ID": ids(100), "Date": dates}), "Date", passes)
+
+
+@pytest.mark.parametrize(
+    ("numeric", "passes"),
+    [(94, False), (95, True), (100, True)],
+    ids=["94pct_below", "95pct_at", "100pct_far_past"],
+)
+def test_amount_role_needs_95_percent_of_values_to_be_numeric(numeric: int, passes: bool) -> None:
+    amounts = ["1,249.50"] * numeric + ["n/a"] * (100 - numeric)
+
+    expect("amount", pd.DataFrame({"Order ID": ids(100), "Amount": amounts}), "Amount", passes)
+
+
+@pytest.mark.parametrize(
+    ("distinct", "passes"),
+    [(29, True), (30, True), (31, False), (200, False)],
+    ids=["29_below", "30_at", "31_just_past", "200_far_past"],
+)
+def test_status_role_allows_at_most_30_distinct_values(distinct: int, passes: bool) -> None:
+    statuses = [f"Shipped {i % distinct}" for i in range(300)]
+
+    expect("status", pd.DataFrame({"Order ID": ids(300), "Status": statuses}), "Status", passes)
+
+
+@pytest.mark.parametrize(
+    ("distinct", "passes"),
+    [(49, False), (50, True), (100, True)],
+    ids=["49pct_below", "50pct_at", "100pct_far_past"],
+)
+def test_order_id_role_needs_50_percent_of_values_to_be_distinct(
+    distinct: int, passes: bool
+) -> None:
+    order_ids = ids(distinct) + ["A-0"] * (100 - distinct)
+
+    expect("order_id", pd.DataFrame({"Order ID": order_ids}), "Order ID", passes)
 
 
 def test_state_needs_sixty_percent_of_values_to_match_the_dictionary() -> None:

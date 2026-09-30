@@ -50,6 +50,13 @@ def save_raw(root: Path, data: bytes, extension: str) -> str:
     return dataset_id
 
 
+def create_dataset_dir(root: Path, dataset_id: str) -> Path:
+    """Create (or reuse) the folder for a dataset with a known id, such as the shared sample."""
+    folder = dataset_dir(root, dataset_id)
+    folder.mkdir(parents=True, exist_ok=True)
+    return folder
+
+
 def write_metadata(root: Path, dataset_id: str, metadata: dict[str, Any]) -> None:
     """Write metadata.json for an existing dataset."""
     path = dataset_dir(root, dataset_id) / METADATA_FILE

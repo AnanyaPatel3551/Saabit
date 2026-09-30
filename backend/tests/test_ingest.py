@@ -8,6 +8,7 @@ from app.core.ingest import (
     TooManyRows,
     UnreadableFile,
     UnsupportedFileType,
+    read_bundled_file,
     read_upload,
 )
 from tests.conftest import FIXTURES
@@ -102,7 +103,16 @@ def test_accepts_exactly_500000_rows() -> None:
     assert len(read_upload(data, "max_rows.csv")) == MAX_ROWS
 
 
-@pytest.mark.parametrize("filename", ["orders.json", "orders.xls", "orders", "orders.csv.exe"])
+def test_reads_gzipped_bundled_file() -> None:
+    df = read_bundled_file(FIXTURES / "amazon_300.csv.gz")
+
+    assert len(df) == 300
+    assert "Sales Channel" in df.columns
+
+
+@pytest.mark.parametrize(
+    "filename", ["orders.json", "orders.xls", "orders", "orders.csv.exe", "orders.csv.gz"]
+)
 def test_rejects_other_extensions(filename: str) -> None:
     with pytest.raises(UnsupportedFileType):
         read_upload(b"a,b\n1,2\n", filename)

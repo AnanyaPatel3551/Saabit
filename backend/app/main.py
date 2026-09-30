@@ -1,5 +1,8 @@
 """FastAPI entry point: API routes plus the built React app on one URL."""
 
+import asyncio
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -7,6 +10,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from app.api.datasets import preload_sample
 from app.api.datasets import router as datasets_router
 from app.api.errors import register_error_handlers
 
@@ -44,9 +48,16 @@ def mount_frontend(app: FastAPI, dist: Path) -> None:
         app.add_api_route("/", placeholder, methods=["GET"], include_in_schema=False)
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """On startup, prepare the shared sample in a worker thread; nothing to do on shutdown."""
+    await asyncio.to_thread(preload_sample, app)
+    yield
+
+
 def create_app(frontend_dist: Path = FRONTEND_DIST) -> FastAPI:
     """Build the app. API routes are added before the frontend so /api always wins."""
-    app = FastAPI(title="Saabit", version=VERSION)
+    app = FastAPI(title="Saabit", version=VERSION, lifespan=lifespan)
     register_error_handlers(app)
     app.add_api_route("/api/health", health, methods=["GET"], response_model=Health)
     app.include_router(datasets_router)

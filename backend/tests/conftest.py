@@ -18,5 +18,5 @@ def storage_root(tmp_path: Path) -> Path:
 def client(tmp_path: Path, storage_root: Path) -> TestClient:
     app = create_app(frontend_dist=tmp_path / "no-frontend")
     app.dependency_overrides[get_storage_root] = lambda: storage_root
-    app.dependency_overrides[get_sample_path] = lambda: FIXTURES / "amazon_300.csv"
+    app.dependency_overrides[get_sample_path] = lambda: FIXTURES / "amazon_300.csv.gz"
     return TestClient(app)
