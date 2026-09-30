@@ -1,14 +1,25 @@
+import tempfile
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
 from app.api.datasets import SAMPLE_ROLES
-from app.core.detect import ROLES, SUGGEST_THRESHOLD, DetectionResult, detect_roles
-from app.core.ingest import read_upload
+from app.core.detect import (
+    DETECTION_ROWS,
+    ROLES,
+    SUGGEST_THRESHOLD,
+    DetectionResult,
+    detect_roles,
+)
+from app.core.ingest import read_table
 from tests.conftest import FIXTURES
 
 
 def detect_fixture(name: str) -> DetectionResult:
-    return detect_roles(read_upload((FIXTURES / name).read_bytes(), name))
+    with tempfile.TemporaryDirectory() as work_dir:
+        table = read_table(FIXTURES / name, name, Path(work_dir))
+    return detect_roles(table.head, table.rows)
 
 
 def suggested(result: DetectionResult) -> dict[str, str | None]:
@@ -144,6 +155,30 @@ def test_detects_roles_in_xlsx_dates_and_numbers() -> None:
     assert roles["order_id"] == "Order ID"
     assert roles["order_date"] == "Order Date"
     assert roles["amount"] == "Amount"
+
+
+def test_reasons_say_how_many_rows_were_checked_when_the_file_is_larger() -> None:
+    df = pd.DataFrame({"Order ID": [f"A-{i}" for i in range(100)]})
+
+    order_id = by_role(detect_roles(df, total_rows=128975))["order_id"]
+
+    assert any("(first 100 of 128,975 rows)" in reason for reason in order_id.reasons)
+
+
+def test_reasons_have_no_row_note_when_every_row_was_checked() -> None:
+    order_id = by_role(detect_fixture("amazon_300.csv"))["order_id"]
+
+    assert not any("rows)" in reason for reason in order_id.reasons)
+
+
+def test_value_checks_use_at_most_50000_rows() -> None:
+    rows = DETECTION_ROWS + 5_000
+    ids_then_repeats = [f"A-{i}" for i in range(DETECTION_ROWS)] + ["A-0"] * 5_000
+
+    order_id = by_role(detect_roles(pd.DataFrame({"Order ID": ids_then_repeats})))["order_id"]
+
+    assert any(f"(first 50,000 of {rows:,} rows)" in r for r in order_id.reasons)
+    assert any("100% of values are distinct" in r for r in order_id.reasons)
 
 
 def ids(n: int) -> list[str]:

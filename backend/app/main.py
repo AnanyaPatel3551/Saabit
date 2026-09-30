@@ -1,6 +1,5 @@
 """FastAPI entry point: API routes plus the built React app on one URL."""
 
-import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -10,9 +9,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from app.api.datasets import preload_sample
 from app.api.datasets import router as datasets_router
 from app.api.errors import register_error_handlers
+from app.api.sample import log_sample_status
 
 VERSION = "0.1.0"
 FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
@@ -50,8 +49,8 @@ def mount_frontend(app: FastAPI, dist: Path) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """On startup, prepare the shared sample in a worker thread; nothing to do on shutdown."""
-    await asyncio.to_thread(preload_sample, app)
+    """On startup, only check that the prepared sample cache exists. No data work here."""
+    log_sample_status(app)
     yield
 
 

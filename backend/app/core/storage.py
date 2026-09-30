@@ -4,6 +4,7 @@ import json
 import os
 import re
 import secrets
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -41,13 +42,22 @@ def dataset_dir(root: Path, dataset_id: str) -> Path:
     return root / dataset_id
 
 
-def save_raw(root: Path, data: bytes, extension: str) -> str:
-    """Create a new dataset folder, write the upload byte-for-byte as raw<ext>, return the id."""
+def new_dataset(root: Path) -> tuple[str, Path]:
+    """Create an empty folder for a new upload; return its random id and path."""
     dataset_id = new_dataset_id()
     folder = dataset_dir(root, dataset_id)
     folder.mkdir(parents=True, exist_ok=False)
-    (folder / f"{RAW_STEM}{extension}").write_bytes(data)
-    return dataset_id
+    return dataset_id, folder
+
+
+def raw_path(folder: Path, extension: str) -> Path:
+    """Where the upload is kept byte-for-byte: raw.csv or raw.xlsx, never the user's name."""
+    return folder / f"{RAW_STEM}{extension}"
+
+
+def delete_dataset(root: Path, dataset_id: str) -> None:
+    """Remove a dataset folder and everything in it (used when an upload is rejected)."""
+    shutil.rmtree(dataset_dir(root, dataset_id), ignore_errors=True)
 
 
 def create_dataset_dir(root: Path, dataset_id: str) -> Path:

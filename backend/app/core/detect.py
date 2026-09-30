@@ -4,7 +4,7 @@ import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from functools import cache
+from functools import cache, cached_property
 from pathlib import Path
 
 import pandas as pd
@@ -19,7 +19,10 @@ SUGGEST_THRESHOLD = 0.8
 HEADER_EXACT = 0.5
 HEADER_PARTIAL = 0.3
 VALUES_PASS = 0.5
-PROFILE_ROWS = 5000
+DETECTION_ROWS = 50_000
+# Role values (ids, dates, amounts, states, SKUs) are short; long free text never fits a role,
+# so profiling reads only this many characters of each value to bound memory.
+MAX_VALUE_CHARS = 100
 SAMPLE_COUNT = 3
 
 SYNONYMS: dict[str, tuple[str, ...]] = {
@@ -50,13 +53,18 @@ STOP_WORDS = frozenset({
 
 STATUS_WORDS = ("cancel", "ship", "deliver", "return", "pending", "paid", "refund", "fulfil",
                 "void", "complete")
-DATE_PATTERNS = (
-    re.compile(r"^\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}([ T].*)?$"),
-    re.compile(r"^\d{1,2}[ -][A-Za-z]{3,9}[ -,]+\d{2,4}"),
-    re.compile(r"^[A-Za-z]{3,9} \d{1,2},? \d{4}"),
+# One pattern, three accepted shapes: 04-30-22 / 2022-04-30 10:00, 30 Apr 2022, Apr 30, 2022.
+DATE_PATTERN = (
+    r"(?:\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}(?:[ T].*)?$)"
+    r"|(?:\d{1,2}[ -][A-Za-z]{3,9}[ -,]+\d{2,4})"
+    r"|(?:[A-Za-z]{3,9} \d{1,2},? \d{4})"
 )
-SKU_PATTERN = re.compile(r"^(?=.*[A-Za-z])(?=.*[\d._/-])[A-Za-z0-9._/-]+$")
-NUMBER_NOISE = re.compile(r"[₹,\s]|Rs\.?|INR", re.IGNORECASE)
+# Patterns stay within what Arrow's RE2 engine supports (no lookaheads, no flags), so pandas
+# runs them natively instead of falling back to a slow per-value Python loop.
+SKU_CHARS = r"^[A-Za-z0-9._/-]+$"
+SKU_HAS_LETTER = r"[A-Za-z]"
+SKU_HAS_DIGIT_OR_SEPARATOR = r"[\d._/-]"
+NUMBER_NOISE = r"[₹,\s]|[Rr][Ss]\.?|INR|inr"
 STATES_FILE = Path(__file__).resolve().parents[1] / "data" / "states.json"
 
 
@@ -82,7 +90,11 @@ class DetectionResult:
 
 @dataclass(frozen=True)
 class ColumnProfile:
-    """Facts about one column, computed once and shared by every role check."""
+    """Facts about one column, computed once and shared by every role check.
+
+    Derived numbers are cached as plain ints and floats; no extra copies of the
+    column are kept, so memory stays at one column of text plus one of numbers.
+    """
 
     name: str
     values: pd.Series
@@ -92,15 +104,27 @@ class ColumnProfile:
     def count(self) -> int:
         return len(self.values)
 
-    @property
+    @cached_property
     def distinct(self) -> int:
         return int(self.values.nunique())
 
     def share(self, mask: pd.Series) -> float:
         return float(mask.mean()) if self.count else 0.0
 
-    def numeric_share(self) -> float:
+    @cached_property
+    def numeric(self) -> float:
         return self.share(self.numbers.notna())
+
+    def numeric_share(self) -> float:
+        return self.numeric
+
+    @cached_property
+    def state_share(self) -> float:
+        return self.share(self.values.str.lower().isin(state_names()))
+
+    def uniques(self, limit: int) -> list[str] | None:
+        """The distinct values if there are at most `limit` of them, else None."""
+        return None if self.distinct > limit else [str(v) for v in self.values.unique()]
 
 
 @dataclass(frozen=True)
@@ -141,8 +165,11 @@ def header_score(header: str, role: str) -> tuple[float, str]:
 
 
 def profile_column(name: str, series: pd.Series) -> ColumnProfile:
-    """Non-blank values from the first PROFILE_ROWS rows, and their numeric reading."""
-    values = series.head(PROFILE_ROWS).dropna().astype(str).str.strip()
+    """Non-blank values from the first DETECTION_ROWS rows, and their numeric reading."""
+    values = series.head(DETECTION_ROWS).dropna()
+    if not isinstance(values.dtype, pd.StringDtype):
+        values = values.astype("string[pyarrow]")
+    values = values.str.slice(0, MAX_VALUE_CHARS).str.strip()
     values = values[values != ""].reset_index(drop=True)
     numbers = pd.to_numeric(values.str.replace(NUMBER_NOISE, "", regex=True), errors="coerce")
     return ColumnProfile(name=name, values=values, numbers=numbers)
@@ -158,7 +185,7 @@ def check_order_id(p: ColumnProfile) -> tuple[bool, str]:
 
 
 def check_order_date(p: ColumnProfile) -> tuple[bool, str]:
-    looks_like_date = p.values.map(lambda v: any(pat.match(v) for pat in DATE_PATTERNS))
+    looks_like_date = p.values.str.match(DATE_PATTERN)
     if p.share(looks_like_date) >= 0.95:
         parsed = pd.to_datetime(p.values, errors="coerce", format="mixed")
         looks_like_date &= parsed.notna()
@@ -178,23 +205,22 @@ def check_qty(p: ColumnProfile) -> tuple[bool, str]:
 
 
 def check_status(p: ColumnProfile) -> tuple[bool, str]:
-    words = [w for w in STATUS_WORDS if p.values.str.lower().str.contains(w, regex=False).any()]
-    passed = 0 < p.distinct <= 30 and bool(words)
+    uniques = p.uniques(30)
+    if uniques is None:
+        return False, f"{p.distinct} distinct values (max 30)"
+    lowered = [value.lower() for value in uniques]
+    words = [w for w in STATUS_WORDS if any(w in value for value in lowered)]
     shown = ", ".join(words) if words else "none"
-    return passed, f"{p.distinct} distinct values (max 30); status words found: {shown}"
-
-
-def state_share(p: ColumnProfile) -> float:
-    return p.share(p.values.str.lower().isin(state_names()))
+    return bool(words), f"{p.distinct} distinct values (max 30); status words found: {shown}"
 
 
 def check_state(p: ColumnProfile) -> tuple[bool, str]:
-    share = state_share(p)
+    share = p.state_share
     return share >= 0.6, f"{pct(share)} of values are known Indian states (needs 60%)"
 
 
 def check_city(p: ColumnProfile) -> tuple[bool, str]:
-    text, states = 1 - p.numeric_share(), state_share(p)
+    text, states = 1 - p.numeric_share(), p.state_share
     passed = p.count > 0 and text >= 0.95 and states < 0.6
     return passed, f"{pct(text)} text values, {pct(states)} are state names (needs under 60%)"
 
@@ -206,7 +232,12 @@ def check_category(p: ColumnProfile) -> tuple[bool, str]:
 
 
 def check_sku(p: ColumnProfile) -> tuple[bool, str]:
-    share = p.share(p.values.str.match(SKU_PATTERN))
+    code_like = (
+        p.values.str.match(SKU_CHARS)
+        & p.values.str.contains(SKU_HAS_LETTER)
+        & p.values.str.contains(SKU_HAS_DIGIT_OR_SEPARATOR)
+    )
+    share = p.share(code_like)
     return share >= 0.8, f"{pct(share)} of values look like product codes (needs 80%)"
 
 
@@ -231,15 +262,18 @@ VALUE_CHECKS: dict[str, Callable[[ColumnProfile], tuple[bool, str]]] = {
 }
 
 
-def score(profile: ColumnProfile, role: str) -> Candidate:
-    """Confidence = header score + value score, with the reasons for each part."""
+def score(profile: ColumnProfile, role: str, scope: str = "") -> Candidate:
+    """Confidence = header score + value score, with the reasons for each part.
+
+    scope, when set, says which rows the value check looked at.
+    """
     head, head_reason = header_score(profile.name, role)
     if profile.count == 0:
         passed, value_reason = False, "column is empty"
     else:
         passed, value_reason = VALUE_CHECKS[role](profile)
     confidence = round(head + (VALUES_PASS if passed else 0.0), 2)
-    value_reason = ("values: " if passed else "values fail: ") + value_reason
+    value_reason = ("values" if passed else "values fail") + f"{scope}: {value_reason}"
     reasons = [r for r in (head_reason, value_reason) if r]
     return Candidate(role=role, column=profile.name, confidence=confidence, reasons=reasons)
 
@@ -258,7 +292,7 @@ def assign(candidates: list[Candidate]) -> dict[str, Candidate]:
 
 
 def samples(profile: ColumnProfile) -> list[str]:
-    return list(dict.fromkeys(profile.values))[:SAMPLE_COUNT]
+    return [str(v) for v in profile.values.drop_duplicates().head(SAMPLE_COUNT)]
 
 
 def best_unassigned(role: str, candidates: list[Candidate]) -> Candidate | None:
@@ -268,11 +302,11 @@ def best_unassigned(role: str, candidates: list[Candidate]) -> Candidate | None:
 
 def suggestion_for(
     role: str, chosen: dict[str, Candidate], candidates: list[Candidate],
-    profiles: dict[str, ColumnProfile],
+    sample_values: dict[str, list[str]],
 ) -> RoleSuggestion:
     if role in chosen:
         c = chosen[role]
-        return RoleSuggestion(role, c.column, c.confidence, c.reasons, samples(profiles[c.column]))
+        return RoleSuggestion(role, c.column, c.confidence, c.reasons, sample_values[c.column])
     best = best_unassigned(role, candidates)
     if best is None or best.confidence == 0:
         return RoleSuggestion(role, None, 0.0, ["no column looks like this role"], [])
@@ -280,25 +314,47 @@ def suggestion_for(
     if best.confidence >= SUGGEST_THRESHOLD:
         note = f"best candidate '{best.column}' was already used for another role"
     reasons = [note, *best.reasons]
-    return RoleSuggestion(role, None, best.confidence, reasons, samples(profiles[best.column]))
+    return RoleSuggestion(role, None, best.confidence, reasons, sample_values[best.column])
 
 
-def detect_roles(df: pd.DataFrame) -> DetectionResult:
-    """Suggest a column for each role (FR-2.1, FR-2.2); blank when confidence is under 0.8."""
-    profiles = {str(name): profile_column(str(name), df[name]) for name in df.columns}
-    candidates = [score(p, role) for p in profiles.values() for role in ROLES]
+def check_scope(checked: int, total: int) -> str:
+    """Note for the reasons when the value checks saw only part of the file."""
+    return f" (first {checked:,} of {total:,} rows)" if total > checked else ""
+
+
+def detect_roles(df: pd.DataFrame, total_rows: int | None = None) -> DetectionResult:
+    """Suggest a column for each role (FR-2.1, FR-2.2); blank when confidence is under 0.8.
+
+    Value checks use at most the first DETECTION_ROWS rows of df. total_rows is the row
+    count of the whole file, so the reasons can say how much of it was checked.
+    """
+    checked = min(len(df), DETECTION_ROWS)
+    scope = check_scope(checked, max(total_rows or 0, len(df)))
+    candidates: list[Candidate] = []
+    sample_values: dict[str, list[str]] = {}
+    for name in df.columns:
+        # One column at a time: its profile is dropped once scored, keeping memory flat.
+        profile = profile_column(str(name), df[name])
+        candidates += [score(profile, role, scope) for role in ROLES]
+        sample_values[str(name)] = samples(profile)
     chosen = assign(candidates)
-    roles = [suggestion_for(role, chosen, candidates, profiles) for role in ROLES]
+    roles = [suggestion_for(role, chosen, candidates, sample_values) for role in ROLES]
     used = {c.column for c in chosen.values()}
     return DetectionResult(
         roles=roles,
         missing_required=[r for r in REQUIRED_ROLES if r not in chosen],
-        unmapped_columns=[name for name in profiles if name not in used],
+        unmapped_columns=[name for name in sample_values if name not in used],
     )
 
 
-def confirmed_roles(df: pd.DataFrame, mapping: dict[str, str]) -> DetectionResult:
-    """Roles fixed in advance (the bundled sample): confidence 1.0, with sample values."""
+def confirmed_roles(
+    df: pd.DataFrame, mapping: dict[str, str], columns: list[str] | None = None
+) -> DetectionResult:
+    """Roles fixed in advance (the bundled sample): confidence 1.0, with sample values.
+
+    df needs only the mapped columns; columns lists every column in the file.
+    """
+    all_columns = columns if columns is not None else [str(c) for c in df.columns]
     profiles = {role: profile_column(column, df[column]) for role, column in mapping.items()}
     roles = [
         RoleSuggestion(role, mapping[role], 1.0, ["pre-confirmed for the bundled sample"],
@@ -309,5 +365,5 @@ def confirmed_roles(df: pd.DataFrame, mapping: dict[str, str]) -> DetectionResul
     return DetectionResult(
         roles=roles,
         missing_required=[r for r in REQUIRED_ROLES if r not in mapping],
-        unmapped_columns=[str(c) for c in df.columns if c not in set(mapping.values())],
+        unmapped_columns=[c for c in all_columns if c not in set(mapping.values())],
     )

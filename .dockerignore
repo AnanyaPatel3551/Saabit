@@ -18,8 +18,9 @@ docs
 notebooks
 eval
 
-# Uploaded datasets must never be baked into the image
+# Uploaded datasets must never be baked into the image; the sample cache is rebuilt inside it
 **/storage
+**/sample_cache
 
 # Only the compressed sample goes into the image
 data/*

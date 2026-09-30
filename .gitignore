@@ -16,8 +16,9 @@ __pycache__/
 node_modules/
 frontend/dist/
 
-# Uploaded datasets at runtime
+# Uploaded datasets at runtime, and the locally prepared sample cache
 storage/
+sample_cache/
 
 # OS files
 .DS_Store
