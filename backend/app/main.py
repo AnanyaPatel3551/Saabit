@@ -7,6 +7,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from app.api.datasets import router as datasets_router
+from app.api.errors import register_error_handlers
+
 VERSION = "0.1.0"
 FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
@@ -44,7 +47,9 @@ def mount_frontend(app: FastAPI, dist: Path) -> None:
 def create_app(frontend_dist: Path = FRONTEND_DIST) -> FastAPI:
     """Build the app. API routes are added before the frontend so /api always wins."""
     app = FastAPI(title="Saabit", version=VERSION)
+    register_error_handlers(app)
     app.add_api_route("/api/health", health, methods=["GET"], response_model=Health)
+    app.include_router(datasets_router)
     mount_frontend(app, frontend_dist)
     return app
 

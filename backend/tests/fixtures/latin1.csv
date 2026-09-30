@@ -1,0 +1,22 @@
+Order ID,Date,Amount,Status,Category
+L-000,04-01-22,100.50,Shipped,Café Crème
+L-001,04-02-22,101.50,Shipped,Café Crème
+L-002,04-03-22,102.50,Shipped,Café Crème
+L-003,04-04-22,103.50,Shipped,Café Crème
+L-004,04-05-22,104.50,Shipped,Café Crème
+L-005,04-06-22,105.50,Shipped,Café Crème
+L-006,04-07-22,106.50,Shipped,Café Crème
+L-007,04-08-22,107.50,Shipped,Café Crème
+L-008,04-09-22,108.50,Shipped,Café Crème
+L-009,04-10-22,109.50,Shipped,Café Crème
+L-010,04-11-22,110.50,Shipped,Café Crème
+L-011,04-12-22,111.50,Shipped,Café Crème
+L-012,04-13-22,112.50,Shipped,Café Crème
+L-013,04-14-22,113.50,Shipped,Café Crème
+L-014,04-15-22,114.50,Shipped,Café Crème
+L-015,04-16-22,115.50,Shipped,Café Crème
+L-016,04-17-22,116.50,Shipped,Café Crème
+L-017,04-18-22,117.50,Shipped,Café Crème
+L-018,04-19-22,118.50,Shipped,Café Crème
+L-019,04-20-22,119.50,Shipped,Café Crème
+L-999,04-29-22,999.00,Cancelled,Müsli
