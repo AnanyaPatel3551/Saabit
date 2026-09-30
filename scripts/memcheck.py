@@ -25,14 +25,32 @@ REPO = Path(__file__).resolve().parents[1]
 BACKEND = REPO / "backend"
 SAMPLE = REPO / "data" / "sample" / "amazon_sale_report.csv.gz"
 BUDGET_MB = 300
+# Accepted exception: the image-build step may use more (see docs/LATER.md). It never runs
+# on the Render instance, only on the build machine.
+BUILD_BUDGET_MB = 350
 UPLOAD_LIMIT = 25 * 1024 * 1024
 SCENARIOS = {
-    "prepare_sample": "python -m app.prepare_sample (runs at image build)",
+    "prepare_sample": "python -m app.prepare_sample (image build only)",
     "startup": "start the server and answer /api/health",
     "sample": "POST /api/datasets/sample (cache prepared)",
-    "sample_cold": "POST /api/datasets/sample (no cache: builds it)",
     "upload_25mb": "POST /api/datasets with a 25 MB CSV",
+    "confirm_25mb": "upload a 25 MB CSV, then POST /confirm (cleaning)",
+    "run_10_plans": "10 plans through both engines on the full sample",
 }
+PLANS = [
+    {"metric": "revenue", "group_by": ["month"]},
+    {"metric": "orders", "group_by": ["week"]},
+    {"metric": "cancellation_rate", "group_by": ["fulfilment"]},
+    {"metric": "cancellation_rate", "group_by": ["state"], "sort": {"by": "value", "dir": "desc"}},
+    {"metric": "aov", "group_by": ["sku"]},
+    {"metric": "units", "group_by": ["category", "fulfilment"]},
+    {"metric": "revenue", "date_range": {"start": "2022-05-01", "end": "2022-05-31"}},
+    {"metric": "orders", "filters": [{"column": "state", "values": ["rajasthan"]}]},
+    {"metric": "revenue", "group_by": ["city"], "sort": {"by": "value", "dir": "desc"},
+     "limit": 10},
+    {"metric": "cancellation_rate", "group_by": ["month", "fulfilment"],
+     "filters": [{"column": "category", "op": "in", "values": ["Set", "kurta"]}]},
+]
 
 
 def peak_rss_mb() -> float:
@@ -93,12 +111,30 @@ def run_scenario(name: str, upload: Path | None) -> dict:
     if name.startswith("sample"):
         response = httpx.post(f"{base}/api/datasets/sample", timeout=120)
         results.append(f"sample {response.status_code}, rows {response.json().get('rows')}")
-    if name == "upload_25mb" and upload is not None:
+    if name == "run_10_plans":
+        sample_id = httpx.post(f"{base}/api/datasets/sample", timeout=120).json()["dataset_id"]
+        verified, slowest = 0, 0.0
+        for plan in PLANS:
+            started = time.perf_counter()
+            response = httpx.post(f"{base}/api/datasets/{sample_id}/run", json=plan, timeout=120)
+            slowest = max(slowest, time.perf_counter() - started)
+            verified += response.status_code == 200 and response.json()["verified"]
+        results.append(f"{verified}/{len(PLANS)} verified, slowest {slowest:.2f}s")
+    if name in ("upload_25mb", "confirm_25mb") and upload is not None:
         with upload.open("rb") as f:
             response = httpx.post(
                 f"{base}/api/datasets", files={"file": (upload.name, f)}, timeout=120
             )
-        results.append(f"upload {response.status_code}, rows {response.json().get('rows')}")
+        body = response.json()
+        results.append(f"upload {response.status_code}, rows {body.get('rows')}")
+        if name == "confirm_25mb":
+            roles = {r["role"]: r["column"] for r in body["roles"]}
+            response = httpx.post(
+                f"{base}/api/datasets/{body['dataset_id']}/confirm",
+                json={"roles": roles}, timeout=120,
+            )
+            results.append(f"confirm {response.status_code}, clean rows "
+                           f"{response.json().get('rows_out')}")
     server.should_exit = True
     thread.join()
     return {"peak_mb": peak_rss_mb(), "status": "; ".join(results)}
@@ -133,18 +169,23 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         upload = write_upload(tmp_path / "upload_25mb.csv")
-        prepared, empty = tmp_path / "cache", tmp_path / "empty_cache"
-        base_env = {**os.environ, "SAABIT_STORAGE_DIR": str(tmp_path / "storage")}
-        caches = {"prepare_sample": prepared, "sample_cold": empty}
-        print(f"25 MB upload file: {upload.stat().st_size:,} bytes; budget {BUDGET_MB} MB peak\n")
-        print(f"{'scenario':<16}{'peak RSS':>10}  {'budget':<8}{'result'}")
+        # prepare_sample runs first and writes the cache every later scenario reads.
+        env = {
+            **os.environ,
+            "SAABIT_STORAGE_DIR": str(tmp_path / "storage"),
+            "SAABIT_SAMPLE_CACHE": str(tmp_path / "cache"),
+        }
+        print(f"25 MB upload file: {upload.stat().st_size:,} bytes; budget {BUDGET_MB} MB peak "
+              f"at runtime, {BUILD_BUDGET_MB} MB for the image-build step\n")
+        print(f"{'scenario':<16}{'peak RSS':>10}  {'budget':<12}{'result'}")
         over = False
         for name, description in SCENARIOS.items():
-            env = {**base_env, "SAABIT_SAMPLE_CACHE": str(caches.get(name, prepared))}
-            result = spawn(name, env, upload if name == "upload_25mb" else None)
-            ok = result["peak_mb"] < BUDGET_MB
+            result = spawn(name, env, upload if name.endswith("_25mb") else None)
+            budget = BUILD_BUDGET_MB if name == "prepare_sample" else BUDGET_MB
+            ok = result["peak_mb"] < budget
             over |= not ok
-            print(f"{name:<16}{result['peak_mb']:>7.0f} MB  {'OK' if ok else 'OVER':<8}"
+            verdict = f"{'OK' if ok else 'OVER'} <{budget}"
+            print(f"{name:<16}{result['peak_mb']:>7.0f} MB  {verdict:<12}"
                   f"{result['status']}   ({description})")
     return 1 if over else 0
 

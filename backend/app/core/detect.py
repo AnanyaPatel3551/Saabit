@@ -1,13 +1,13 @@
 """Score columns to detect their roles."""
 
-import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import cache, cached_property
-from pathlib import Path
 
 import pandas as pd
+
+from app.core.states import state_lookup
 
 ROLES = (
     "order_id", "order_date", "amount", "status", "state", "city",
@@ -24,6 +24,7 @@ DETECTION_ROWS = 50_000
 # so profiling reads only this many characters of each value to bound memory.
 MAX_VALUE_CHARS = 100
 SAMPLE_COUNT = 3
+CONFIRMED_SAMPLE_ROWS = 1000
 
 SYNONYMS: dict[str, tuple[str, ...]] = {
     "order_id": ("order id", "orderid", "order no", "order number", "order ref", "invoice id",
@@ -65,7 +66,6 @@ SKU_CHARS = r"^[A-Za-z0-9._/-]+$"
 SKU_HAS_LETTER = r"[A-Za-z]"
 SKU_HAS_DIGIT_OR_SEPARATOR = r"[\d._/-]"
 NUMBER_NOISE = r"[₹,\s]|[Rr][Ss]\.?|INR|inr"
-STATES_FILE = Path(__file__).resolve().parents[1] / "data" / "states.json"
 
 
 @dataclass(frozen=True)
@@ -138,8 +138,7 @@ class Candidate:
 @cache
 def state_names() -> frozenset[str]:
     """Lower-case canonical state and UT names plus their known variants."""
-    data = json.loads(STATES_FILE.read_text(encoding="utf-8"))
-    return frozenset(name.lower() for name in data["canonical"]) | frozenset(data["variants"])
+    return frozenset(state_lookup())
 
 
 def normalise_header(header: str) -> str:
@@ -355,7 +354,9 @@ def confirmed_roles(
     df needs only the mapped columns; columns lists every column in the file.
     """
     all_columns = columns if columns is not None else [str(c) for c in df.columns]
-    profiles = {role: profile_column(column, df[column]) for role, column in mapping.items()}
+    # No value checks are needed, only three example values, so a small head is enough.
+    head = df.head(CONFIRMED_SAMPLE_ROWS)
+    profiles = {role: profile_column(column, head[column]) for role, column in mapping.items()}
     roles = [
         RoleSuggestion(role, mapping[role], 1.0, ["pre-confirmed for the bundled sample"],
                        samples(profiles[role]))

@@ -4,7 +4,8 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from app.api.datasets import SAMPLE_ROLES, get_sample_path
+from app.api.datasets import SAMPLE_ROLES
+from app.api.sample import get_sample_cache_dir
 from app.core.ingest import MAX_BYTES
 from tests.conftest import FIXTURES
 
@@ -145,7 +146,7 @@ def test_sample_loads_with_roles_confirmed(client: TestClient, storage_root: Pat
 
 
 def test_sample_unavailable_returns_503(client: TestClient, tmp_path: Path) -> None:
-    client.app.dependency_overrides[get_sample_path] = lambda: tmp_path / "missing.csv"
+    client.app.dependency_overrides[get_sample_cache_dir] = lambda: tmp_path / "no-cache"
 
     response = client.post("/api/datasets/sample")
 

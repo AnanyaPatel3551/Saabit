@@ -1,19 +1,29 @@
 """Read CSV/XLSX files from disk in bounded memory; count rows with DuckDB."""
 
 import codecs
+import ctypes
 import gzip
+import sys
 import zipfile
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 from typing import IO, Any, BinaryIO
 
 import duckdb
+import numpy as np
 import openpyxl
 import pandas as pd
 import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.csv as pacsv
 from openpyxl.utils.exceptions import InvalidFileException
+
+# Arrow's default pool (mimalloc/jemalloc) keeps freed blocks for reuse, which inflates peak
+# memory for the many short-lived arrays made while streaming. The system allocator returns
+# them; set once here so the app, tests and memcheck behave like the container.
+pa.set_memory_pool(pa.system_memory_pool())
 
 MAX_BYTES = 25 * 1024 * 1024
 MAX_ROWS = 500_000
@@ -29,6 +39,7 @@ BINARY_SIGNATURES = (
 )
 DELIMITERS = (",", ";", "\t", "|")
 TEXT_DTYPE = pd.StringDtype("pyarrow")
+ROW_HASH = "__row_hash"  # 64-bit hash of the full raw row, used to find identical rows
 DUCKDB_CONFIG = {"memory_limit": "128MB", "threads": 1}
 
 
@@ -73,6 +84,36 @@ class Table:
     columns: list[str]
     head: pd.DataFrame
     encoding: str
+
+
+@cache
+def libc() -> ctypes.CDLL | None:
+    """glibc, when running on Linux with glibc; None elsewhere."""
+    if not sys.platform.startswith("linux"):
+        return None
+    try:
+        return ctypes.CDLL("libc.so.6")
+    except OSError:
+        return None
+
+
+def release_memory() -> None:
+    """Hand memory freed by finished steps back to the OS (glibc malloc_trim).
+
+    glibc keeps freed memory inside the process, so without this each heavy step would
+    stack on top of the last. A no-op outside Linux.
+    """
+    lib = libc()
+    if lib is not None:
+        lib.malloc_trim(0)
+
+
+def header_names(path: Path) -> tuple[list[str], str]:
+    """Header names (as written) and the delimiter of a UTF-8 CSV, plain or .gz."""
+    with opener_for(path)(path, "rb") as f:
+        delimiter = sniff_delimiter(f.read(SNIFF_BYTES).decode("utf-8", errors="replace"))
+    names = [str(c) for c in pd.read_csv(path, sep=delimiter, nrows=0, encoding="utf-8-sig")]
+    return names, delimiter
 
 
 def too_large() -> FileTooLarge:
@@ -239,6 +280,86 @@ def read_head(
     head = table.to_pandas(types_mapper={pa.string(): TEXT_DTYPE}.get)
     head.columns = [c.strip() for c in keep]
     return [n.strip() for n in names], head
+
+
+def load_rows(path: Path, columns: list[str]) -> tuple[pd.DataFrame, int]:
+    """Every row of the wanted columns as text, plus ROW_HASH for each full raw row.
+
+    Streams the file in 1 MB blocks: each block is hashed across all its columns, then only
+    the wanted columns are kept. Returns the table and the number of malformed rows skipped.
+    path is a UTF-8 CSV (plain or .gz) or an .xlsx workbook.
+    """
+    if path.suffix.lower() == ".xlsx":
+        return load_xlsx_rows(path, columns), 0
+    names, delimiter = header_names(path)
+    keep = [n for n in names if n.strip() in set(columns)]
+    skipped = [0]
+
+    def skip(_: object) -> str:
+        skipped[0] += 1
+        return "skip"
+
+    reader = pacsv.open_csv(
+        path,
+        read_options=pacsv.ReadOptions(
+            column_names=names, skip_rows=1, block_size=CHUNK_BYTES, use_threads=False
+        ),
+        parse_options=pacsv.ParseOptions(
+            delimiter=delimiter, newlines_in_values=True, invalid_row_handler=skip
+        ),
+        convert_options=pacsv.ConvertOptions(
+            column_types={n: pa.string() for n in names}, strings_can_be_null=True
+        ),
+    )
+    kept, hashes = [], []
+    for batch in reader:
+        hashes.append(row_hashes(batch))
+        kept.append(batch.select(keep))
+    table = pa.Table.from_batches(kept, schema=pa.schema([(n, pa.string()) for n in keep]))
+    del kept
+    # self_destruct frees each Arrow column as soon as it is converted.
+    df = table.to_pandas(
+        types_mapper={pa.string(): TEXT_DTYPE}.get, split_blocks=True, self_destruct=True
+    )
+    del table
+    df.columns = [c.strip() for c in keep]
+    df[ROW_HASH] = np.concatenate(hashes) if hashes else np.array([], dtype="uint64")
+    del hashes
+    release_memory()
+    return df, skipped[0]
+
+
+def row_hashes(batch: pa.RecordBatch) -> np.ndarray:
+    """64-bit hash of each full row: cells joined with a separator inside Arrow, then hashed.
+
+    Blank cells become a marker that cannot appear in text, so '' and missing differ.
+    """
+    cells = [pc.fill_null(column, "\x00") for column in batch.columns]
+    joined = pc.binary_join_element_wise(*cells, "\x1f")
+    return pd.util.hash_array(joined.to_numpy(zero_copy_only=False))
+
+
+def load_xlsx_rows(path: Path, columns: list[str]) -> pd.DataFrame:
+    """Stream every non-blank row of the first sheet; keep the wanted columns and a row hash."""
+    workbook = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    try:
+        rows = workbook.worksheets[0].iter_rows(values_only=True)
+        header = [str(c).strip() if c is not None else "" for c in next(rows)]
+        indexes = [i for i, name in enumerate(header) if name in set(columns)]
+        data: dict[str, list[str | None]] = {header[i]: [] for i in indexes}
+        hashes: list[int] = []
+        for row in rows:
+            if all(value is None for value in row):
+                continue
+            cells = [cell_text(v) for v in row]
+            hashes.append(hash(tuple(cells)) & 0xFFFFFFFFFFFFFFFF)
+            for i in indexes:
+                data[header[i]].append(cells[i] if i < len(cells) else None)
+    finally:
+        workbook.close()
+    df = pd.DataFrame(data).astype(TEXT_DTYPE)
+    df[ROW_HASH] = np.array(hashes, dtype="uint64")
+    return df
 
 
 def read_xlsx(path: Path) -> Table:

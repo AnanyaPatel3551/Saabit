@@ -1,25 +1,295 @@
 {
-  "canonical": [
-    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
-    "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
-    "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
-    "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
-    "Uttarakhand", "West Bengal",
-    "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
-    "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
-  ],
-  "variants": {
-    "rj": "Rajasthan",
-    "rajsthan": "Rajasthan",
-    "rajshthan": "Rajasthan",
-    "orissa": "Odisha",
-    "pondicherry": "Puducherry",
-    "new delhi": "Delhi",
-    "nct of delhi": "Delhi",
-    "jammu & kashmir": "Jammu and Kashmir",
-    "andaman & nicobar": "Andaman and Nicobar Islands",
-    "andaman & nicobar islands": "Andaman and Nicobar Islands",
-    "dadra and nagar": "Dadra and Nagar Haveli and Daman and Diu",
-    "uttaranchal": "Uttarakhand"
-  }
+  "description": "Canonical Indian states and union territories with known variants. Matching is on trimmed, casefolded text.",
+  "states": [
+    {
+      "name": "Andhra Pradesh",
+      "type": "state",
+      "variants": [
+        "AP",
+        "Andhra"
+      ]
+    },
+    {
+      "name": "Arunachal Pradesh",
+      "type": "state",
+      "variants": [
+        "AR",
+        "Arunachal"
+      ]
+    },
+    {
+      "name": "Assam",
+      "type": "state",
+      "variants": [
+        "AS"
+      ]
+    },
+    {
+      "name": "Bihar",
+      "type": "state",
+      "variants": [
+        "BR"
+      ]
+    },
+    {
+      "name": "Chhattisgarh",
+      "type": "state",
+      "variants": [
+        "CG",
+        "CT",
+        "Chattisgarh",
+        "Chhatisgarh"
+      ]
+    },
+    {
+      "name": "Goa",
+      "type": "state",
+      "variants": [
+        "GA"
+      ]
+    },
+    {
+      "name": "Gujarat",
+      "type": "state",
+      "variants": [
+        "GJ",
+        "Gujrat"
+      ]
+    },
+    {
+      "name": "Haryana",
+      "type": "state",
+      "variants": [
+        "HR"
+      ]
+    },
+    {
+      "name": "Himachal Pradesh",
+      "type": "state",
+      "variants": [
+        "HP",
+        "Himachal"
+      ]
+    },
+    {
+      "name": "Jharkhand",
+      "type": "state",
+      "variants": [
+        "JH"
+      ]
+    },
+    {
+      "name": "Karnataka",
+      "type": "state",
+      "variants": [
+        "KA",
+        "Karnatka"
+      ]
+    },
+    {
+      "name": "Kerala",
+      "type": "state",
+      "variants": [
+        "KL",
+        "Keral"
+      ]
+    },
+    {
+      "name": "Madhya Pradesh",
+      "type": "state",
+      "variants": [
+        "MP"
+      ]
+    },
+    {
+      "name": "Maharashtra",
+      "type": "state",
+      "variants": [
+        "MH",
+        "Maharastra",
+        "Maharashtr"
+      ]
+    },
+    {
+      "name": "Manipur",
+      "type": "state",
+      "variants": [
+        "MN"
+      ]
+    },
+    {
+      "name": "Meghalaya",
+      "type": "state",
+      "variants": [
+        "ML"
+      ]
+    },
+    {
+      "name": "Mizoram",
+      "type": "state",
+      "variants": [
+        "MZ"
+      ]
+    },
+    {
+      "name": "Nagaland",
+      "type": "state",
+      "variants": [
+        "NL"
+      ]
+    },
+    {
+      "name": "Odisha",
+      "type": "state",
+      "variants": [
+        "OD",
+        "OR",
+        "Orissa"
+      ]
+    },
+    {
+      "name": "Punjab",
+      "type": "state",
+      "variants": [
+        "PB",
+        "Punjab/Mohali/Zirakpur"
+      ]
+    },
+    {
+      "name": "Rajasthan",
+      "type": "state",
+      "variants": [
+        "RJ",
+        "Rajsthan",
+        "Rajshthan",
+        "Rajastan"
+      ]
+    },
+    {
+      "name": "Sikkim",
+      "type": "state",
+      "variants": [
+        "SK"
+      ]
+    },
+    {
+      "name": "Tamil Nadu",
+      "type": "state",
+      "variants": [
+        "TN",
+        "Tamilnadu"
+      ]
+    },
+    {
+      "name": "Telangana",
+      "type": "state",
+      "variants": [
+        "TG",
+        "TS",
+        "Telengana"
+      ]
+    },
+    {
+      "name": "Tripura",
+      "type": "state",
+      "variants": [
+        "TR"
+      ]
+    },
+    {
+      "name": "Uttar Pradesh",
+      "type": "state",
+      "variants": [
+        "UP"
+      ]
+    },
+    {
+      "name": "Uttarakhand",
+      "type": "state",
+      "variants": [
+        "UK",
+        "UT",
+        "Uttaranchal"
+      ]
+    },
+    {
+      "name": "West Bengal",
+      "type": "state",
+      "variants": [
+        "WB"
+      ]
+    },
+    {
+      "name": "Andaman and Nicobar Islands",
+      "type": "union_territory",
+      "variants": [
+        "AN",
+        "Andaman & Nicobar",
+        "Andaman & Nicobar Islands",
+        "Andaman and Nicobar"
+      ]
+    },
+    {
+      "name": "Chandigarh",
+      "type": "union_territory",
+      "variants": [
+        "CH"
+      ]
+    },
+    {
+      "name": "Dadra and Nagar Haveli and Daman and Diu",
+      "type": "union_territory",
+      "variants": [
+        "DN",
+        "DD",
+        "DH",
+        "Dadra and Nagar",
+        "Dadra and Nagar Haveli",
+        "Dadra & Nagar Haveli",
+        "Daman and Diu",
+        "Daman & Diu"
+      ]
+    },
+    {
+      "name": "Delhi",
+      "type": "union_territory",
+      "variants": [
+        "DL",
+        "New Delhi",
+        "NCT of Delhi",
+        "NCT Delhi"
+      ]
+    },
+    {
+      "name": "Jammu and Kashmir",
+      "type": "union_territory",
+      "variants": [
+        "JK",
+        "Jammu & Kashmir",
+        "J&K"
+      ]
+    },
+    {
+      "name": "Ladakh",
+      "type": "union_territory",
+      "variants": [
+        "LA"
+      ]
+    },
+    {
+      "name": "Lakshadweep",
+      "type": "union_territory",
+      "variants": [
+        "LD"
+      ]
+    },
+    {
+      "name": "Puducherry",
+      "type": "union_territory",
+      "variants": [
+        "PY",
+        "Pondicherry"
+      ]
+    }
+  ]
 }

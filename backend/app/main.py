@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from app.api.cards import router as cards_router
 from app.api.datasets import router as datasets_router
 from app.api.errors import register_error_handlers
 from app.api.sample import log_sample_status
@@ -60,6 +61,7 @@ def create_app(frontend_dist: Path = FRONTEND_DIST) -> FastAPI:
     register_error_handlers(app)
     app.add_api_route("/api/health", health, methods=["GET"], response_model=Health)
     app.include_router(datasets_router)
+    app.include_router(cards_router)
     mount_frontend(app, frontend_dist)
     return app
 

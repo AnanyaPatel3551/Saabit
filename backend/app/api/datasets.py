@@ -3,8 +3,9 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, Response, UploadFile
 
+from app.api.errors import NotCleaned
 from app.api.sample import (
     SAMPLE_PATH,
     SAMPLE_ROLES,
@@ -13,9 +14,10 @@ from app.api.sample import (
     read_cached_sample,
     shared_sample,
 )
-from app.api.schemas import DatasetOut
-from app.api.shared import describe
-from app.core import detect, ingest, storage
+from app.api.schemas import CardOut, ConfirmIn, DataCheckOut, DatasetOut, RoleOut, RunOut
+from app.api.shared import FIXES_FILE, clean_dataset, describe, source_file, validate_roles
+from app.core import detect, ingest, pipeline, storage
+from app.core.plan import Plan
 
 __all__ = ["SAMPLE_PATH", "SAMPLE_ROLES", "get_sample_path", "get_storage_root", "router"]
 
@@ -28,7 +30,6 @@ def get_storage_root() -> Path:
 
 
 StorageRoot = Annotated[Path, Depends(get_storage_root)]
-SamplePath = Annotated[Path, Depends(get_sample_path)]
 SampleCache = Annotated[Path, Depends(get_sample_cache_dir)]
 
 
@@ -50,6 +51,8 @@ def upload_dataset(file: UploadFile, root: StorageRoot) -> DatasetOut:
         dataset = describe(
             dataset_id, filename, size, table.rows, table.columns, detection, confirmed=False
         )
+        del table
+        ingest.release_memory()
         storage.write_metadata(root, dataset_id, dataset.model_dump(mode="json"))
     except BaseException:
         storage.delete_dataset(root, dataset_id)
@@ -58,15 +61,88 @@ def upload_dataset(file: UploadFile, root: StorageRoot) -> DatasetOut:
 
 
 @router.post("/sample", response_model=DatasetOut)
-def load_sample(sample_path: SamplePath, cache_dir: SampleCache) -> DatasetOut:
-    """Return the shared sample with its roles already confirmed (FR-1.4)."""
-    return shared_sample(sample_path, cache_dir)
+def load_sample(cache_dir: SampleCache) -> DatasetOut:
+    """Return the prepared sample with its roles confirmed and data cleaned (FR-1.4)."""
+    return shared_sample(cache_dir)
+
+
+def cached_sample_if(dataset_id: str, cache_dir: Path) -> DatasetOut | None:
+    """The shared sample's metadata when dataset_id is the sample's id, else None."""
+    sample = read_cached_sample(cache_dir)
+    return sample if sample is not None and sample.dataset_id == dataset_id else None
+
+
+def confirmed_role_list(previous: list[RoleOut], roles: dict[str, str]) -> list[RoleOut]:
+    """Every role with the column the user chose; samples are kept when the column is unchanged."""
+    before = {r.role: r for r in previous}
+    result = []
+    for role in detect.ROLES:
+        column = roles.get(role)
+        old = before.get(role)
+        samples = old.samples if old is not None and old.column == column else []
+        reasons = ["confirmed by the user"] if column else ["not used"]
+        result.append(RoleOut(role=role, column=column, confidence=1.0 if column else 0.0,
+                              reasons=reasons, samples=samples))
+    return result
 
 
 @router.get("/{dataset_id}", response_model=DatasetOut)
 def get_dataset(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> DatasetOut:
     """Metadata and roles for a stored dataset, including the shared sample."""
-    sample = read_cached_sample(cache_dir)
-    if sample is not None and sample.dataset_id == dataset_id:
+    sample = cached_sample_if(dataset_id, cache_dir)
+    if sample is not None:
         return sample
     return DatasetOut.model_validate(storage.read_metadata(root, dataset_id))
+
+
+@router.post("/{dataset_id}/confirm", response_model=DataCheckOut)
+def confirm_roles(
+    dataset_id: str, body: ConfirmIn, root: StorageRoot, cache_dir: SampleCache
+) -> DataCheckOut:
+    """Accept the final roles, clean the data and return the data check (FR-2.4, Step 3).
+
+    The sample's roles are fixed and it is cleaned at image build, so confirming it
+    simply returns its stored data check.
+    """
+    sample = cached_sample_if(dataset_id, cache_dir)
+    if sample is not None and sample.data_check is not None:
+        return sample.data_check
+    dataset = DatasetOut.model_validate(storage.read_metadata(root, dataset_id))
+    roles = validate_roles(body.roles, dataset.columns)
+    folder = storage.dataset_dir(root, dataset_id)
+    check = clean_dataset(dataset_id, source_file(folder), roles, folder)
+    dataset.roles = confirmed_role_list(dataset.roles, roles)
+    dataset.roles_confirmed = True
+    dataset.missing_required = []
+    dataset.unmapped_columns = [c for c in dataset.columns if c not in set(roles.values())]
+    dataset.data_check = check
+    storage.write_metadata(root, dataset_id, dataset.model_dump(mode="json"))
+    return check
+
+
+@router.post("/{dataset_id}/run", response_model=RunOut)
+def run_plan(dataset_id: str, plan: Plan, root: StorageRoot, cache_dir: SampleCache) -> RunOut:
+    """Run a plan through both engines; returns the verified flag and the evidence card.
+
+    The answer sentence is written by the LLM in a later phase, so it is null for now.
+    """
+    card = pipeline.run_plan(dataset_id, plan, root, cache_dir)
+    return RunOut(verified=card.verified, sentence=None, card=CardOut.model_validate(card))
+
+
+@router.get("/{dataset_id}/fixes", response_class=Response)
+def get_fixes(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> Response:
+    """The full fix log as a CSV download (FR-3.4)."""
+    if cached_sample_if(dataset_id, cache_dir) is not None:
+        path = cache_dir / FIXES_FILE
+    else:
+        path = storage.dataset_dir(root, dataset_id) / FIXES_FILE
+        if not (path.parent / storage.METADATA_FILE).is_file():
+            raise storage.DatasetNotFound(dataset_id)
+    if not path.is_file():
+        raise NotCleaned("The fix log is written when the columns are confirmed. Confirm first.")
+    return Response(
+        content=path.read_text(encoding="utf-8"),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="fixes_{dataset_id}.csv"'},
+    )

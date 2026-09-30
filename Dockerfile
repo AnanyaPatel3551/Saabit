@@ -8,12 +8,11 @@ RUN npm run build
 
 # Stage 2: Python runtime that serves the API and the built frontend.
 FROM python:3.11-slim
-# MALLOC_ARENA_MAX and the system Arrow pool stop freed memory from piling up per thread
-# and inside pyarrow, which matters with a 512 MB limit.
+# MALLOC_ARENA_MAX stops glibc keeping a separate heap per worker thread, which matters
+# with a 512 MB limit. (The Arrow memory pool is set in app/core/ingest.py.)
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     MALLOC_ARENA_MAX=2 \
-    ARROW_DEFAULT_MEMORY_POOL=system \
     PORT=8000
 WORKDIR /app
 COPY backend/requirements.txt backend/requirements.txt
