@@ -7,3 +7,8 @@ services:
     dockerContext: .
     healthCheckPath: /api/health
     autoDeploy: true
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false  # a secret: set its value in the Render dashboard, never in this file
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b  # llama-3.3-70b-versatile was retired on 16 Aug 2026

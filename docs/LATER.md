@@ -27,6 +27,13 @@ came from and what would trigger doing it. Nothing here is being built right now
 - **Upload memory headroom**: in the 512 MB container, `upload_25mb` and `confirm_25mb` peak at ~281 MB against the 300 MB budget. Each new module adds to the import baseline, so re-run `scripts/memcheck.py` in Docker after every phase.
 - **Partial-month caveat on whole-data questions**: a question with no date range covers March 2022, so it carries the partial-month caveat even when the answer is a single total. Correct per FR-6.3, but it may read as noise in the UI.
 
+## Planner and LLM (from Phase 5)
+
+- **NVIDIA NIM fallback was cut** (PRD cut order, item 2). If Groq fails, `/plan` returns 503 `llm_unavailable`; data checks, insights and edited plans keep working.
+- **Template mode for typed questions** when the LLM is down (PRD Reliability row: "then template mode").
+- **Keep eval questions out of the few-shot examples.** `llm/prompts.py` uses "rajsthan ka cancellation kitna hai" as an example (as requested); if `eval/questions.yaml` uses the same wording, that question is no longer a fair test of the planner. Use different phrasings in the eval.
+- **Plan cache is per process and in memory**: it empties on every restart or deploy, and each worker would have its own. Fine for one Render instance.
+
 ## Storage and limits
 
 - **24-hour expiry of dataset folders** (PRD, Storage). Must skip the sample cache, and must also remove evidence cards: cards for the sample are saved under `storage/<sample id>/cards/` and grow with every question.
@@ -34,7 +41,6 @@ came from and what would trigger doing it. Nothing here is being built right now
 
 ## API and deploy
 
-- **`provider` field in `/api/health`** once the LLM client exists (PRD API table).
 - **Split `requirements.txt`** into runtime and dev, so pytest and ruff are not in the image.
 - **Frontend type check (`npm run build`) in CI.**
 - **Render paid starter instance for judging week**, or ping before demos (free tier sleeps).

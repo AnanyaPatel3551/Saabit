@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Response, UploadFile
 
-from app.api.errors import NotCleaned
+from app.api.errors import LLMPaused, NotCleaned
 from app.api.sample import (
     SAMPLE_PATH,
     SAMPLE_ROLES,
@@ -14,7 +14,16 @@ from app.api.sample import (
     read_cached_sample,
     shared_sample,
 )
-from app.api.schemas import CardOut, ConfirmIn, DataCheckOut, DatasetOut, RoleOut, RunOut
+from app.api.schemas import (
+    CardOut,
+    ConfirmIn,
+    DataCheckOut,
+    DatasetOut,
+    PlanOut,
+    QuestionIn,
+    RoleOut,
+    RunOut,
+)
 from app.api.shared import FIXES_FILE, clean_dataset, describe, source_file, validate_roles
 from app.core import detect, ingest, pipeline, storage
 from app.core.plan import Plan
@@ -118,6 +127,23 @@ def confirm_roles(
     dataset.data_check = check
     storage.write_metadata(root, dataset_id, dataset.model_dump(mode="json"))
     return check
+
+
+@router.post("/{dataset_id}/plan", response_model=PlanOut)
+def plan_question(
+    dataset_id: str, body: QuestionIn, root: StorageRoot, cache_dir: SampleCache
+) -> PlanOut:
+    """Turn a typed question into a validated plan (FR-4.1 to FR-4.5).
+
+    The planner and LLM client are imported here, not at startup.
+    """
+    from app.core import planner
+
+    try:
+        result = planner.make_plan(body.question, dataset_id, root, cache_dir)
+    except planner.LLMUnavailable as error:
+        raise LLMPaused(error.message) from error
+    return PlanOut(plan=result.plan, caveats=result.caveats, cached=result.cached)
 
 
 @router.post("/{dataset_id}/run", response_model=RunOut)

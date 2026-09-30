@@ -19,11 +19,15 @@ if ($Task -ne 'dev-frontend' -and -not (Test-Path $Python)) {
     Write-Error "No venv at $Python. Run: py -3.11 -m venv backend\.venv"
 }
 
+# Local secrets: uvicorn loads ..\.env itself (--env-file). The app never reads .env.
+$EnvFile = Join-Path $PSScriptRoot '.env'
+$EnvArgs = if (Test-Path $EnvFile) { @('--env-file', $EnvFile) } else { @() }
+
 $Location = if ($Task -eq 'dev-frontend') { $Frontend } else { $Backend }
 Push-Location $Location
 try {
     switch ($Task) {
-        'dev-backend'  { & $Python -m uvicorn app.main:app --reload --port 8000 }
+        'dev-backend'  { & $Python -m uvicorn app.main:app --reload --port 8000 @EnvArgs }
         'dev-frontend' { npm run dev }
         'test'         { & $Python -m pytest }
         'lint'         { & $Python -m ruff check . }

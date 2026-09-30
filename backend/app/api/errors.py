@@ -44,6 +44,13 @@ class NotCleaned(ApiError):
     code = "not_cleaned"
 
 
+class LLMPaused(ApiError):
+    """The planner's model is unreachable; typed questions pause (PRD Degraded mode)."""
+
+    status_code = 503
+    code = "llm_unavailable"
+
+
 def error_response(status_code: int, code: str, message: str) -> JSONResponse:
     body = ErrorOut(error=ErrorDetail(code=code, message=message))
     return JSONResponse(status_code=status_code, content=body.model_dump())

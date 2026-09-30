@@ -255,7 +255,7 @@ React app (upload, ask, inspect)
 FastAPI service (one Render deploy)
    Ingest and detect roles
    Clean and capability check
-   Validate the plan (Pydantic)  <-> LLM provider (Groq Llama 3.3 70B, NIM fallback)  [plan]
+   Validate the plan (Pydantic)  <-> LLM provider (Groq GPT-OSS 120B)  [plan]
    DuckDB via SQL  |  pandas      (two independent engines)
    Verify: engines agree -> Verified
    Answer text + number check    <-> LLM provider  [text]
@@ -273,7 +273,7 @@ The LLM touches the pipeline at two points only, planning and phrasing, and both
 | API | FastAPI, Pydantic v2 | Async endpoints; heavy work in a thread pool |
 | Compute A | DuckDB over Parquet | Read-only connection, SQL built with sqlglot |
 | Compute B | pandas | Independent implementation of each metric |
-| LLM | Llama 3.3 70B on Groq (`llama-3.3-70b-versatile`), temperature 0, JSON mode | NVIDIA NIM as fallback provider; templates if both fail |
+| LLM | GPT-OSS 120B on Groq (`openai/gpt-oss-120b`), temperature 0, low reasoning effort, JSON mode | Replaces Llama 3.3 70B (`llama-3.3-70b-versatile`), which Groq retired on 16 Aug 2026. NIM fallback was cut; templates if Groq is unavailable |
 | Storage | Per-dataset folder on local disk: raw file, cleaned Parquet, metadata JSON | Deleted after 24 hours; sample dataset preloaded at startup |
 | Tests and CI | pytest, GitHub Actions | Unit tests + golden-number tests on every push |
 | Hosting | Render web service from a Dockerfile | Health check at `/api/health` |
@@ -361,7 +361,7 @@ Every decision below trades capability for trust or for shipping on time; each i
 | D6 | LLM input | Schema, allowed values, aggregates | Raw rows | Privacy, token cost, and it removes the temptation for the model to calculate |
 | D7 | Answer text | LLM sentence + number check, template fallback | Unchecked LLM text | A single hallucinated number would break the whole promise |
 | D8 | Recommendations | Rules over evidence + backtest | LLM brainstorming | Every recommendation is traceable and its confidence is earned, not asserted |
-| D9 | Model | Llama 3.3 70B on Groq | GPT-4-class paid APIs | Free, very fast, good at JSON; the plan format keeps the task within its reach |
+| D9 | Model | GPT-OSS 120B on Groq | GPT-4-class paid APIs | Free tier, fast, good at JSON; the plan format keeps the task within its reach. Llama 3.3 70B was the original choice until Groq retired it on 16 Aug 2026 |
 | D10 | Out-of-format questions | Refuse with nearest supported question | Free-form SQL fallback | Not enough time to make free SQL safe and verified; refusal keeps the zero-error promise |
 | D11 | Deployment | One service, one Dockerfile | Separate frontend and backend hosts | One URL, no CORS, one thing to break |
 | D12 | Storage | Local files, 24-hour expiry | Database, S3 | No accounts means no need for persistence; less to secure |

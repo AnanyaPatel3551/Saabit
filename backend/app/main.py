@@ -13,6 +13,7 @@ from app.api.cards import router as cards_router
 from app.api.datasets import router as datasets_router
 from app.api.errors import register_error_handlers
 from app.api.sample import log_sample_status
+from app.llm.config import status_dict
 
 VERSION = "0.1.0"
 FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
@@ -23,16 +24,27 @@ PLACEHOLDER_HTML = (
 )
 
 
+class LLMHealth(BaseModel):
+    """Last known LLM state. Health checks never call the LLM; this is the latest outcome."""
+
+    provider: str
+    model: str
+    status: str  # ok, unavailable, not_configured or unknown
+    reason: str | None
+    checked_at: str | None
+
+
 class Health(BaseModel):
     """Body returned by the health check."""
 
     status: str
     version: str
+    llm: LLMHealth
 
 
 def health() -> Health:
-    """Report that the service is up and which version is running."""
-    return Health(status="ok", version=VERSION)
+    """Report that the service is up, its version, and the LLM's last known state."""
+    return Health(status="ok", version=VERSION, llm=LLMHealth(**status_dict()))
 
 
 def placeholder() -> HTMLResponse:

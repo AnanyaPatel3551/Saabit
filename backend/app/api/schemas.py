@@ -2,7 +2,9 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.core.plan import Plan
 
 
 class RoleOut(BaseModel):
@@ -93,6 +95,18 @@ class CardOut(BaseModel):
     pandas_result: list[dict] | None
     mismatches: list[str]
     created_at: str
+
+
+class QuestionIn(BaseModel):
+    question: str = Field(min_length=1, max_length=500)
+
+
+class PlanOut(BaseModel):
+    """A planned question. Status ok plans are validated and snapped; the others explain."""
+
+    plan: Plan
+    caveats: list[str]
+    cached: bool
 
 
 class RunOut(BaseModel):

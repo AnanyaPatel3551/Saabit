@@ -19,6 +19,7 @@ import sys
 import tempfile
 import threading
 import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -36,7 +37,9 @@ SCENARIOS = {
     "upload_25mb": "POST /api/datasets with a 25 MB CSV",
     "confirm_25mb": "upload a 25 MB CSV, then POST /confirm (cleaning)",
     "run_10_plans": "10 plans through both engines on the full sample",
+    "plan_10_questions": "10 questions through the planner (local stub instead of Groq)",
 }
+STUB_KEY = "memcheck-stub-not-a-real-key"
 PLANS = [
     {"metric": "revenue", "group_by": ["month"]},
     {"metric": "orders", "group_by": ["week"]},
@@ -120,6 +123,14 @@ def run_scenario(name: str, upload: Path | None) -> dict:
             slowest = max(slowest, time.perf_counter() - started)
             verified += response.status_code == 200 and response.json()["verified"]
         results.append(f"{verified}/{len(PLANS)} verified, slowest {slowest:.2f}s")
+    if name == "plan_10_questions":
+        sample_id = httpx.post(f"{base}/api/datasets/sample", timeout=120).json()["dataset_id"]
+        planned = 0
+        for number in range(len(PLANS)):
+            response = httpx.post(f"{base}/api/datasets/{sample_id}/plan",
+                                  json={"question": f"memcheck question {number}"}, timeout=120)
+            planned += response.status_code == 200 and response.json()["plan"]["status"] == "ok"
+        results.append(f"{planned}/{len(PLANS)} planned")
     if name in ("upload_25mb", "confirm_25mb") and upload is not None:
         with upload.open("rb") as f:
             response = httpx.post(
@@ -138,6 +149,32 @@ def run_scenario(name: str, upload: Path | None) -> dict:
     server.should_exit = True
     thread.join()
     return {"peak_mb": peak_rss_mb(), "status": "; ".join(results)}
+
+
+def start_llm_stub() -> str:
+    """A local stand-in for Groq's chat completions endpoint that returns the PLANS in turn.
+
+    It lets the planner path be measured with no network and no real key.
+    """
+    replies = iter(PLANS * 100)
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_POST(self) -> None:
+            self.rfile.read(int(self.headers.get("Content-Length", 0)))
+            content = json.dumps({"status": "ok", **next(replies)})
+            body = json.dumps({"choices": [{"message": {"content": content}}]}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *_: object) -> None:
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return f"http://127.0.0.1:{server.server_address[1]}/v1"
 
 
 def write_upload(dest: Path) -> Path:
@@ -174,6 +211,8 @@ def main() -> int:
             **os.environ,
             "SAABIT_STORAGE_DIR": str(tmp_path / "storage"),
             "SAABIT_SAMPLE_CACHE": str(tmp_path / "cache"),
+            "GROQ_BASE_URL": start_llm_stub(),
+            "GROQ_API_KEY": STUB_KEY,
         }
         print(f"25 MB upload file: {upload.stat().st_size:,} bytes; budget {BUDGET_MB} MB peak "
               f"at runtime, {BUILD_BUDGET_MB} MB for the image-build step\n")

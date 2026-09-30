@@ -234,6 +234,12 @@ def distinct_values(db_path: Source, column: str) -> list[str]:
     return [str(v) for v in execute(db_path, query)["v"]]
 
 
+def distinct_count(db_path: Source, column: str) -> int:
+    """How many distinct non-blank values one canonical column has."""
+    query = exp.select(exp.alias_(count_distinct(col(column)), "n")).from_(TABLE)
+    return int(execute(db_path, query)["n"].iloc[0])
+
+
 def date_bounds(db_path: Source) -> tuple[date, date]:
     query = exp.select(exp.alias_(exp.Min(this=col("order_date")), "lo"),
                        exp.alias_(exp.Max(this=col("order_date")), "hi")).from_(TABLE)
