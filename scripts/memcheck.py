@@ -38,7 +38,7 @@ SCENARIOS = {
     "confirm_25mb": "upload a 25 MB CSV, then POST /confirm (cleaning)",
     "run_10_plans": "10 plans through both engines on the full sample",
     "plan_10_questions": "10 questions through the planner (local stub instead of Groq)",
-    "answer_20_questions": "20 questions: /plan then /run with the writer (local stub)",
+    "answer_20_questions": "20 questions: /plan, /run, then the sentence (local stub)",
 }
 STUB_KEY = "memcheck-stub-not-a-real-key"
 PLANS = [
@@ -147,9 +147,11 @@ def run_scenario(name: str, upload: Path | None) -> dict:
                                  json={"question": question}, timeout=120)
             if planned.status_code == 200:
                 response = httpx.post(f"{base}/api/datasets/{sample_id}/run",
-                                      params={"question": question},
                                       json=planned.json()["plan"], timeout=120)
-                answered += response.status_code == 200
+                card_id = response.json()["card"]["card_id"]
+                written = httpx.post(f"{base}/api/cards/{card_id}/sentence",
+                                     json={"question": question}, timeout=120)
+                answered += response.status_code == 200 and written.status_code == 200
             slowest = max(slowest, time.perf_counter() - started)
         results.append(f"{answered}/20 answered, slowest {slowest:.2f}s")
     if name in ("upload_25mb", "confirm_25mb") and upload is not None:

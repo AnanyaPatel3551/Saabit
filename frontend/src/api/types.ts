@@ -93,12 +93,20 @@ export interface Card {
   created_at: string;
 }
 
+/** /run answers as soon as both engines finish; sentence is the template until the LLM's arrives. */
 export interface RunOut {
   verified: boolean;
   sentence: string | null;
-  source: "llm" | "template" | "unverified";
+  source: "template" | "unverified";
+  sentence_status: "pending" | "final";
   note: string | null;
   card: Card;
+}
+
+export interface SentenceOut {
+  sentence: string | null;
+  source: "llm" | "template" | "unverified";
+  note: string | null;
 }
 
 export interface RowsOut {

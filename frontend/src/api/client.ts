@@ -2,7 +2,7 @@
 // carrying the backend's readable message ({"error": {"code", "message"}}).
 
 import type {
-  Card, DataCheck, Dataset, Health, Overview, Plan, PlanOut, RowsOut, RunOut,
+  Card, DataCheck, Dataset, Health, Overview, Plan, PlanOut, RowsOut, RunOut, SentenceOut,
 } from "./types";
 
 export class ApiError extends Error {
@@ -79,9 +79,16 @@ export function planQuestion(datasetId: string, question: string): Promise<PlanO
   return request(`/api/datasets/${datasetId}/plan`, postJson({ question }));
 }
 
-export function runPlan(datasetId: string, plan: Plan, question = ""): Promise<RunOut> {
-  const query = question ? `?question=${encodeURIComponent(question)}` : "";
-  return request(`/api/datasets/${datasetId}/run${query}`, postJson(plan));
+/** Both engines, no LLM: the numbers come back first. */
+export function runPlan(datasetId: string, plan: Plan): Promise<RunOut> {
+  return request(`/api/datasets/${datasetId}/run`, postJson(plan));
+}
+
+/** The answer sentence for a card, written after the numbers are on screen. */
+export function writeSentence(
+  cardId: string, question: string, signal?: AbortSignal,
+): Promise<SentenceOut> {
+  return request(`/api/cards/${cardId}/sentence`, { ...postJson({ question }), signal });
 }
 
 export function getCard(cardId: string): Promise<Card> {

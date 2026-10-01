@@ -338,6 +338,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\nPlanner calls: {pacer.calls} ({served}); "
           f"plans from cache: {meta['plans_from_cache']}; prompt tokens {pacer.prompt_tokens}, "
           f"of which cached {pacer.cached_tokens}.")
+    if meta["plans_from_cache"]:
+        print(f"NOTE: {meta['plans_from_cache']} questions were answered from saved plans "
+              "(plan cache or seed), not the model. Publish only runs made with --no-cache.")
     print()
     for line in card_lines("Golden questions", cards["questions"]) + [""] + \
             card_lines("Golden anchors", cards["anchors"]):

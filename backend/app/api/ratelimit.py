@@ -38,6 +38,7 @@ QUESTION_LIMIT = "Too many questions from this connection: the limit is 30 every
 # typed question, which needs both, is not counted twice against the same 30.
 QUESTIONS = Limit("questions", 30, 600, QUESTION_LIMIT)
 ANSWERS = Limit("answers", 30, 600, QUESTION_LIMIT)
+SENTENCES = Limit("sentences", 30, 600, QUESTION_LIMIT)
 UPLOADS = Limit("uploads", 5, 3600,
                 "Too many uploads from this connection: the limit is 5 an hour.")
 
@@ -67,7 +68,8 @@ class RateLimiter:
 
     def forget_idle(self, now: float) -> None:
         """Drop clients with no request inside their window (called under the lock)."""
-        windows = {rule.name: rule.window_s for rule in (QUESTIONS, ANSWERS, UPLOADS)}
+        windows = {rule.name: rule.window_s
+                   for rule in (QUESTIONS, ANSWERS, SENTENCES, UPLOADS)}
         for key in [k for k, v in self.hits.items()
                     if not v or v[-1] <= now - windows.get(k[0], 3600)]:
             del self.hits[key]

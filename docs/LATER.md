@@ -89,7 +89,13 @@ came from and what would trigger doing it. Nothing here is being built right now
 - **X-Forwarded-For trust**: the first address is used when the request comes through a private-network proxy, as specified. A client can put a fake address at the front of that header, so the limit can be dodged by a determined user; using the address the proxy itself appended (the last untrusted hop) is stronger.
 - **CSV downloads and spreadsheet formulas**: a cell from the user's own file that starts with = + - @ is exported as-is in the rows and fix-log CSVs; prefixing such cells would stop a spreadsheet app evaluating them.
 - **Retention uses file times and metadata**, not a database; a folder whose metadata is unreadable falls back to its modified time.
-- **Questions travel in the /run query string** (?question=); the access log is off for that reason. Moving the question into the request body would remove the risk at the source.
+
+## Speed (from Phase 10b)
+
+- **Refresh the plan seed after any prompt edit**: run the full eval with `--no-cache` (fills the plan cache), then `python -m app.plan_seed export`. A stale seed is safe (it just stops matching) but loses the speed-up; `prepare_sample` prints how many entries still match.
+- **Place names that are both a city and a state** ("Pondicherry", "New Delhi"): Nemotron reads them as cities (x06 and x07 fail on NIM; x06 passed on Groq). The planner should ask, or prefer the state when the value is also a state spelling.
+- **Nemotron 3.5 Lightning** (nvidia/nemotron-3.5-lightning-30b-a3b) was tried as a faster fallback on 2 Oct 2026: every planner call timed out at 30 s and trivial calls took 29-42 s, so NIM stays on Nemotron 3 Super. Worth re-testing later.
+- **NIM latency spikes** (a single writer call took 26 s): the UI falls back to the template after 20 s; a shorter writer-only timeout would make the sentence arrive or fall back sooner.
 
 ## Sample data licence
 

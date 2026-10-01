@@ -110,18 +110,34 @@ class PlanOut(BaseModel):
 
 
 class RunOut(BaseModel):
-    """Answer to a plan.
+    """Answer to a plan, returned as soon as both engines finish (numbers first).
 
-    sentence is the checked LLM sentence (source "llm") or a template (source "template").
-    When the engines disagree, sentence is null, source is "unverified" and note says
-    "Could not verify" with both values.
+    sentence is the template sentence (source "template"), shown if the LLM sentence never
+    arrives; sentence_status "pending" means POST /api/cards/{id}/sentence can write the LLM
+    sentence. When the engines disagree, sentence is null, source is "unverified",
+    sentence_status is "final" and note says "Could not verify" with both values.
     """
 
     verified: bool
     sentence: str | None
     source: str
+    sentence_status: str  # "pending" or "final"
     note: str | None
     card: CardOut
+
+
+class SentenceIn(BaseModel):
+    """The question the user typed, if any (empty for chip edits)."""
+
+    question: str = Field(default="", max_length=500)
+
+
+class SentenceOut(BaseModel):
+    """The answer sentence for a saved card: the checked LLM sentence or the template."""
+
+    sentence: str | None
+    source: str  # "llm", "template" or "unverified"
+    note: str | None
 
 
 class RowsOut(BaseModel):

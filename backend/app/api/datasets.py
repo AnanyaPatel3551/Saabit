@@ -191,23 +191,20 @@ def plan_question(
              dependencies=[Depends(limit(ANSWERS))])
 def run_plan(
     dataset_id: str, plan: Plan, root: StorageRoot, cache_dir: SampleCache, request: Request,
-    question: str = "",
 ) -> RunOut:
-    """Run a plan through both engines, then write a checked answer sentence.
+    """Run a plan through both engines and return the numbers at once (numbers first).
 
-    question (optional query parameter) gives the writer context and lets numbers the user
-    typed appear in the sentence. If the LLM is down, a template sentence is used.
+    No LLM call here: the sentence is the template, and POST /api/cards/{id}/sentence writes
+    the LLM sentence afterwards. Questions are never sent in this URL.
     """
-    from app.core import narrate  # the writer reaches the LLM, so it is imported here
-    from app.llm.config import served_by
+    from app.core import narrate
 
-    served_by.set(None)
     card = pipeline.run_plan(dataset_id, plan, root, cache_dir)
-    answer = narrate.write_answer(question, Plan.model_validate(card.plan), card.result,
-                                  card.verified, card.sql_result, card.pandas_result)
-    note(request, plan_status=plan.status, verified=card.verified, source=answer.source,
-         llm_provider=served_by.get() if answer.source == "llm" else None)
+    answer = narrate.instant_answer(Plan.model_validate(card.plan), card.result, card.verified,
+                                    card.sql_result, card.pandas_result)
+    note(request, plan_status=plan.status, verified=card.verified, source=answer.source)
     return RunOut(verified=card.verified, sentence=answer.text, source=answer.source,
+                  sentence_status="pending" if card.verified else "final",
                   note=answer.note, card=CardOut.model_validate(card))
 
 

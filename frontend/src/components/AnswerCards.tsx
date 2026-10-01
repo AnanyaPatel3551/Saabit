@@ -1,4 +1,5 @@
 import type { Plan, RunOut } from "../api/types";
+import type { Sentence } from "./AskPanel";
 import { reasonWithoutSuggestion, suggestedQuestion } from "../lib/plan";
 import { ResultChart } from "./ResultChart";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -6,18 +7,27 @@ import { VerifiedBadge } from "./VerifiedBadge";
 const card = "rounded-xl border bg-panel p-4 sm:p-5";
 const chipButton = "rounded-full border border-gold/50 px-3 py-1 text-sm text-gold-soft hover:bg-gold/10";
 
-/** A verified answer: the checked sentence, the badge, the chart and the caveats. */
-export function AnswerCard({ answer, caveats, onEvidence }: {
+/**
+ * A verified answer: the numbers, badge, chart and caveats show at once; the sentence fills in
+ * when the writer finishes (or the template, if it fails).
+ */
+export function AnswerCard({ answer, sentence, caveats, onEvidence }: {
   answer: RunOut;
+  sentence: Sentence;
   caveats: string[];
   onEvidence: () => void;
 }) {
   const plan = answer.card.plan;
   const allCaveats = [...new Set([...caveats, ...answer.card.caveats])];
   return (
-    <article className={`${card} border-line`} aria-live="polite">
+    <article className={`${card} border-line`}>
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-        <p className="font-display text-xl leading-snug text-text">{answer.sentence}</p>
+        <p className="font-display text-xl leading-snug text-text" aria-live="polite"
+          aria-busy={sentence.status === "pending"}>
+          {sentence.status === "pending"
+            ? <span className="text-base text-muted">Writing the answer…</span>
+            : sentence.text}
+        </p>
         <VerifiedBadge verified={answer.verified} />
       </div>
       <ResultChart plan={plan} rows={answer.card.result} />
@@ -27,7 +37,10 @@ export function AnswerCard({ answer, caveats, onEvidence }: {
         </ul>
       )}
       <div className="mt-3 flex items-center justify-between text-xs text-muted">
-        <span>{answer.source === "template" ? "Sentence written from a template." : ""}</span>
+        <span>
+          {sentence.status === "done" && sentence.source === "template"
+            ? "Sentence written from a template." : ""}
+        </span>
         <button type="button" onClick={onEvidence} className="text-gold hover:underline">
           Show evidence
         </button>

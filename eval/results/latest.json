@@ -1,36 +1,44 @@
 {
   "meta": {
-    "finished_at": "2026-10-01 18:59",
-    "model": "openai/gpt-oss-120b",
+    "finished_at": "2026-10-02 01:07",
+    "providers": [
+      "nim nvidia/nemotron-3-super-120b-a12b"
+    ],
+    "served_by": {
+      "nim nvidia/nemotron-3-super-120b-a12b": 65
+    },
+    "plans_from_cache": 0,
+    "prompt_tokens": 111738,
+    "cached_tokens": 0,
     "questions": 65,
-    "llm_calls": 63,
-    "minutes": 15.6,
-    "needs_fresh_run": "NEEDS A FRESH RUN: this run (18:59, 1 Oct) was cut off by Groq's per-minute limit after question 42; questions 43-65 were never planned. Re-run: .\\tasks.ps1 eval"
+    "llm_calls": 65,
+    "minutes": 7.2,
+    "stopped": null
   },
   "scorecards": {
     "questions": {
       "answerable": 40,
-      "answerable_correct": 39,
+      "answerable_correct": 38,
       "unanswerable": 10,
-      "refused_correctly": 3,
+      "refused_correctly": 10,
       "verified_but_wrong": 0,
-      "verified_but_misread": 1,
-      "plan_failures": 8,
+      "verified_but_misread": 2,
+      "plan_failures": 2,
       "compute_failures": 0,
-      "p50_s": 1.547,
-      "p95_s": 6.204
+      "p50_s": 3.907,
+      "p95_s": 25.156
     },
     "anchors": {
       "answerable": 13,
-      "answerable_correct": 0,
+      "answerable_correct": 13,
       "unanswerable": 2,
       "refused_correctly": 2,
       "verified_but_wrong": 0,
       "verified_but_misread": 0,
-      "plan_failures": 13,
+      "plan_failures": 0,
       "compute_failures": 0,
-      "p50_s": null,
-      "p95_s": null
+      "p50_s": 2.844,
+      "p95_s": 20.422
     }
   },
   "rows": [
@@ -40,7 +48,9 @@
       "group": "single_metric",
       "question": "What is the total revenue across all months?",
       "correct": true,
-      "latency_s": 3.047,
+      "latency_s": 2.407,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -95,7 +105,9 @@
       "group": "single_metric",
       "question": "How many units were sold in June 2022?",
       "correct": true,
-      "latency_s": 1.282,
+      "latency_s": 25.156,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -151,7 +163,9 @@
       "group": "single_metric",
       "question": "What is the average order value overall?",
       "correct": true,
-      "latency_s": 1.296,
+      "latency_s": 2.047,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -206,7 +220,9 @@
       "group": "single_metric",
       "question": "AOV in May 2022",
       "correct": true,
-      "latency_s": 1.344,
+      "latency_s": 5.015,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -260,7 +276,9 @@
       "group": "single_metric",
       "question": "kitna revenue aaya Amazon fulfilment se?",
       "correct": true,
-      "latency_s": 1.015,
+      "latency_s": 4.953,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -323,7 +341,9 @@
       "group": "single_metric",
       "question": "How many orders were fulfilled by the merchant?",
       "correct": true,
-      "latency_s": 1.61,
+      "latency_s": 3.5,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -386,7 +406,9 @@
       "group": "single_metric",
       "question": "What is the cancellation rate for kurta?",
       "correct": true,
-      "latency_s": 0.937,
+      "latency_s": 3.313,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -449,7 +471,9 @@
       "group": "single_metric",
       "question": "revenue from karnataka in may",
       "correct": true,
-      "latency_s": 1.188,
+      "latency_s": 9.266,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -515,7 +539,9 @@
       "group": "single_metric",
       "question": "How many orders came through the Non-Amazon channel?",
       "correct": true,
-      "latency_s": 0.999,
+      "latency_s": 3.766,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -578,7 +604,9 @@
       "group": "single_metric",
       "question": "Total units sold",
       "correct": true,
-      "latency_s": 1.485,
+      "latency_s": 2.609,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -633,7 +661,9 @@
       "group": "single_metric",
       "question": "What was the cancellation rate in June 2022?",
       "correct": true,
-      "latency_s": 1.547,
+      "latency_s": 2.406,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -689,7 +719,9 @@
       "group": "single_metric",
       "question": "Western Dress ki total sales kitni hai",
       "correct": true,
-      "latency_s": 0.86,
+      "latency_s": 20.25,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -752,7 +784,9 @@
       "group": "breakdown",
       "question": "Top 5 states by orders",
       "correct": true,
-      "latency_s": 1.391,
+      "latency_s": 4.094,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -862,7 +896,9 @@
       "group": "breakdown",
       "question": "Revenue by category",
       "correct": true,
-      "latency_s": 1.25,
+      "latency_s": 2.063,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1013,7 +1049,9 @@
       "group": "breakdown",
       "question": "How many orders by fulfilment type?",
       "correct": true,
-      "latency_s": 1.266,
+      "latency_s": 1.656,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1085,7 +1123,9 @@
       "group": "breakdown",
       "question": "Top 3 categories by units sold",
       "correct": true,
-      "latency_s": 1.844,
+      "latency_s": 3.0,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1171,7 +1211,9 @@
       "group": "breakdown",
       "question": "top 5 skus by unit sold",
       "correct": true,
-      "latency_s": 1.687,
+      "latency_s": 2.281,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1279,7 +1321,9 @@
       "group": "breakdown",
       "question": "Average order value by fulfilment",
       "correct": true,
-      "latency_s": 1.203,
+      "latency_s": 5.813,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1351,7 +1395,9 @@
       "group": "breakdown",
       "question": "Revenue by sales channel",
       "correct": true,
-      "latency_s": 1.751,
+      "latency_s": 1.954,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1423,7 +1469,9 @@
       "group": "breakdown",
       "question": "Cancellation rate by category",
       "correct": true,
-      "latency_s": 1.361,
+      "latency_s": 2.281,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1574,7 +1622,9 @@
       "group": "breakdown",
       "question": "top 5 states by revenue",
       "correct": true,
-      "latency_s": 1.672,
+      "latency_s": 2.781,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1684,7 +1734,9 @@
       "group": "breakdown",
       "question": "sabse zyada orders kis category mein hain",
       "correct": true,
-      "latency_s": 2.626,
+      "latency_s": 2.078,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1748,7 +1800,9 @@
       "group": "trend",
       "question": "Monthly revenue from April to June 2022",
       "correct": true,
-      "latency_s": 1.891,
+      "latency_s": 7.86,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1832,7 +1886,9 @@
       "group": "trend",
       "question": "monthly orders apr to jun",
       "correct": true,
-      "latency_s": 3.656,
+      "latency_s": 5.969,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1916,7 +1972,9 @@
       "group": "trend",
       "question": "How did the cancellation rate change month by month from April to June 2022?",
       "correct": true,
-      "latency_s": 1.968,
+      "latency_s": 4.172,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2000,7 +2058,9 @@
       "group": "trend",
       "question": "Amazon vs Merchant cancellation rate in May 2022",
       "correct": true,
-      "latency_s": 1.25,
+      "latency_s": 8.047,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2071,7 +2131,9 @@
       "group": "trend",
       "question": "Compare revenue in April and May 2022",
       "correct": true,
-      "latency_s": 1.781,
+      "latency_s": 25.609,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2142,7 +2204,9 @@
       "group": "trend",
       "question": "AOV trend by month, April to June 2022",
       "correct": true,
-      "latency_s": 1.453,
+      "latency_s": 4.281,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2226,7 +2290,9 @@
       "group": "trend",
       "question": "Set category revenue month by month, Apr-Jun 2022",
       "correct": true,
-      "latency_s": 2.125,
+      "latency_s": 14.891,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2318,7 +2384,9 @@
       "group": "trend",
       "question": "merchant orders har mahine april se june",
       "correct": true,
-      "latency_s": 1.219,
+      "latency_s": 10.031,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2410,7 +2478,9 @@
       "group": "trap",
       "question": "rajsthan ka cancellation kitna hai",
       "correct": true,
-      "latency_s": 0.999,
+      "latency_s": 3.703,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2475,7 +2545,9 @@
       "group": "trap",
       "question": "How many orders were placed in March 2022?",
       "correct": true,
-      "latency_s": 2.25,
+      "latency_s": 2.969,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2535,7 +2607,9 @@
       "group": "trap",
       "question": "Revenue in March 2022",
       "correct": true,
-      "latency_s": 6.204,
+      "latency_s": 5.891,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2595,7 +2669,9 @@
       "group": "trap",
       "question": "RJ se kitne orders aaye",
       "correct": true,
-      "latency_s": 1.75,
+      "latency_s": 9.859,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2660,7 +2736,9 @@
       "group": "trap",
       "question": "orders from orissa",
       "correct": true,
-      "latency_s": 1.234,
+      "latency_s": 3.422,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2724,8 +2802,10 @@
       "source": "questions",
       "group": "trap",
       "question": "Pondicherry revenue",
-      "correct": true,
-      "latency_s": 1.781,
+      "correct": false,
+      "latency_s": 25.515,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2735,10 +2815,10 @@
           "group_by": [],
           "filters": [
             {
-              "column": "state",
+              "column": "city",
               "op": "eq",
               "values": [
-                "Puducherry"
+                "Pondicherry"
               ]
             }
           ],
@@ -2750,13 +2830,14 @@
         },
         "result": [
           {
-            "value": 175764.0,
-            "orders": 310
+            "value": 13843.0,
+            "orders": 21
           }
         ],
         "caveats": [
           "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "City values were cleaned before this ran: 1664 value(s) changed across 14,811 rows (see the fix log).",
+          "Based on fewer than 30 orders: (all) (21)."
         ],
         "verified": true,
         "error": null
@@ -2765,9 +2846,9 @@
         "expected_status": "ok",
         "expected": 175764.0
       },
-      "failure": null,
+      "failure": "plan",
       "verified_but_wrong": false,
-      "verified_but_misread": false,
+      "verified_but_misread": true,
       "expected_plan_run": {
         "correct": true,
         "verified": true,
@@ -2790,7 +2871,9 @@
       "group": "trap",
       "question": "How many orders from New Delhi?",
       "correct": false,
-      "latency_s": 1.281,
+      "latency_s": 4.687,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2855,7 +2938,9 @@
       "group": "trap",
       "question": "april mein total orders kitne the",
       "correct": true,
-      "latency_s": 2.437,
+      "latency_s": 8.75,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2909,7 +2994,9 @@
       "group": "trap",
       "question": "Units sold in April 2022",
       "correct": true,
-      "latency_s": 1.124,
+      "latency_s": 5.0,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2963,7 +3050,9 @@
       "group": "trap",
       "question": "Monthly revenue trend",
       "correct": true,
-      "latency_s": 4.86,
+      "latency_s": 1.906,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3058,7 +3147,9 @@
       "group": "unanswerable",
       "question": "What is the profit margin by category?",
       "correct": true,
-      "latency_s": 12.953,
+      "latency_s": 1.656,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "unsupported",
         "reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue by category.",
@@ -3094,10 +3185,12 @@
       "group": "unanswerable",
       "question": "What share of orders were cash on delivery?",
       "correct": true,
-      "latency_s": 2.032,
+      "latency_s": 3.062,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no payment method column, so the COD share cannot be computed. Nearest question: orders by fulfilment.",
+        "reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: cancellation rate.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3107,7 +3200,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no payment method column, so the COD share cannot be computed. Nearest question: orders by fulfilment."
+          "unsupported_reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: cancellation rate."
         },
         "result": null,
         "caveats": [],
@@ -3131,16 +3224,28 @@
       "source": "questions",
       "group": "unanswerable",
       "question": "forcast next month sales",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 2.984,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
-        "reason": null,
-        "plan": null,
+        "status": "unsupported",
+        "reason": "Saabit does not forecast: a few months of data cannot support an honest forecast. Nearest question: monthly revenue trend.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "Saabit does not forecast: a few months of data cannot support an honest forecast. Nearest question: monthly revenue trend."
+        },
         "result": null,
         "caveats": [],
         "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "error": null
       },
       "expected": {
         "expected_status": "unsupported",
@@ -3151,7 +3256,7 @@
           "future"
         ]
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false
     },
@@ -3160,16 +3265,28 @@
       "source": "questions",
       "group": "unanswerable",
       "question": "How many repeat customers do I have?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 3.907,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
-        "reason": null,
-        "plan": null,
+        "status": "unsupported",
+        "reason": "The file has no customer identifier column, so repeat customers cannot be computed. Nearest question: orders.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file has no customer identifier column, so repeat customers cannot be computed. Nearest question: orders."
+        },
         "result": null,
         "caveats": [],
         "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "error": null
       },
       "expected": {
         "expected_status": "unsupported",
@@ -3178,7 +3295,7 @@
           "customers"
         ]
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false
     },
@@ -3187,16 +3304,28 @@
       "source": "questions",
       "group": "unanswerable",
       "question": "What is the return on my ad spend?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 2.359,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
-        "reason": null,
-        "plan": null,
+        "status": "unsupported",
+        "reason": "The file has no ad spend column, so return on ad spend cannot be computed. Nearest question: revenue by channel.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file has no ad spend column, so return on ad spend cannot be computed. Nearest question: revenue by channel."
+        },
         "result": null,
         "caveats": [],
         "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "error": null
       },
       "expected": {
         "expected_status": "unsupported",
@@ -3208,7 +3337,7 @@
           "marketing"
         ]
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false
     },
@@ -3218,10 +3347,12 @@
       "group": "unanswerable",
       "question": "What is the average delivery time by state?",
       "correct": true,
-      "latency_s": 6.344,
+      "latency_s": 9.359,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "unsupported",
-        "reason": "The file does not contain delivery time data, so average delivery time cannot be computed. Nearest question: revenue by state.",
+        "reason": "The file has no delivery time column, so average delivery time cannot be computed. Nearest question: average order value by state.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3231,7 +3362,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file does not contain delivery time data, so average delivery time cannot be computed. Nearest question: revenue by state."
+          "unsupported_reason": "The file has no delivery time column, so average delivery time cannot be computed. Nearest question: average order value by state."
         },
         "result": null,
         "caveats": [],
@@ -3255,16 +3386,28 @@
       "source": "questions",
       "group": "unanswerable",
       "question": "How much inventory is left for each SKU?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 15.485,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
-        "reason": null,
-        "plan": null,
+        "status": "unsupported",
+        "reason": "The file has no inventory column, so inventory left cannot be computed. Nearest question: units sold per SKU.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file has no inventory column, so inventory left cannot be computed. Nearest question: units sold per SKU."
+        },
         "result": null,
         "caveats": [],
         "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "error": null
       },
       "expected": {
         "expected_status": "unsupported",
@@ -3273,7 +3416,7 @@
           "stock"
         ]
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false
     },
@@ -3282,16 +3425,28 @@
       "source": "questions",
       "group": "unanswerable",
       "question": "kaunsi age group ke customers sabse zyada khareedte hain",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 6.703,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
-        "reason": null,
-        "plan": null,
+        "status": "unsupported",
+        "reason": "The file has no age group column, so age group analysis cannot be computed. Nearest question: orders by category.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file has no age group column, so age group analysis cannot be computed. Nearest question: orders by category."
+        },
         "result": null,
         "caveats": [],
         "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "error": null
       },
       "expected": {
         "expected_status": "unsupported",
@@ -3303,7 +3458,7 @@
           "demographics"
         ]
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false
     },
@@ -3312,16 +3467,28 @@
       "source": "questions",
       "group": "unanswerable",
       "question": "How much did returns cost me in May 2022?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 23.109,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
-        "reason": null,
-        "plan": null,
+        "status": "unsupported",
+        "reason": "The file has no returns column, so returns cost cannot be computed. Nearest question: revenue in May 2022.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file has no returns column, so returns cost cannot be computed. Nearest question: revenue in May 2022."
+        },
         "result": null,
         "caveats": [],
         "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "error": null
       },
       "expected": {
         "expected_status": "unsupported",
@@ -3330,7 +3497,7 @@
           "costs"
         ]
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false
     },
@@ -3339,16 +3506,28 @@
       "source": "questions",
       "group": "unanswerable",
       "question": "profit kitna hua june mein",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 2.75,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
-        "reason": null,
-        "plan": null,
+        "status": "unsupported",
+        "reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue for June.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue for June."
+        },
         "result": null,
         "caveats": [],
         "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "error": null
       },
       "expected": {
         "expected_status": "unsupported",
@@ -3357,7 +3536,7 @@
           "costs"
         ]
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false
     },
@@ -3366,22 +3545,41 @@
       "source": "anchors",
       "group": "anchor",
       "question": "How many orders are there in total?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 1.203,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 120378.0,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 120378
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3404,22 +3602,41 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What is the overall cancellation rate?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 1.5,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 14.275864360597451,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 14.2759
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3442,22 +3659,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What was revenue in April 2022?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 2.688,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-04-30"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 26234520.0,
+            "orders": 45858
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 26234520.0
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3478,22 +3715,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What was revenue in May 2022?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 2.266,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-05-01",
+            "end": "2022-05-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 23953534.0,
+            "orders": 39221
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 23953534.0
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3514,22 +3771,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What was revenue in June 2022?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 3.031,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-06-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 21390530.0,
+            "orders": 35141
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 21390530.0
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3552,22 +3829,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "How many orders were placed in May 2022?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 2.844,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-05-01",
+            "end": "2022-05-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 39221.0,
+            "orders": 39221
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 39221
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3588,22 +3885,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "How many orders were placed in June 2022?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 6.422,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-06-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 35141.0,
+            "orders": 35141
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 35141
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3626,22 +3943,50 @@
       "source": "anchors",
       "group": "anchor",
       "question": "How many orders came from Rajasthan?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 5.234,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "state",
+              "op": "eq",
+              "values": [
+                "Rajasthan"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 2512.0,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 2512
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3665,22 +4010,50 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What is the cancellation rate in Rajasthan?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 1.282,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "state",
+              "op": "eq",
+              "values": [
+                "Rajasthan"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 14.211783439490446,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 14.2118
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3704,16 +4077,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "Which state has the most orders?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 1.937,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [
+            "state"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": {
+            "by": "value",
+            "dir": "desc"
+          },
+          "limit": 1,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "state": "Maharashtra",
+            "value": 20780.0,
+            "orders": 20780
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
@@ -3721,7 +4120,7 @@
           "Maharashtra": 20780
         }
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3746,16 +4145,43 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What is the cancellation rate by fulfilment type?",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 2.343,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [
+            "fulfilment"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.860408085521774,
+            "orders": 84002
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.54453485814823,
+            "orders": 36376
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
@@ -3764,7 +4190,7 @@
           "Merchant": 17.5445
         }
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3793,16 +4219,44 @@
       "source": "anchors",
       "group": "anchor",
       "question": "Cancellation rate by fulfilment in April and May 2022",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 13.625,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [
+            "fulfilment"
+          ],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-05-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.86401925391095,
+            "orders": 58170
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.56661340072095,
+            "orders": 26909
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
@@ -3811,7 +4265,7 @@
           "Merchant": 17.5666
         }
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3838,16 +4292,44 @@
       "source": "anchors",
       "group": "anchor",
       "question": "Cancellation rate by fulfilment in June 2022",
-      "correct": false,
-      "latency_s": null,
+      "correct": true,
+      "latency_s": 20.422,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [
+            "fulfilment"
+          ],
+          "filters": [],
+          "date_range": {
+            "start": "2022-06-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.873098027007044,
+            "orders": 25697
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.460821685726387,
+            "orders": 9444
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
@@ -3856,7 +4338,7 @@
           "Merchant": 17.4608
         }
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -3886,7 +4368,9 @@
       "group": "unanswerable",
       "question": "What is the profit margin by category?",
       "correct": true,
-      "latency_s": null,
+      "latency_s": 7.125,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "unsupported",
         "reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue by category.",
@@ -3922,10 +4406,12 @@
       "group": "unanswerable",
       "question": "What share of orders were cash on delivery?",
       "correct": true,
-      "latency_s": null,
+      "latency_s": 9.563,
+      "cached_plan": false,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no payment method column, so the COD share cannot be computed. Nearest question: orders by fulfilment.",
+        "reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: cancellation rate.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3935,7 +4421,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no payment method column, so the COD share cannot be computed. Nearest question: orders by fulfilment."
+          "unsupported_reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: cancellation rate."
         },
         "result": null,
         "caveats": [],

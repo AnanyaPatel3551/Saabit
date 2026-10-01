@@ -1,16 +1,18 @@
 {
   "meta": {
-    "finished_at": "2026-10-01 20:02",
+    "finished_at": "2026-10-02 00:00",
     "providers": [
-      "nim deepseek-ai/deepseek-v4.1-flash"
+      "nim nvidia/nemotron-3-super-120b-a12b"
     ],
-    "served_by": {},
+    "served_by": {
+      "nim nvidia/nemotron-3-super-120b-a12b": 13
+    },
     "plans_from_cache": 0,
-    "prompt_tokens": 0,
+    "prompt_tokens": 22366,
     "cached_tokens": 0,
     "questions": 13,
     "llm_calls": 13,
-    "minutes": 6.9,
+    "minutes": 1.6,
     "stopped": null
   },
   "scorecards": {
@@ -28,15 +30,15 @@
     },
     "anchors": {
       "answerable": 13,
-      "answerable_correct": 0,
+      "answerable_correct": 13,
       "unanswerable": 0,
       "refused_correctly": 0,
       "verified_but_wrong": 0,
       "verified_but_misread": 0,
-      "plan_failures": 13,
+      "plan_failures": 0,
       "compute_failures": 0,
-      "p50_s": 31.485,
-      "p95_s": 32.0
+      "p50_s": 2.844,
+      "p95_s": 33.265
     }
   },
   "rows": [
@@ -45,24 +47,41 @@
       "source": "anchors",
       "group": "anchor",
       "question": "How many orders are there in total?",
-      "correct": false,
-      "latency_s": 31.734,
+      "correct": true,
+      "latency_s": 2.687,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 120378.0,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 120378
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -85,24 +104,41 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What is the overall cancellation rate?",
-      "correct": false,
-      "latency_s": 31.5,
+      "correct": true,
+      "latency_s": 2.844,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 14.275864360597451,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 14.2759
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -125,24 +161,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What was revenue in April 2022?",
-      "correct": false,
-      "latency_s": 31.594,
+      "correct": true,
+      "latency_s": 3.109,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-04-30"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 26234520.0,
+            "orders": 45858
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 26234520.0
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -163,24 +217,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What was revenue in May 2022?",
-      "correct": false,
-      "latency_s": 31.625,
+      "correct": true,
+      "latency_s": 2.0,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-05-01",
+            "end": "2022-05-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 23953534.0,
+            "orders": 39221
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 23953534.0
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -201,24 +273,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What was revenue in June 2022?",
-      "correct": false,
-      "latency_s": 31.61,
+      "correct": true,
+      "latency_s": 12.172,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-06-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 21390530.0,
+            "orders": 35141
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 21390530.0
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -241,24 +331,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "How many orders were placed in May 2022?",
-      "correct": false,
-      "latency_s": 31.281,
+      "correct": true,
+      "latency_s": 1.875,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-05-01",
+            "end": "2022-05-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 39221.0,
+            "orders": 39221
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 39221
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -279,24 +387,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "How many orders were placed in June 2022?",
-      "correct": false,
-      "latency_s": 31.219,
+      "correct": true,
+      "latency_s": 11.813,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-06-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 35141.0,
+            "orders": 35141
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 35141
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -319,24 +445,50 @@
       "source": "anchors",
       "group": "anchor",
       "question": "How many orders came from Rajasthan?",
-      "correct": false,
-      "latency_s": 31.406,
+      "correct": true,
+      "latency_s": 1.985,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "state",
+              "op": "eq",
+              "values": [
+                "Rajasthan"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 2512.0,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 2512
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -360,24 +512,50 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What is the cancellation rate in Rajasthan?",
-      "correct": false,
-      "latency_s": 31.36,
+      "correct": true,
+      "latency_s": 33.265,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "state",
+              "op": "eq",
+              "values": [
+                "Rajasthan"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 14.211783439490446,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 14.2118
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -401,18 +579,42 @@
       "source": "anchors",
       "group": "anchor",
       "question": "Which state has the most orders?",
-      "correct": false,
-      "latency_s": 31.485,
+      "correct": true,
+      "latency_s": 11.453,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [
+            "state"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": {
+            "by": "value",
+            "dir": "desc"
+          },
+          "limit": 1,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "state": "Maharashtra",
+            "value": 20780.0,
+            "orders": 20780
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
@@ -420,7 +622,7 @@
           "Maharashtra": 20780
         }
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -445,18 +647,43 @@
       "source": "anchors",
       "group": "anchor",
       "question": "What is the cancellation rate by fulfilment type?",
-      "correct": false,
-      "latency_s": 31.265,
+      "correct": true,
+      "latency_s": 2.719,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
-        "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [
+            "fulfilment"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.860408085521774,
+            "orders": 84002
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.54453485814823,
+            "orders": 36376
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
@@ -465,7 +692,7 @@
           "Merchant": 17.5445
         }
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -494,18 +721,44 @@
       "source": "anchors",
       "group": "anchor",
       "question": "Cancellation rate by fulfilment in April and May 2022",
-      "correct": false,
-      "latency_s": 31.375,
+      "correct": true,
+      "latency_s": 2.688,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [
+            "fulfilment"
+          ],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-05-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.86401925391095,
+            "orders": 58170
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.56661340072095,
+            "orders": 26909
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
@@ -514,7 +767,7 @@
           "Merchant": 17.5666
         }
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -541,18 +794,44 @@
       "source": "anchors",
       "group": "anchor",
       "question": "Cancellation rate by fulfilment in June 2022",
-      "correct": false,
-      "latency_s": 32.0,
+      "correct": true,
+      "latency_s": 5.0,
       "cached_plan": false,
-      "served_by": null,
+      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
       "got": {
-        "status": null,
+        "status": "ok",
         "reason": null,
-        "plan": null,
-        "result": null,
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [
+            "fulfilment"
+          ],
+          "filters": [],
+          "date_range": {
+            "start": "2022-06-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.873098027007044,
+            "orders": 25697
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.460821685726387,
+            "orders": 9444
+          }
+        ],
         "caveats": [],
-        "verified": null,
-        "error": "LLM timeout: no reply within 15 s"
+        "verified": true,
+        "error": null
       },
       "expected": {
         "expected_status": "ok",
@@ -561,7 +840,7 @@
           "Merchant": 17.4608
         }
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {

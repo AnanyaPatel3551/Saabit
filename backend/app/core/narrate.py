@@ -76,6 +76,23 @@ def could_not_verify(plan: Plan, sql_rows: list[dict], pandas_rows: list[dict]) 
             f"SQL: {summary(sql_rows)}. pandas: {summary(pandas_rows)}.")
 
 
+def instant_answer(
+    plan: Plan,
+    rows: list[dict],
+    verified: bool,
+    sql_rows: list[dict] | None = None,
+    pandas_rows: list[dict] | None = None,
+) -> Answer:
+    """The answer available at once, with no LLM call: the template, or "could not verify".
+
+    /run returns this with the numbers; the LLM sentence is written separately afterwards.
+    """
+    if not verified:
+        return Answer(text=None, source="unverified",
+                      note=could_not_verify(plan, sql_rows or [], pandas_rows or []))
+    return Answer(text=templates.template_sentence(plan, rows), source="template")
+
+
 def write_answer(
     question: str,
     plan: Plan,
@@ -86,10 +103,9 @@ def write_answer(
     complete: Complete | None = None,
 ) -> Answer:
     """The answer sentence: the LLM's if every number checks out, else the template."""
+    template = instant_answer(plan, rows, verified, sql_rows, pandas_rows)
     if not verified:
-        return Answer(text=None, source="unverified",
-                      note=could_not_verify(plan, sql_rows or [], pandas_rows or []))
-    template = Answer(text=templates.template_sentence(plan, rows), source="template")
+        return template
     from app.llm import client  # imported here, never at app startup
     from app.llm.prompts import writer_messages
 

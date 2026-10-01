@@ -1,13 +1,16 @@
-"""Card routes: the source rows behind an evidence card."""
+"""Card routes: a saved evidence card, its answer sentence, and the source rows behind it."""
 
 from typing import Literal
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 
 from app.api.datasets import SampleCache, StorageRoot
-from app.api.schemas import CardOut, RowsOut
+from app.api.observe import note
+from app.api.ratelimit import SENTENCES, limit
+from app.api.schemas import CardOut, RowsOut, SentenceIn, SentenceOut
 from app.core import evidence, pipeline
+from app.core.plan import Plan
 
 router = APIRouter(prefix="/api/cards", tags=["cards"])
 
@@ -18,6 +21,30 @@ def get_card(card_id: str, root: StorageRoot, cache_dir: SampleCache) -> CardOut
     context = pipeline.load_context(evidence.dataset_of(card_id), root, cache_dir)
     return CardOut.model_validate(
         evidence.load_card(pipeline.card_dirs(context, cache_dir), card_id))
+
+
+@router.post("/{card_id}/sentence", response_model=SentenceOut,
+             dependencies=[Depends(limit(SENTENCES))])
+def write_sentence(
+    card_id: str, body: SentenceIn, root: StorageRoot, cache_dir: SampleCache, request: Request
+) -> SentenceOut:
+    """The answer sentence for a card, written after the numbers were shown (FR-7).
+
+    The LLM's sentence is used only if every number in it passes the number checker; if the
+    LLM is unavailable or its numbers do not check out, the template sentence comes back.
+    Unverified cards get no sentence and no LLM call.
+    """
+    from app.core import narrate  # the writer reaches the LLM, so it is imported here
+    from app.llm.config import served_by
+
+    context = pipeline.load_context(evidence.dataset_of(card_id), root, cache_dir)
+    card = evidence.load_card(pipeline.card_dirs(context, cache_dir), card_id)
+    served_by.set(None)
+    answer = narrate.write_answer(body.question, Plan.model_validate(card.plan), card.result,
+                                  card.verified, card.sql_result, card.pandas_result)
+    note(request, verified=card.verified, source=answer.source,
+         llm_provider=served_by.get() if answer.source == "llm" else None)
+    return SentenceOut(sentence=answer.text, source=answer.source, note=answer.note)
 
 
 @router.get("/{card_id}/rows", response_model=None)

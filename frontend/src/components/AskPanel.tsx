@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { ApiError, planQuestion, runPlan } from "../api/client";
+import { useRef, useState, type FormEvent } from "react";
+import { ApiError, planQuestion, runPlan, writeSentence } from "../api/client";
 import type { Card, Plan, RunOut } from "../api/types";
 import { EXAMPLES } from "../lib/plan";
 import {
@@ -10,14 +10,21 @@ import { PlanChips } from "./PlanChips";
 type View =
   | { kind: "idle" }
   | { kind: "loading"; label: string }
-  | { kind: "answer"; run: RunOut; caveats: string[] }
+  | { kind: "answer"; run: RunOut; caveats: string[]; sentence: Sentence }
   | { kind: "clarify"; plan: Plan; question: string }
   | { kind: "refuse"; plan: Plan }
   | { kind: "error"; message: string };
 
+/** The answer sentence: pending while the writer works, then the LLM's or the template. */
+export type Sentence = { status: "pending" } | { status: "done"; text: string | null; source: string };
+
+/** After this long the template is shown instead of waiting for the writer. */
+export const SENTENCE_TIMEOUT_MS = 20_000;
+
 /**
- * Centre panel. Owns /plan (typed questions) and /run (planned questions, example chips
- * and edited plan chips). Chip edits never go back through /plan.
+ * Centre panel. Owns /plan (typed questions), /run (planned questions, example chips and
+ * edited plan chips; returns the numbers first) and the card sentence call that follows.
+ * Chip edits never go back through /plan.
  */
 export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidence }: {
   datasetId: string;
@@ -29,17 +36,29 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
   const [question, setQuestion] = useState("");
   const [view, setView] = useState<View>({ kind: "idle" });
   const [chipPlan, setChipPlan] = useState<Plan | null>(null);
+  const latest = useRef(0);  // ignores sentences that arrive for an older answer
   const busy = view.kind === "loading";
 
   async function run(plan: Plan, asked: string, caveats: string[] = []) {
+    const turn = ++latest.current;
     setChipPlan(plan);
     setView({ kind: "loading", label: "Computing with SQL and pandas…" });
+    let result: RunOut;
     try {
-      const result = await runPlan(datasetId, plan, asked);
-      setChipPlan(result.card.plan);
-      setView({ kind: "answer", run: result, caveats });
+      result = await runPlan(datasetId, plan);
     } catch (error) {
       setView({ kind: "error", message: messageOf(error) });
+      return;
+    }
+    setChipPlan(result.card.plan);
+    const template: Sentence = { status: "done", text: result.sentence, source: result.source };
+    const waitForWriter = result.sentence_status === "pending" && !llmDown;
+    setView({ kind: "answer", run: result, caveats,
+              sentence: waitForWriter ? { status: "pending" } : template });
+    if (!waitForWriter) return;
+    const finished = await sentenceOrTemplate(result, asked, template);
+    if (turn === latest.current) {
+      setView((now) => now.kind === "answer" ? { ...now, sentence: finished } : now);
     }
   }
 
@@ -107,7 +126,8 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
       )}
       {view.kind === "refuse" && <RefusalCard plan={view.plan} onAsk={(q) => void ask(q)} />}
       {view.kind === "answer" && (view.run.verified
-        ? <AnswerCard answer={view.run} caveats={view.caveats} onEvidence={() => onEvidence(view.run.card)} />
+        ? <AnswerCard answer={view.run} sentence={view.sentence} caveats={view.caveats}
+            onEvidence={() => onEvidence(view.run.card)} />
         : <UnverifiedCard answer={view.run} onEvidence={() => onEvidence(view.run.card)} />)}
 
       {chipPlan && (
@@ -115,6 +135,21 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
       )}
     </section>
   );
+}
+
+/** The LLM sentence, or the template if the writer fails or takes too long. */
+async function sentenceOrTemplate(run: RunOut, asked: string, template: Sentence): Promise<Sentence> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SENTENCE_TIMEOUT_MS);
+  try {
+    const written = await writeSentence(run.card.card_id, asked, controller.signal);
+    return written.sentence ? { status: "done", text: written.sentence, source: written.source }
+      : template;
+  } catch {
+    return template;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function messageOf(error: unknown): string {

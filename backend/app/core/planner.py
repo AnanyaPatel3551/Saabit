@@ -155,14 +155,28 @@ def cache_key(prompt: PromptContext, question: str) -> CacheKey:
     return prompt_version(), schema_hash(prompt), normalise_question(question)
 
 
+SEED_DIR = "plan_seed"  # inside the sample cache, written at image build (app.plan_seed)
+
+
+def key_digest(key: CacheKey) -> str:
+    """File name for a cache key; the disk cache and the seed use the same one."""
+    return hashlib.sha256("\n".join(key).encode("utf-8")).hexdigest()[:32]
+
+
 def disk_path(key: CacheKey) -> Path:
-    digest = hashlib.sha256("\n".join(key).encode("utf-8")).hexdigest()[:32]
-    return storage.plan_cache_dir() / f"{digest}.json"
+    return storage.plan_cache_dir() / f"{key_digest(key)}.json"
 
 
-def read_disk(key: CacheKey) -> PlannerResult | None:
-    """A saved plan for this key, or None. A damaged file is treated as a miss."""
-    path = disk_path(key)
+def seed_path(sample_cache: Path, key: CacheKey) -> Path:
+    return sample_cache / SEED_DIR / f"{key_digest(key)}.json"
+
+
+def read_disk(key: CacheKey, path: Path | None = None) -> PlannerResult | None:
+    """A saved plan for this key (disk cache, or the given seed file), or None.
+
+    A damaged file is treated as a miss.
+    """
+    path = path or disk_path(key)
     if not path.is_file():
         return None
     try:
@@ -198,14 +212,16 @@ def make_plan(
 ) -> PlannerResult:
     """Plan a question for a dataset: cached, validated, retried once, never a guess.
 
-    The cache (memory, then disk) is keyed by prompt version, dataset schema hash and the
-    normalised question, so editing the prompt or confirming a different file re-asks the
-    model. use_cache=False always asks the model (and refreshes the cache).
+    The cache (memory, then disk, then the build-time seed) is keyed by prompt version,
+    dataset schema hash and the normalised question, so editing the prompt or confirming a
+    different file re-asks the model. use_cache=False always asks the model (and refreshes
+    the cache).
     """
     context = build_context(dataset_id, storage_root, sample_cache)
     key = cache_key(context.prompt, question)
     if use_cache:
-        cached = plan_cache.get(key) or read_disk(key)
+        cached = (plan_cache.get(key) or read_disk(key)
+                  or read_disk(key, seed_path(sample_cache, key)))
         if cached is not None:
             plan_cache.put(key, cached)
             return PlannerResult(plan=cached.plan, caveats=cached.caveats, cached=True)

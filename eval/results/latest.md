@@ -1,12 +1,10 @@
-> **NEEDS A FRESH RUN: this run (18:59, 1 Oct) was cut off by Groq's per-minute limit after question 42; questions 43-65 were never planned. Re-run: .\tasks.ps1 eval**
-
-Eval run 2026-10-01 18:59 · model `openai/gpt-oss-120b` · 65 questions, 63 planner calls
+Eval run 2026-10-02 01:07 · planner calls served by `nim nvidia/nemotron-3-super-120b-a12b` × 65 · 65 questions, 65 planner calls, 0 saved plans
 
 | Measure | Golden questions | Anchors |
 | --- | --- | --- |
-| Answerable correct | 39/40 (98%) | 0/13 (0%) |
-| Unanswerable refused | 3/10 (30%) | 2/2 (100%) |
+| Answerable correct | 38/40 (95%) | 13/13 (100%) |
+| Unanswerable refused | 10/10 (100%) | 2/2 (100%) |
 | Verified but wrong | 0 | 0 |
-| Plan failures | 8 | 13 |
+| Plan failures | 2 | 0 |
 | Compute failures | 0 | 0 |
-| Latency p50 / p95 (plan + compute) | 1.55 s / 6.20 s | — / — |
+| Latency p50 / p95 (plan + compute) | 3.91 s / 25.16 s | 2.84 s / 20.42 s |

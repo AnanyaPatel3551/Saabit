@@ -106,45 +106,51 @@ def sample_id(cache: Path) -> str:
     return json.loads((cache / "metadata.json").read_text("utf-8"))["dataset_id"]
 
 
-def test_run_returns_answer_text_and_source(
+def answer(client: TestClient, question: str = "how many orders") -> tuple[dict, dict]:
+    """/run (numbers first), then the sentence for its card."""
+    dataset_id = client.post("/api/datasets/sample").json()["dataset_id"]
+    run = client.post(f"/api/datasets/{dataset_id}/run", json={"metric": "orders"}).json()
+    sentence = client.post(f"/api/cards/{run['card']['card_id']}/sentence",
+                           json={"question": question}).json()
+    return run, sentence
+
+
+def test_sentence_endpoint_returns_the_checked_llm_sentence(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(llm, "complete_json",
                         FakeWriter({"sentence": "There were 286 orders."}))
-    dataset_id = client.post("/api/datasets/sample").json()["dataset_id"]
 
-    body = client.post(f"/api/datasets/{dataset_id}/run", params={"question": "how many orders"},
-                       json={"metric": "orders"}).json()
+    run, sentence = answer(client)
 
-    assert (body["sentence"], body["source"], body["note"]) == ("There were 286 orders.", "llm",
-                                                                None)
+    assert (run["sentence"], run["source"], run["sentence_status"]) == (
+        "There are 286 orders.", "template", "pending")
+    assert (sentence["sentence"], sentence["source"], sentence["note"]) == (
+        "There were 286 orders.", "llm", None)
 
 
-def test_run_replaces_a_wrong_llm_number_with_the_template(
+def test_sentence_endpoint_replaces_a_wrong_llm_number_with_the_template(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # The 300-line fixture has 286 distinct orders; "300" is a plausible but wrong claim.
     monkeypatch.setattr(llm, "complete_json",
                         FakeWriter({"sentence": "There were 300 orders."}))
-    dataset_id = client.post("/api/datasets/sample").json()["dataset_id"]
 
-    body = client.post(f"/api/datasets/{dataset_id}/run", json={"metric": "orders"}).json()
+    _, sentence = answer(client)
 
-    assert (body["sentence"], body["source"]) == ("There are 286 orders.", "template")
+    assert (sentence["sentence"], sentence["source"]) == ("There are 286 orders.", "template")
 
 
-def test_run_without_llm_still_answers_with_template(
+def test_without_llm_both_steps_answer_with_the_template(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(llm, "complete_json",
                         FakeWriter(LLMUnavailable("not_configured", "GROQ_API_KEY is not set")))
-    dataset_id = client.post("/api/datasets/sample").json()["dataset_id"]
 
-    response = client.post(f"/api/datasets/{dataset_id}/run", json={"metric": "orders"})
+    run, sentence = answer(client)
 
-    assert response.status_code == 200
-    assert response.json()["source"] == "template"
-    assert response.json()["sentence"] == "There are 286 orders."
+    assert run["sentence"] == sentence["sentence"] == "There are 286 orders."
+    assert sentence["source"] == "template"
 
 
 def test_cli_fake_answer_shows_the_check(

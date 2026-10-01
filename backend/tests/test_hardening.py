@@ -190,16 +190,19 @@ def test_run_log_line_has_the_fields_and_no_order_id_or_question(
     question = "orders for order 171-9198151-1101146 in rajasthan"
 
     response = client.post(f"/api/datasets/{dataset}/run",
-                           params={"question": question},
                            json={"status": "ok", "metric": "orders", "group_by": ["state"]})
+    card_id = response.json()["card"]["card_id"]
+    client.post(f"/api/cards/{card_id}/sentence", json={"question": question})
 
     assert response.status_code == 200
     (line,) = [entry for entry in request_lines(caplog) if entry["path"].endswith("/run")]
     assert line["dataset_id"] == dataset
     assert line["plan_status"] == "ok" and line["verified"] is True
-    assert line["source"] == "template" and line["llm_provider"] is None
+    assert line["source"] == "template"
     assert line["outcome"] == "ok" and isinstance(line["latency_ms"], int)
     assert line["request_id"] == response.headers["X-Request-ID"]
+    (written,) = [e for e in request_lines(caplog) if e["path"].endswith("/sentence")]
+    assert written["dataset_id"] == dataset and written["llm_provider"] is None
     # everything the server logged (httpx's own lines are the test client's side)
     server = "\n".join(r.getMessage() for r in caplog.records
                        if not r.name.startswith("httpx"))
