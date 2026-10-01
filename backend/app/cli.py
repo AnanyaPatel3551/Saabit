@@ -70,6 +70,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("command", choices=["llm-check", "plan", "ask", "prompt"])
     parser.add_argument("question", nargs="?", default="")
     parser.add_argument("--dataset", help="dataset id (default: the prepared sample)")
+    parser.add_argument("--fake-answer", metavar="TEXT",
+                        help="ask only: use TEXT as the writer's sentence to test the checker")
     args = parser.parse_args(argv)
     if args.command == "llm-check":
         return llm_check()
@@ -112,7 +114,31 @@ def main(argv: list[str] | None = None) -> int:
             "sql": card.sql_result, "pandas": card.pandas_result})
         show("caveats", card.caveats)
         print(f"--- evidence card: {card.card_id} ({card.row_count} source rows)")
+        print_answer(args.question, card, ask_model, args.fake_answer, calls)
     return 0
+
+
+def print_answer(
+    question: str, card: Any, ask_model: Any, fake: str | None, calls: list[client.CallResult]
+) -> None:
+    """Write and show the answer sentence; with --fake-answer, show what the checker did."""
+    from app.core import narrate
+    from app.core.plan import Plan
+
+    def fake_writer(system: str, user: str) -> dict[str, Any]:
+        return {"sentence": fake}
+
+    calls_before = len(calls)
+    answer = narrate.write_answer(question, Plan.model_validate(card.plan), card.result,
+                                  card.verified, card.sql_result, card.pandas_result,
+                                  complete=fake_writer if fake is not None else ask_model)
+    if answer.rejected is not None:
+        print(f"--- rejected sentence: {answer.rejected}")
+        print(f"    unmatched: {answer.unmatched}")
+    print(f"--- answer ({answer.source})")
+    print(answer.text if answer.text is not None else answer.note)
+    for number, call in enumerate(calls[calls_before:], calls_before + 1):
+        print(f"--- LLM call {number} (writer): {call.latency_ms} ms, tokens {call.usage}")
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ def run(client: TestClient, dataset_id: str, plan: dict):
     return client.post(f"/api/datasets/{dataset_id}/run", json=plan)
 
 
-def test_run_returns_verified_card_without_a_sentence_yet(
+def test_run_returns_verified_card_and_a_sentence(
     client: TestClient, storage_root: Path
 ) -> None:
     dataset_id = sample(client)
@@ -25,7 +25,8 @@ def test_run_returns_verified_card_without_a_sentence_yet(
     assert response.status_code == 200
     body = response.json()
     assert body["verified"] is True
-    assert body["sentence"] is None
+    assert body["sentence"] == "Orders by fulfilment: Amazon 222, Merchant 64."
+    assert body["source"] == "template"  # no key in tests, so the template is used
     card = body["card"]
     assert card["sql"].startswith("SELECT")
     assert "groupby" in card["pandas_code"]

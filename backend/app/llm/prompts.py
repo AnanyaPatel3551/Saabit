@@ -193,6 +193,29 @@ def planner_system_prompt(ctx: PromptContext) -> str:
     ])
 
 
+WRITER_RULES = """\
+You write the answer to a small online seller's question in at most two short sentences,
+using only the result table you are given. Code computed every number; you only phrase them.
+Rules:
+1. Use only numbers from the table (the *_text forms are ready to copy), a difference or
+   ratio of two of them, or numbers from the question and its dates.
+2. Indian formatting: ₹ with Indian grouping (₹2,39,53,534) or Cr/lakh (₹2.40 Cr);
+   percentages like 14.3%; counts like 1,20,378.
+3. No advice, no recommendations, no causes or guesses about why.
+4. If the table is empty, say that no orders match.
+5. Reply as JSON: {"sentence": "<at most two sentences>"}"""
+
+
+def writer_messages(
+    question: str, plan_summary: dict, rows: list[dict], total_rows: int
+) -> tuple[str, str]:
+    """(system, user) for the answer writer. rows are already capped and formatted."""
+    note = (f"showing the first {len(rows)} of {total_rows} rows" if total_rows > len(rows)
+            else f"all {total_rows} rows")
+    payload = {"question": question, "plan": plan_summary, "table": note, "rows": rows}
+    return WRITER_RULES, json.dumps(payload, ensure_ascii=False)
+
+
 def planner_messages(
     ctx: PromptContext, question: str, previous_error: str | None = None
 ) -> tuple[str, str]:

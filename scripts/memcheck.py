@@ -160,8 +160,12 @@ def start_llm_stub() -> str:
 
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self) -> None:
-            self.rfile.read(int(self.headers.get("Content-Length", 0)))
-            content = json.dumps({"status": "ok", **next(replies)})
+            request = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
+            system = request["messages"][0]["content"]
+            if '{"sentence"' in system:  # the answer writer, not the planner
+                content = json.dumps({"sentence": "Here is the answer from the table."})
+            else:
+                content = json.dumps({"status": "ok", **next(replies)})
             body = json.dumps({"choices": [{"message": {"content": content}}]}).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")

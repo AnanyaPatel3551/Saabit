@@ -147,13 +147,21 @@ def plan_question(
 
 
 @router.post("/{dataset_id}/run", response_model=RunOut)
-def run_plan(dataset_id: str, plan: Plan, root: StorageRoot, cache_dir: SampleCache) -> RunOut:
-    """Run a plan through both engines; returns the verified flag and the evidence card.
+def run_plan(
+    dataset_id: str, plan: Plan, root: StorageRoot, cache_dir: SampleCache, question: str = ""
+) -> RunOut:
+    """Run a plan through both engines, then write a checked answer sentence.
 
-    The answer sentence is written by the LLM in a later phase, so it is null for now.
+    question (optional query parameter) gives the writer context and lets numbers the user
+    typed appear in the sentence. If the LLM is down, a template sentence is used.
     """
+    from app.core import narrate  # the writer reaches the LLM, so it is imported here
+
     card = pipeline.run_plan(dataset_id, plan, root, cache_dir)
-    return RunOut(verified=card.verified, sentence=None, card=CardOut.model_validate(card))
+    answer = narrate.write_answer(question, Plan.model_validate(card.plan), card.result,
+                                  card.verified, card.sql_result, card.pandas_result)
+    return RunOut(verified=card.verified, sentence=answer.text, source=answer.source,
+                  note=answer.note, card=CardOut.model_validate(card))
 
 
 @router.get("/{dataset_id}/fixes", response_class=Response)

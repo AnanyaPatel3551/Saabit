@@ -11,6 +11,13 @@ FIXTURES = Path(__file__).parent / "fixtures"
 SMALL_SAMPLE = FIXTURES / "amazon_300.csv.gz"
 
 
+@pytest.fixture(autouse=True)
+def no_real_llm(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Only tests marked live may reach Groq; the rest never use a real key or the network."""
+    if "live" not in request.keywords:
+        monkeypatch.delenv("GROQ_API_KEY", raising=False)
+
+
 @pytest.fixture
 def storage_root(tmp_path: Path) -> Path:
     return tmp_path / "storage"

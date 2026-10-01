@@ -110,10 +110,17 @@ class PlanOut(BaseModel):
 
 
 class RunOut(BaseModel):
-    """Answer to a plan. sentence is written by the LLM in a later phase, so it is null now."""
+    """Answer to a plan.
+
+    sentence is the checked LLM sentence (source "llm") or a template (source "template").
+    When the engines disagree, sentence is null, source is "unverified" and note says
+    "Could not verify" with both values.
+    """
 
     verified: bool
     sentence: str | None
+    source: str
+    note: str | None
     card: CardOut
 
 
