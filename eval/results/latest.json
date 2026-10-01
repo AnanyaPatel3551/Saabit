@@ -1,0 +1,3956 @@
+{
+  "meta": {
+    "finished_at": "2026-10-01 18:59",
+    "model": "openai/gpt-oss-120b",
+    "questions": 65,
+    "llm_calls": 63,
+    "minutes": 15.6,
+    "needs_fresh_run": "NEEDS A FRESH RUN: this run (18:59, 1 Oct) was cut off by Groq's per-minute limit after question 42; questions 43-65 were never planned. Re-run: .\\tasks.ps1 eval"
+  },
+  "scorecards": {
+    "questions": {
+      "answerable": 40,
+      "answerable_correct": 39,
+      "unanswerable": 10,
+      "refused_correctly": 3,
+      "verified_but_wrong": 0,
+      "verified_but_misread": 1,
+      "plan_failures": 8,
+      "compute_failures": 0,
+      "p50_s": 1.547,
+      "p95_s": 6.204
+    },
+    "anchors": {
+      "answerable": 13,
+      "answerable_correct": 0,
+      "unanswerable": 2,
+      "refused_correctly": 2,
+      "verified_but_wrong": 0,
+      "verified_but_misread": 0,
+      "plan_failures": 13,
+      "compute_failures": 0,
+      "p50_s": null,
+      "p95_s": null
+    }
+  },
+  "rows": [
+    {
+      "id": "s01",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "What is the total revenue across all months?",
+      "correct": true,
+      "latency_s": 3.047,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 71673394.0,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 71673394.0
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 71673394.0,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "s02",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "How many units were sold in June 2022?",
+      "correct": true,
+      "latency_s": 1.282,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "units",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-06-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 32475.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 32475
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 32475.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "s03",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "What is the average order value overall?",
+      "correct": true,
+      "latency_s": 1.296,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "aov",
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 694.5567431899451,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 694.56
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 694.5567431899451,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "s04",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "AOV in May 2022",
+      "correct": true,
+      "latency_s": 1.344,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "aov",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-05-01",
+            "end": "2022-05-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 710.0078252363874,
+            "orders": 39221
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 710.01
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 710.0078252363874,
+            "orders": 39221
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "s05",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "kitna revenue aaya Amazon fulfilment se?",
+      "correct": true,
+      "latency_s": 1.015,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "fulfilment",
+              "op": "eq",
+              "values": [
+                "Amazon"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 50593039.0,
+            "orders": 84002
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 50593039.0
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 50593039.0,
+            "orders": 84002
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "s06",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "How many orders were fulfilled by the merchant?",
+      "correct": true,
+      "latency_s": 1.61,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "fulfilment",
+              "op": "eq",
+              "values": [
+                "Merchant"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 36376.0,
+            "orders": 36376
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 36376
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 36376.0,
+            "orders": 36376
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "s07",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "What is the cancellation rate for kurta?",
+      "correct": true,
+      "latency_s": 0.937,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "category",
+              "op": "eq",
+              "values": [
+                "kurta"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 14.643156289598592,
+            "orders": 46561
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 14.6432
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 14.643156289598592,
+            "orders": 46561
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "s08",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "revenue from karnataka in may",
+      "correct": true,
+      "latency_s": 1.188,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "state",
+              "op": "eq",
+              "values": [
+                "Karnataka"
+              ]
+            }
+          ],
+          "date_range": {
+            "start": "2022-05-01",
+            "end": "2022-05-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 3107811.0,
+            "orders": 5136
+          }
+        ],
+        "caveats": [
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 3107811.0
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 3107811.0,
+            "orders": 5136
+          }
+        ],
+        "caveats": [
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "s09",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "How many orders came through the Non-Amazon channel?",
+      "correct": true,
+      "latency_s": 0.999,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "channel",
+              "op": "eq",
+              "values": [
+                "Non-Amazon"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 124.0,
+            "orders": 124
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 124
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 124.0,
+            "orders": 124
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "s10",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "Total units sold",
+      "correct": true,
+      "latency_s": 1.485,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "units",
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 110992.0,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 110992
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 110992.0,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "s11",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "What was the cancellation rate in June 2022?",
+      "correct": true,
+      "latency_s": 1.547,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-06-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 14.10602999345494,
+            "orders": 35141
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 14.106
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 14.10602999345494,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "s12",
+      "source": "questions",
+      "group": "single_metric",
+      "question": "Western Dress ki total sales kitni hai",
+      "correct": true,
+      "latency_s": 0.86,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "category",
+              "op": "eq",
+              "values": [
+                "Western Dress"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 10209590.0,
+            "orders": 14994
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 10209590.0
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 10209590.0,
+            "orders": 14994
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "b01",
+      "source": "questions",
+      "group": "breakdown",
+      "question": "Top 5 states by orders",
+      "correct": true,
+      "latency_s": 1.391,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [
+            "state"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": {
+            "by": "value",
+            "dir": "desc"
+          },
+          "limit": 5,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "state": "Maharashtra",
+            "value": 20780.0,
+            "orders": 20780
+          },
+          {
+            "state": "Karnataka",
+            "value": 16182.0,
+            "orders": 16182
+          },
+          {
+            "state": "Tamil Nadu",
+            "value": 10519.0,
+            "orders": 10519
+          },
+          {
+            "state": "Telangana",
+            "value": 10405.0,
+            "orders": 10405
+          },
+          {
+            "state": "Uttar Pradesh",
+            "value": 10062.0,
+            "orders": 10062
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Maharashtra": 20780,
+          "Karnataka": 16182,
+          "Tamil Nadu": 10519,
+          "Telangana": 10405,
+          "Uttar Pradesh": 10062
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "state": "Maharashtra",
+            "value": 20780.0,
+            "orders": 20780
+          },
+          {
+            "state": "Karnataka",
+            "value": 16182.0,
+            "orders": 16182
+          },
+          {
+            "state": "Tamil Nadu",
+            "value": 10519.0,
+            "orders": 10519
+          },
+          {
+            "state": "Telangana",
+            "value": 10405.0,
+            "orders": 10405
+          },
+          {
+            "state": "Uttar Pradesh",
+            "value": 10062.0,
+            "orders": 10062
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "b02",
+      "source": "questions",
+      "group": "breakdown",
+      "question": "Revenue by category",
+      "correct": true,
+      "latency_s": 1.25,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [
+            "category"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "category": "Blouse",
+            "value": 418389.0,
+            "orders": 897
+          },
+          {
+            "category": "Bottom",
+            "value": 135453.0,
+            "orders": 410
+          },
+          {
+            "category": "Dupatta",
+            "value": 915.0,
+            "orders": 2
+          },
+          {
+            "category": "Ethnic Dress",
+            "value": 732744.0,
+            "orders": 1148
+          },
+          {
+            "category": "Saree",
+            "value": 114694.0,
+            "orders": 144
+          },
+          {
+            "category": "Set",
+            "value": 35731673.0,
+            "orders": 47845
+          },
+          {
+            "category": "Top",
+            "value": 4904066.0,
+            "orders": 10155
+          },
+          {
+            "category": "Western Dress",
+            "value": 10209590.0,
+            "orders": 14994
+          },
+          {
+            "category": "kurta",
+            "value": 19425870.0,
+            "orders": 46561
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "Based on fewer than 30 orders: Dupatta (2)."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Blouse": 418389.0,
+          "Bottom": 135453.0,
+          "Dupatta": 915.0,
+          "Ethnic Dress": 732744.0,
+          "Saree": 114694.0,
+          "Set": 35731673.0,
+          "Top": 4904066.0,
+          "Western Dress": 10209590.0,
+          "kurta": 19425870.0
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "category": "Blouse",
+            "value": 418389.0,
+            "orders": 897
+          },
+          {
+            "category": "Bottom",
+            "value": 135453.0,
+            "orders": 410
+          },
+          {
+            "category": "Dupatta",
+            "value": 915.0,
+            "orders": 2
+          },
+          {
+            "category": "Ethnic Dress",
+            "value": 732744.0,
+            "orders": 1148
+          },
+          {
+            "category": "Saree",
+            "value": 114694.0,
+            "orders": 144
+          },
+          {
+            "category": "Set",
+            "value": 35731673.0,
+            "orders": 47845
+          },
+          {
+            "category": "Top",
+            "value": 4904066.0,
+            "orders": 10155
+          },
+          {
+            "category": "Western Dress",
+            "value": 10209590.0,
+            "orders": 14994
+          },
+          {
+            "category": "kurta",
+            "value": 19425870.0,
+            "orders": 46561
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "Based on fewer than 30 orders: Dupatta (2)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "b03",
+      "source": "questions",
+      "group": "breakdown",
+      "question": "How many orders by fulfilment type?",
+      "correct": true,
+      "latency_s": 1.266,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [
+            "fulfilment"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 84002.0,
+            "orders": 84002
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 36376.0,
+            "orders": 36376
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Amazon": 84002,
+          "Merchant": 36376
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 84002.0,
+            "orders": 84002
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 36376.0,
+            "orders": 36376
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "b04",
+      "source": "questions",
+      "group": "breakdown",
+      "question": "Top 3 categories by units sold",
+      "correct": true,
+      "latency_s": 1.844,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "units",
+          "group_by": [
+            "category"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": {
+            "by": "value",
+            "dir": "desc"
+          },
+          "limit": 3,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "category": "Set",
+            "value": 43033.0,
+            "orders": 47845
+          },
+          {
+            "category": "kurta",
+            "value": 42792.0,
+            "orders": 46561
+          },
+          {
+            "category": "Western Dress",
+            "value": 13418.0,
+            "orders": 14994
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Set": 43033,
+          "kurta": 42792,
+          "Western Dress": 13418
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "category": "Set",
+            "value": 43033.0,
+            "orders": 47845
+          },
+          {
+            "category": "kurta",
+            "value": 42792.0,
+            "orders": 46561
+          },
+          {
+            "category": "Western Dress",
+            "value": 13418.0,
+            "orders": 14994
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "b05",
+      "source": "questions",
+      "group": "breakdown",
+      "question": "top 5 skus by unit sold",
+      "correct": true,
+      "latency_s": 1.687,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "units",
+          "group_by": [
+            "sku"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": {
+            "by": "value",
+            "dir": "desc"
+          },
+          "limit": 5,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "sku": "JNE3797-KR-L",
+            "value": 647.0,
+            "orders": 773
+          },
+          {
+            "sku": "JNE3797-KR-M",
+            "value": 555.0,
+            "orders": 657
+          },
+          {
+            "sku": "JNE3797-KR-S",
+            "value": 489.0,
+            "orders": 587
+          },
+          {
+            "sku": "JNE3405-KR-L",
+            "value": 452.0,
+            "orders": 535
+          },
+          {
+            "sku": "J0230-SKD-M",
+            "value": 435.0,
+            "orders": 506
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "JNE3797-KR-L": 647,
+          "JNE3797-KR-M": 555,
+          "JNE3797-KR-S": 489,
+          "JNE3405-KR-L": 452,
+          "J0230-SKD-M": 435
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "sku": "JNE3797-KR-L",
+            "value": 647.0,
+            "orders": 773
+          },
+          {
+            "sku": "JNE3797-KR-M",
+            "value": 555.0,
+            "orders": 657
+          },
+          {
+            "sku": "JNE3797-KR-S",
+            "value": 489.0,
+            "orders": 587
+          },
+          {
+            "sku": "JNE3405-KR-L",
+            "value": 452.0,
+            "orders": 535
+          },
+          {
+            "sku": "J0230-SKD-M",
+            "value": 435.0,
+            "orders": 506
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "b06",
+      "source": "questions",
+      "group": "breakdown",
+      "question": "Average order value by fulfilment",
+      "correct": true,
+      "latency_s": 1.203,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "aov",
+          "group_by": [
+            "fulfilment"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 691.1711772018743,
+            "orders": 84002
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 702.8190638127626,
+            "orders": 36376
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Amazon": 691.17,
+          "Merchant": 702.82
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 691.1711772018743,
+            "orders": 84002
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 702.8190638127626,
+            "orders": 36376
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "b07",
+      "source": "questions",
+      "group": "breakdown",
+      "question": "Revenue by sales channel",
+      "correct": true,
+      "latency_s": 1.751,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [
+            "channel"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "channel": "Amazon.in",
+            "value": 71673394.0,
+            "orders": 120254
+          },
+          {
+            "channel": "Non-Amazon",
+            "value": 0.0,
+            "orders": 124
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Amazon.in": 71673394.0,
+          "Non-Amazon": 0.0
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "channel": "Amazon.in",
+            "value": 71673394.0,
+            "orders": 120254
+          },
+          {
+            "channel": "Non-Amazon",
+            "value": 0.0,
+            "orders": 124
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "b08",
+      "source": "questions",
+      "group": "breakdown",
+      "question": "Cancellation rate by category",
+      "correct": true,
+      "latency_s": 1.361,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [
+            "category"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "category": "Blouse",
+            "value": 12.597547380156076,
+            "orders": 897
+          },
+          {
+            "category": "Bottom",
+            "value": 13.170731707317072,
+            "orders": 410
+          },
+          {
+            "category": "Dupatta",
+            "value": 0.0,
+            "orders": 2
+          },
+          {
+            "category": "Ethnic Dress",
+            "value": 12.543554006968641,
+            "orders": 1148
+          },
+          {
+            "category": "Saree",
+            "value": 14.583333333333334,
+            "orders": 144
+          },
+          {
+            "category": "Set",
+            "value": 14.60967708224475,
+            "orders": 47845
+          },
+          {
+            "category": "Top",
+            "value": 12.122107336287543,
+            "orders": 10155
+          },
+          {
+            "category": "Western Dress",
+            "value": 13.805522208883554,
+            "orders": 14994
+          },
+          {
+            "category": "kurta",
+            "value": 14.643156289598592,
+            "orders": 46561
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "Based on fewer than 30 orders: Dupatta (2)."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Blouse": 12.5975,
+          "Bottom": 13.1707,
+          "Dupatta": 0.0,
+          "Ethnic Dress": 12.5436,
+          "Saree": 14.5833,
+          "Set": 14.6097,
+          "Top": 12.1221,
+          "Western Dress": 13.8055,
+          "kurta": 14.6432
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "category": "Blouse",
+            "value": 12.597547380156076,
+            "orders": 897
+          },
+          {
+            "category": "Bottom",
+            "value": 13.170731707317072,
+            "orders": 410
+          },
+          {
+            "category": "Dupatta",
+            "value": 0.0,
+            "orders": 2
+          },
+          {
+            "category": "Ethnic Dress",
+            "value": 12.543554006968641,
+            "orders": 1148
+          },
+          {
+            "category": "Saree",
+            "value": 14.583333333333334,
+            "orders": 144
+          },
+          {
+            "category": "Set",
+            "value": 14.60967708224475,
+            "orders": 47845
+          },
+          {
+            "category": "Top",
+            "value": 12.122107336287543,
+            "orders": 10155
+          },
+          {
+            "category": "Western Dress",
+            "value": 13.805522208883554,
+            "orders": 14994
+          },
+          {
+            "category": "kurta",
+            "value": 14.643156289598592,
+            "orders": 46561
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "Based on fewer than 30 orders: Dupatta (2)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "b09",
+      "source": "questions",
+      "group": "breakdown",
+      "question": "top 5 states by revenue",
+      "correct": true,
+      "latency_s": 1.672,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [
+            "state"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": {
+            "by": "value",
+            "dir": "desc"
+          },
+          "limit": 5,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "state": "Maharashtra",
+            "value": 12224770.0,
+            "orders": 20780
+          },
+          {
+            "state": "Karnataka",
+            "value": 9649981.0,
+            "orders": 16182
+          },
+          {
+            "state": "Telangana",
+            "value": 6290128.0,
+            "orders": 10405
+          },
+          {
+            "state": "Uttar Pradesh",
+            "value": 6186656.0,
+            "orders": 10062
+          },
+          {
+            "state": "Tamil Nadu",
+            "value": 5954349.0,
+            "orders": 10519
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Maharashtra": 12224770.0,
+          "Karnataka": 9649981.0,
+          "Telangana": 6290128.0,
+          "Uttar Pradesh": 6186656.0,
+          "Tamil Nadu": 5954349.0
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "state": "Maharashtra",
+            "value": 12224770.0,
+            "orders": 20780
+          },
+          {
+            "state": "Karnataka",
+            "value": 9649981.0,
+            "orders": 16182
+          },
+          {
+            "state": "Telangana",
+            "value": 6290128.0,
+            "orders": 10405
+          },
+          {
+            "state": "Uttar Pradesh",
+            "value": 6186656.0,
+            "orders": 10062
+          },
+          {
+            "state": "Tamil Nadu",
+            "value": 5954349.0,
+            "orders": 10519
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "b10",
+      "source": "questions",
+      "group": "breakdown",
+      "question": "sabse zyada orders kis category mein hain",
+      "correct": true,
+      "latency_s": 2.626,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [
+            "category"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": {
+            "by": "value",
+            "dir": "desc"
+          },
+          "limit": 1,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "category": "Set",
+            "value": 47845.0,
+            "orders": 47845
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Set": 47845
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "category": "Set",
+            "value": 47845.0,
+            "orders": 47845
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "t01",
+      "source": "questions",
+      "group": "trend",
+      "question": "Monthly revenue from April to June 2022",
+      "correct": true,
+      "latency_s": 1.891,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [
+            "month"
+          ],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 26234520.0,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 23953534.0,
+            "orders": 39221
+          },
+          {
+            "month": "2022-06",
+            "value": 21390530.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "2022-04": 26234520.0,
+          "2022-05": 23953534.0,
+          "2022-06": 21390530.0
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 26234520.0,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 23953534.0,
+            "orders": 39221
+          },
+          {
+            "month": "2022-06",
+            "value": 21390530.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "t02",
+      "source": "questions",
+      "group": "trend",
+      "question": "monthly orders apr to jun",
+      "correct": true,
+      "latency_s": 3.656,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [
+            "month"
+          ],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 45858.0,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 39221.0,
+            "orders": 39221
+          },
+          {
+            "month": "2022-06",
+            "value": 35141.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "2022-04": 45858,
+          "2022-05": 39221,
+          "2022-06": 35141
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 45858.0,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 39221.0,
+            "orders": 39221
+          },
+          {
+            "month": "2022-06",
+            "value": 35141.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "t03",
+      "source": "questions",
+      "group": "trend",
+      "question": "How did the cancellation rate change month by month from April to June 2022?",
+      "correct": true,
+      "latency_s": 1.968,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [
+            "month"
+          ],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 14.667015569802434,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 13.982305397618623,
+            "orders": 39221
+          },
+          {
+            "month": "2022-06",
+            "value": 14.10602999345494,
+            "orders": 35141
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "2022-04": 14.667,
+          "2022-05": 13.9823,
+          "2022-06": 14.106
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 14.667015569802434,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 13.982305397618623,
+            "orders": 39221
+          },
+          {
+            "month": "2022-06",
+            "value": 14.10602999345494,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "t04",
+      "source": "questions",
+      "group": "trend",
+      "question": "Amazon vs Merchant cancellation rate in May 2022",
+      "correct": true,
+      "latency_s": 1.25,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [
+            "fulfilment"
+          ],
+          "filters": [],
+          "date_range": {
+            "start": "2022-05-01",
+            "end": "2022-05-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.533948435581681,
+            "orders": 26879
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.13660670879922,
+            "orders": 12342
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Amazon": 12.5339,
+          "Merchant": 17.1366
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.533948435581681,
+            "orders": 26879
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.13660670879922,
+            "orders": 12342
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "t05",
+      "source": "questions",
+      "group": "trend",
+      "question": "Compare revenue in April and May 2022",
+      "correct": true,
+      "latency_s": 1.781,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [
+            "month"
+          ],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-05-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 26234520.0,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 23953534.0,
+            "orders": 39221
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "2022-04": 26234520.0,
+          "2022-05": 23953534.0
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 26234520.0,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 23953534.0,
+            "orders": 39221
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "t06",
+      "source": "questions",
+      "group": "trend",
+      "question": "AOV trend by month, April to June 2022",
+      "correct": true,
+      "latency_s": 1.453,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "aov",
+          "group_by": [
+            "month"
+          ],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 670.4109168966575,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 710.0078252363874,
+            "orders": 39221
+          },
+          {
+            "month": "2022-06",
+            "value": 708.6711502782931,
+            "orders": 35141
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "2022-04": 670.41,
+          "2022-05": 710.01,
+          "2022-06": 708.67
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 670.4109168966575,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 710.0078252363874,
+            "orders": 39221
+          },
+          {
+            "month": "2022-06",
+            "value": 708.6711502782931,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "t07",
+      "source": "questions",
+      "group": "trend",
+      "question": "Set category revenue month by month, Apr-Jun 2022",
+      "correct": true,
+      "latency_s": 2.125,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [
+            "month"
+          ],
+          "filters": [
+            {
+              "column": "category",
+              "op": "eq",
+              "values": [
+                "Set"
+              ]
+            }
+          ],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 14124033.0,
+            "orders": 19224
+          },
+          {
+            "month": "2022-05",
+            "value": 11528223.0,
+            "orders": 15218
+          },
+          {
+            "month": "2022-06",
+            "value": 10027885.0,
+            "orders": 13333
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "2022-04": 14124033.0,
+          "2022-05": 11528223.0,
+          "2022-06": 10027885.0
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 14124033.0,
+            "orders": 19224
+          },
+          {
+            "month": "2022-05",
+            "value": 11528223.0,
+            "orders": 15218
+          },
+          {
+            "month": "2022-06",
+            "value": 10027885.0,
+            "orders": 13333
+          }
+        ],
+        "caveats": [
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "t08",
+      "source": "questions",
+      "group": "trend",
+      "question": "merchant orders har mahine april se june",
+      "correct": true,
+      "latency_s": 1.219,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [
+            "month"
+          ],
+          "filters": [
+            {
+              "column": "fulfilment",
+              "op": "eq",
+              "values": [
+                "Merchant"
+              ]
+            }
+          ],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-06-29"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 14567.0,
+            "orders": 14567
+          },
+          {
+            "month": "2022-05",
+            "value": 12342.0,
+            "orders": 12342
+          },
+          {
+            "month": "2022-06",
+            "value": 9444.0,
+            "orders": 9444
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "2022-04": 14567,
+          "2022-05": 12342,
+          "2022-06": 9444
+        }
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "month": "2022-04",
+            "value": 14567.0,
+            "orders": 14567
+          },
+          {
+            "month": "2022-05",
+            "value": 12342.0,
+            "orders": 12342
+          },
+          {
+            "month": "2022-06",
+            "value": 9444.0,
+            "orders": 9444
+          }
+        ],
+        "caveats": [
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "x01",
+      "source": "questions",
+      "group": "trap",
+      "question": "rajsthan ka cancellation kitna hai",
+      "correct": true,
+      "latency_s": 0.999,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "cancellation_rate",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "state",
+              "op": "eq",
+              "values": [
+                "Rajasthan"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 14.211783439490446,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 14.2118
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 14.211783439490446,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "x02",
+      "source": "questions",
+      "group": "trap",
+      "question": "How many orders were placed in March 2022?",
+      "correct": true,
+      "latency_s": 2.25,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-03-31",
+            "end": "2022-03-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 158.0,
+            "orders": 158
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 158,
+        "caveat_contains": "partial"
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 158.0,
+            "orders": 158
+          }
+        ],
+        "caveats": [
+          "The date range 2022-03-01 to 2022-03-31 was clipped to 2022-03-31 to 2022-03-31, the dates this dataset covers.",
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "x03",
+      "source": "questions",
+      "group": "trap",
+      "question": "Revenue in March 2022",
+      "correct": true,
+      "latency_s": 6.204,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-03-31",
+            "end": "2022-03-31"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 94810.0,
+            "orders": 158
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 94810.0,
+        "caveat_contains": "partial"
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 94810.0,
+            "orders": 158
+          }
+        ],
+        "caveats": [
+          "The date range 2022-03-01 to 2022-03-31 was clipped to 2022-03-31 to 2022-03-31, the dates this dataset covers.",
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "x04",
+      "source": "questions",
+      "group": "trap",
+      "question": "RJ se kitne orders aaye",
+      "correct": true,
+      "latency_s": 1.75,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "state",
+              "op": "eq",
+              "values": [
+                "Rajasthan"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 2512.0,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 2512
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 2512.0,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "x05",
+      "source": "questions",
+      "group": "trap",
+      "question": "orders from orissa",
+      "correct": true,
+      "latency_s": 1.234,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "state",
+              "op": "eq",
+              "values": [
+                "Odisha"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 2024.0,
+            "orders": 2024
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 2024
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 2024.0,
+            "orders": 2024
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "x06",
+      "source": "questions",
+      "group": "trap",
+      "question": "Pondicherry revenue",
+      "correct": true,
+      "latency_s": 1.781,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "state",
+              "op": "eq",
+              "values": [
+                "Puducherry"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 175764.0,
+            "orders": 310
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 175764.0
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 175764.0,
+            "orders": 310
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "x07",
+      "source": "questions",
+      "group": "trap",
+      "question": "How many orders from New Delhi?",
+      "correct": false,
+      "latency_s": 1.281,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [
+            {
+              "column": "city",
+              "op": "eq",
+              "values": [
+                "NEW DELHI"
+              ]
+            }
+          ],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 5948.0,
+            "orders": 5948
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "City values were cleaned before this ran: 1664 value(s) changed across 14,811 rows (see the fix log)."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 6609
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": true,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 6609.0,
+            "orders": 6609
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "x08",
+      "source": "questions",
+      "group": "trap",
+      "question": "april mein total orders kitne the",
+      "correct": true,
+      "latency_s": 2.437,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "orders",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-04-30"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 45858.0,
+            "orders": 45858
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 45858
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 45858.0,
+            "orders": 45858
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "x09",
+      "source": "questions",
+      "group": "trap",
+      "question": "Units sold in April 2022",
+      "correct": true,
+      "latency_s": 1.124,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "units",
+          "group_by": [],
+          "filters": [],
+          "date_range": {
+            "start": "2022-04-01",
+            "end": "2022-04-30"
+          },
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "value": 42096.0,
+            "orders": 45858
+          }
+        ],
+        "caveats": [],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 42096
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 42096.0,
+            "orders": 45858
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "x10",
+      "source": "questions",
+      "group": "trap",
+      "question": "Monthly revenue trend",
+      "correct": true,
+      "latency_s": 4.86,
+      "got": {
+        "status": "ok",
+        "reason": null,
+        "plan": {
+          "status": "ok",
+          "metric": "revenue",
+          "group_by": [
+            "month"
+          ],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": null
+        },
+        "result": [
+          {
+            "month": "2022-03",
+            "value": 94810.0,
+            "orders": 158
+          },
+          {
+            "month": "2022-04",
+            "value": 26234520.0,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 23953534.0,
+            "orders": 39221
+          },
+          {
+            "month": "2022-06",
+            "value": 21390530.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "verified": true,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "2022-03": 94810.0,
+          "2022-04": 26234520.0,
+          "2022-05": 23953534.0,
+          "2022-06": 21390530.0
+        },
+        "caveat_contains": "partial"
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "month": "2022-03",
+            "value": 94810.0,
+            "orders": 158
+          },
+          {
+            "month": "2022-04",
+            "value": 26234520.0,
+            "orders": 45858
+          },
+          {
+            "month": "2022-05",
+            "value": 23953534.0,
+            "orders": 39221
+          },
+          {
+            "month": "2022-06",
+            "value": 21390530.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "u01",
+      "source": "questions",
+      "group": "unanswerable",
+      "question": "What is the profit margin by category?",
+      "correct": true,
+      "latency_s": 12.953,
+      "got": {
+        "status": "unsupported",
+        "reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue by category.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue by category."
+        },
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "cost"
+        ]
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "u02",
+      "source": "questions",
+      "group": "unanswerable",
+      "question": "What share of orders were cash on delivery?",
+      "correct": true,
+      "latency_s": 2.032,
+      "got": {
+        "status": "unsupported",
+        "reason": "The file has no payment method column, so the COD share cannot be computed. Nearest question: orders by fulfilment.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file has no payment method column, so the COD share cannot be computed. Nearest question: orders by fulfilment."
+        },
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "payment",
+          "COD",
+          "cash"
+        ]
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "u03",
+      "source": "questions",
+      "group": "unanswerable",
+      "question": "forcast next month sales",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "forecast",
+          "forecasting",
+          "predict",
+          "future"
+        ]
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "u04",
+      "source": "questions",
+      "group": "unanswerable",
+      "question": "How many repeat customers do I have?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "customer",
+          "customers"
+        ]
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "u05",
+      "source": "questions",
+      "group": "unanswerable",
+      "question": "What is the return on my ad spend?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "ad",
+          "ads",
+          "advertising",
+          "spend",
+          "marketing"
+        ]
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "u06",
+      "source": "questions",
+      "group": "unanswerable",
+      "question": "What is the average delivery time by state?",
+      "correct": true,
+      "latency_s": 6.344,
+      "got": {
+        "status": "unsupported",
+        "reason": "The file does not contain delivery time data, so average delivery time cannot be computed. Nearest question: revenue by state.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file does not contain delivery time data, so average delivery time cannot be computed. Nearest question: revenue by state."
+        },
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "delivery",
+          "time",
+          "timestamp"
+        ]
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "u07",
+      "source": "questions",
+      "group": "unanswerable",
+      "question": "How much inventory is left for each SKU?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "inventory",
+          "stock"
+        ]
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "u08",
+      "source": "questions",
+      "group": "unanswerable",
+      "question": "kaunsi age group ke customers sabse zyada khareedte hain",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "age",
+          "customer",
+          "customers",
+          "demographic",
+          "demographics"
+        ]
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "u09",
+      "source": "questions",
+      "group": "unanswerable",
+      "question": "How much did returns cost me in May 2022?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "cost",
+          "costs"
+        ]
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "u10",
+      "source": "questions",
+      "group": "unanswerable",
+      "question": "profit kitna hua june mein",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "cost",
+          "costs"
+        ]
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "total_orders",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "How many orders are there in total?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 120378
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 120378.0,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "overall_cancellation_rate",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What is the overall cancellation rate?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 14.2759
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 14.275864360597451,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "revenue_apr_2022",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What was revenue in April 2022?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 26234520.0
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 26234520.0,
+            "orders": 45858
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "revenue_may_2022",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What was revenue in May 2022?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 23953534.0
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 23953534.0,
+            "orders": 39221
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "revenue_jun_2022",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What was revenue in June 2022?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 21390530.0
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 21390530.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "orders_may_2022",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "How many orders were placed in May 2022?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 39221
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 39221.0,
+            "orders": 39221
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "orders_jun_2022",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "How many orders were placed in June 2022?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 35141
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 35141.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "rajasthan_orders",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "How many orders came from Rajasthan?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 2512
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 2512.0,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "rajasthan_cancellation_rate",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What is the cancellation rate in Rajasthan?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 14.2118
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 14.211783439490446,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "top_state_by_orders",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "Which state has the most orders?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Maharashtra": 20780
+        }
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "state": "Maharashtra",
+            "value": 20780.0,
+            "orders": 20780
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "cancellation_by_fulfilment_all",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What is the cancellation rate by fulfilment type?",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Amazon": 12.8604,
+          "Merchant": 17.5445
+        }
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.860408085521774,
+            "orders": 84002
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.54453485814823,
+            "orders": 36376
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "cancellation_by_fulfilment_apr_may",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "Cancellation rate by fulfilment in April and May 2022",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Amazon": 12.864,
+          "Merchant": 17.5666
+        }
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.86401925391095,
+            "orders": 58170
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.56661340072095,
+            "orders": 26909
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "cancellation_by_fulfilment_jun_backtest",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "Cancellation rate by fulfilment in June 2022",
+      "correct": false,
+      "latency_s": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM unavailable: The language model is unavailable right now, so typed questions are paused. Data checks, insights and edited plans still work."
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Amazon": 12.8731,
+          "Merchant": 17.4608
+        }
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.873098027007044,
+            "orders": 25697
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.460821685726387,
+            "orders": 9444
+          }
+        ],
+        "caveats": [
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "profit_margin_by_category",
+      "source": "anchors",
+      "group": "unanswerable",
+      "question": "What is the profit margin by category?",
+      "correct": true,
+      "latency_s": null,
+      "got": {
+        "status": "unsupported",
+        "reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue by category.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue by category."
+        },
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "cost"
+        ]
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    },
+    {
+      "id": "cod_share",
+      "source": "anchors",
+      "group": "unanswerable",
+      "question": "What share of orders were cash on delivery?",
+      "correct": true,
+      "latency_s": null,
+      "got": {
+        "status": "unsupported",
+        "reason": "The file has no payment method column, so the COD share cannot be computed. Nearest question: orders by fulfilment.",
+        "plan": {
+          "status": "unsupported",
+          "metric": null,
+          "group_by": [],
+          "filters": [],
+          "date_range": null,
+          "sort": null,
+          "limit": null,
+          "clarification": null,
+          "unsupported_reason": "The file has no payment method column, so the COD share cannot be computed. Nearest question: orders by fulfilment."
+        },
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": null
+      },
+      "expected": {
+        "expected_status": "unsupported",
+        "reason_any": [
+          "payment"
+        ]
+      },
+      "failure": null,
+      "verified_but_wrong": false,
+      "verified_but_misread": false
+    }
+  ]
+}

@@ -32,7 +32,7 @@ def test_health_says_llm_not_configured_without_a_key(
     llm = TestClient(create_app(frontend_dist=tmp_path)).get("/api/health").json()["llm"]
 
     assert llm["status"] == "not_configured"
-    assert llm["reason"] == "GROQ_API_KEY is not set"
+    assert llm["reason"] == "GROQ_API_KEY is not set; NIM_API_KEY is not set"
     assert llm["model"] == "openai/gpt-oss-120b"
 
 

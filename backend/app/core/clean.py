@@ -72,6 +72,8 @@ def clean(df: pd.DataFrame, roles: dict[str, str]) -> tuple[pd.DataFrame, list[F
         work["qty"] = parse_qty(work["qty"], log)
     if "state" in work:
         work["state"] = normalise_states(work["state"], log)
+    if "city" in work:
+        work["city"] = normalise_cities(work["city"], log)
     if "status_raw" in work:
         work["is_cancelled"] = cancelled_flags(work["order_id"], work["status_raw"])
     log_partial_months(work["order_date"], log)
@@ -207,6 +209,35 @@ def normalise_states(raw: pd.Series, log: list[FixEntry]) -> pd.Series:
         elif canonical != value:
             log.append(FixEntry("state_normalised", "state", value, canonical, rows))
         mapped.append(canonical or value)
+    values = pd.array(mapped + [None], dtype=raw.dtype)
+    return pd.Series(values.take(codes), index=raw.index)
+
+
+def city_key(value: str) -> str:
+    """Matching key for a city spelling: single-spaced, trimmed and casefolded."""
+    return " ".join(value.split()).casefold()
+
+
+def normalise_cities(raw: pd.Series, log: list[FixEntry]) -> pd.Series:
+    """Merge spellings that differ only in case or spaces into the most common one.
+
+    Ties go to the alphabetically first spelling, so the result does not depend on row order.
+    Different names (MUMBAI, NAVI MUMBAI) are never merged.
+    """
+    codes, uniques = pd.factorize(raw, sort=True)
+    counts = pd.Series(codes[codes >= 0]).value_counts()
+    rows = [int(counts.get(i, 0)) for i in range(len(uniques))]
+    best: dict[str, tuple[int, str]] = {}
+    for value, n in zip(uniques, rows, strict=True):
+        key = city_key(value)
+        if key not in best or (-n, value) < (-best[key][0], best[key][1]):
+            best[key] = (n, value)
+    mapped = []
+    for value, n in zip(uniques, rows, strict=True):
+        canonical = best[city_key(value)][1]
+        if canonical != value:
+            log.append(FixEntry("city_normalised", "city", value, canonical, n))
+        mapped.append(canonical)
     values = pd.array(mapped + [None], dtype=raw.dtype)
     return pd.Series(values.take(codes), index=raw.index)
 

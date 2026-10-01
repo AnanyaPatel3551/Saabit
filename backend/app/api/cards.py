@@ -6,10 +6,18 @@ from fastapi import APIRouter, Query
 from fastapi.responses import StreamingResponse
 
 from app.api.datasets import SampleCache, StorageRoot
-from app.api.schemas import RowsOut
+from app.api.schemas import CardOut, RowsOut
 from app.core import evidence, pipeline
 
 router = APIRouter(prefix="/api/cards", tags=["cards"])
+
+
+@router.get("/{card_id}", response_model=CardOut)
+def get_card(card_id: str, root: StorageRoot, cache_dir: SampleCache) -> CardOut:
+    """A saved evidence card: plan, SQL, pandas code, result and caveats (FR-8.1)."""
+    context = pipeline.load_context(evidence.dataset_of(card_id), root, cache_dir)
+    return CardOut.model_validate(
+        evidence.load_card(pipeline.card_dirs(context, cache_dir), card_id))
 
 
 @router.get("/{card_id}/rows", response_model=None)

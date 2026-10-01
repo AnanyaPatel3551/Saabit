@@ -1,0 +1,589 @@
+{
+  "meta": {
+    "finished_at": "2026-10-01 20:02",
+    "providers": [
+      "nim deepseek-ai/deepseek-v4.1-flash"
+    ],
+    "served_by": {},
+    "plans_from_cache": 0,
+    "prompt_tokens": 0,
+    "cached_tokens": 0,
+    "questions": 13,
+    "llm_calls": 13,
+    "minutes": 6.9,
+    "stopped": null
+  },
+  "scorecards": {
+    "questions": {
+      "answerable": 0,
+      "answerable_correct": 0,
+      "unanswerable": 0,
+      "refused_correctly": 0,
+      "verified_but_wrong": 0,
+      "verified_but_misread": 0,
+      "plan_failures": 0,
+      "compute_failures": 0,
+      "p50_s": null,
+      "p95_s": null
+    },
+    "anchors": {
+      "answerable": 13,
+      "answerable_correct": 0,
+      "unanswerable": 0,
+      "refused_correctly": 0,
+      "verified_but_wrong": 0,
+      "verified_but_misread": 0,
+      "plan_failures": 13,
+      "compute_failures": 0,
+      "p50_s": 31.485,
+      "p95_s": 32.0
+    }
+  },
+  "rows": [
+    {
+      "id": "total_orders",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "How many orders are there in total?",
+      "correct": false,
+      "latency_s": 31.734,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 120378
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 120378.0,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "overall_cancellation_rate",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What is the overall cancellation rate?",
+      "correct": false,
+      "latency_s": 31.5,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 14.2759
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 14.275864360597451,
+            "orders": 120378
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "revenue_apr_2022",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What was revenue in April 2022?",
+      "correct": false,
+      "latency_s": 31.594,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 26234520.0
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 26234520.0,
+            "orders": 45858
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "revenue_may_2022",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What was revenue in May 2022?",
+      "correct": false,
+      "latency_s": 31.625,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 23953534.0
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 23953534.0,
+            "orders": 39221
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "revenue_jun_2022",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What was revenue in June 2022?",
+      "correct": false,
+      "latency_s": 31.61,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 21390530.0
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 21390530.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "orders_may_2022",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "How many orders were placed in May 2022?",
+      "correct": false,
+      "latency_s": 31.281,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 39221
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 39221.0,
+            "orders": 39221
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "orders_jun_2022",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "How many orders were placed in June 2022?",
+      "correct": false,
+      "latency_s": 31.219,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 35141
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 35141.0,
+            "orders": 35141
+          }
+        ],
+        "caveats": [
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "rajasthan_orders",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "How many orders came from Rajasthan?",
+      "correct": false,
+      "latency_s": 31.406,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 2512
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 2512.0,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "rajasthan_cancellation_rate",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What is the cancellation rate in Rajasthan?",
+      "correct": false,
+      "latency_s": 31.36,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": 14.2118
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "value": 14.211783439490446,
+            "orders": 2512
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "top_state_by_orders",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "Which state has the most orders?",
+      "correct": false,
+      "latency_s": 31.485,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Maharashtra": 20780
+        }
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "state": "Maharashtra",
+            "value": 20780.0,
+            "orders": 20780
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months.",
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "cancellation_by_fulfilment_all",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "What is the cancellation rate by fulfilment type?",
+      "correct": false,
+      "latency_s": 31.265,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Amazon": 12.8604,
+          "Merchant": 17.5445
+        }
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.860408085521774,
+            "orders": 84002
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.54453485814823,
+            "orders": 36376
+          }
+        ],
+        "caveats": [
+          "2022-03 is a partial month in this data, so it is not comparable to full months."
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "cancellation_by_fulfilment_apr_may",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "Cancellation rate by fulfilment in April and May 2022",
+      "correct": false,
+      "latency_s": 31.375,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Amazon": 12.864,
+          "Merchant": 17.5666
+        }
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.86401925391095,
+            "orders": 58170
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.56661340072095,
+            "orders": 26909
+          }
+        ],
+        "caveats": [],
+        "error": null
+      }
+    },
+    {
+      "id": "cancellation_by_fulfilment_jun_backtest",
+      "source": "anchors",
+      "group": "anchor",
+      "question": "Cancellation rate by fulfilment in June 2022",
+      "correct": false,
+      "latency_s": 32.0,
+      "cached_plan": false,
+      "served_by": null,
+      "got": {
+        "status": null,
+        "reason": null,
+        "plan": null,
+        "result": null,
+        "caveats": [],
+        "verified": null,
+        "error": "LLM timeout: no reply within 15 s"
+      },
+      "expected": {
+        "expected_status": "ok",
+        "expected": {
+          "Amazon": 12.8731,
+          "Merchant": 17.4608
+        }
+      },
+      "failure": "plan",
+      "verified_but_wrong": false,
+      "verified_but_misread": false,
+      "expected_plan_run": {
+        "correct": true,
+        "verified": true,
+        "result": [
+          {
+            "fulfilment": "Amazon",
+            "value": 12.873098027007044,
+            "orders": 25697
+          },
+          {
+            "fulfilment": "Merchant",
+            "value": 17.460821685726387,
+            "orders": 9444
+          }
+        ],
+        "caveats": [
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+        ],
+        "error": null
+      }
+    }
+  ]
+}

@@ -247,3 +247,24 @@ def test_state_needs_sixty_percent_of_values_to_match_the_dictionary() -> None:
 
     assert passes.column == "State"
     assert fails.column is None
+
+
+def test_courier_status_is_not_suggested_as_the_order_status() -> None:
+    df = pd.DataFrame({
+        "Order ID": [f"A-{i}" for i in range(60)],
+        "Courier Status": ["Shipped", "Unshipped", "Cancelled"] * 20,
+    })
+
+    roles = by_role(detect_roles(df))
+
+    assert roles["status"].column is None
+    assert roles["status"].confidence < SUGGEST_THRESHOLD
+
+
+def test_order_status_header_is_still_suggested_as_the_status() -> None:
+    df = pd.DataFrame({
+        "Order ID": [f"A-{i}" for i in range(60)],
+        "Order Status": ["Shipped", "Delivered", "Cancelled"] * 20,
+    })
+
+    assert by_role(detect_roles(df))["status"].column == "Order Status"

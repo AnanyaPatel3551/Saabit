@@ -12,3 +12,9 @@ services:
         sync: false  # a secret: set its value in the Render dashboard, never in this file
       - key: GROQ_MODEL
         value: openai/gpt-oss-120b  # llama-3.3-70b-versatile was retired on 16 Aug 2026
+      - key: NIM_API_KEY
+        sync: false  # a secret: NVIDIA NIM fallback key, set in the Render dashboard
+      - key: NIM_MODEL
+        value: nvidia/nemotron-3-super-120b-a12b
+      - key: LLM_PROVIDERS
+        value: groq,nim  # order tried; Groq first, NIM on rate limit, server error or timeout

@@ -1,7 +1,10 @@
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["live: calls the real Groq API; runs only when GROQ_API_KEY is set"]
+# Live tests call a real LLM provider and spend its rate limit: never part of a normal run.
+# An explicit -m on the command line wins (pytest uses the last -m), e.g. tasks.ps1 test-live.
+addopts = "-m 'not live'"
+markers = ["live: calls a real LLM provider; run only with .\\tasks.ps1 test-live"]
 
 [tool.ruff]
 target-version = "py311"

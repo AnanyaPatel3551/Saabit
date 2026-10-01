@@ -52,6 +52,12 @@ STOP_WORDS = frozenset({
     "lineitem", "item", "sales", "type", "product", "total", "delivery", "billing", "invoice",
 })
 
+# Header words that mean the column is about something else, even if the rest matches:
+# a courier's tracking status is not the order's outcome.
+NOT_THIS_ROLE: dict[str, frozenset[str]] = {
+    "status": frozenset({"courier", "carrier", "payment", "refund"}),
+}
+
 STATUS_WORDS = ("cancel", "ship", "deliver", "return", "pending", "paid", "refund", "fulfil",
                 "void", "complete")
 # One pattern, three accepted shapes: 04-30-22 / 2022-04-30 10:00, 30 Apr 2022, Apr 30, 2022.
@@ -153,6 +159,9 @@ def content_words(text: str) -> set[str]:
 def header_score(header: str, role: str) -> tuple[float, str]:
     """0.5 for an exact synonym, 0.3 if a meaningful word is shared, else 0."""
     normalised = normalise_header(header)
+    excluded = NOT_THIS_ROLE.get(role, frozenset()) & set(normalised.split())
+    if excluded:
+        return 0.0, f"header '{header}' names a {sorted(excluded)[0]}, not this role"
     if normalised in SYNONYMS[role]:
         return HEADER_EXACT, f"header '{header}' matches '{normalised}'"
     words = content_words(normalised)

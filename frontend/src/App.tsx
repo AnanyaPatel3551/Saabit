@@ -1,38 +1,27 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import type { DataCheck, Dataset } from "./api/types";
+import { ConfirmColumns } from "./components/ConfirmColumns";
+import { Landing } from "./components/Landing";
+import { Workspace } from "./components/Workspace";
 
-type HealthState =
-  | { kind: "loading" }
-  | { kind: "ok"; body: unknown }
-  | { kind: "error"; message: string };
+type Stage =
+  | { name: "landing" }
+  | { name: "confirm"; dataset: Dataset }
+  | { name: "workspace"; dataset: Dataset; check: DataCheck };
 
+/** One page, three stages: landing (S1), confirm columns (S2), workspace (S3). */
 export default function App() {
-  const [health, setHealth] = useState<HealthState>({ kind: "loading" });
+  const [stage, setStage] = useState<Stage>({ name: "landing" });
+  const restart = () => setStage({ name: "landing" });
 
-  useEffect(() => {
-    fetch("/api/health")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((body: unknown) => setHealth({ kind: "ok", body }))
-      .catch((err: Error) => setHealth({ kind: "error", message: err.message }));
-  }, []);
-
-  return (
-    <main className="mx-auto max-w-xl p-8 font-sans">
-      <h1 className="text-4xl font-bold text-slate-900">Saabit</h1>
-      <h2 className="mt-6 text-sm font-semibold uppercase tracking-wide text-slate-500">
-        /api/health
-      </h2>
-      {health.kind === "loading" && <p className="mt-2 text-slate-600">Checking…</p>}
-      {health.kind === "ok" && (
-        <pre className="mt-2 rounded bg-slate-100 p-4 text-sm text-slate-800">
-          {JSON.stringify(health.body, null, 2)}
-        </pre>
-      )}
-      {health.kind === "error" && (
-        <p className="mt-2 text-red-700">Backend not reachable: {health.message}</p>
-      )}
-    </main>
-  );
+  if (stage.name === "landing") {
+    return <Landing onDataset={(dataset) => setStage({ name: "confirm", dataset })} />;
+  }
+  if (stage.name === "confirm") {
+    return (
+      <ConfirmColumns dataset={stage.dataset} onBack={restart}
+        onConfirmed={(check) => setStage({ name: "workspace", dataset: stage.dataset, check })} />
+    );
+  }
+  return <Workspace dataset={stage.dataset} check={stage.check} onBack={restart} />;
 }

@@ -20,7 +20,7 @@ from app.core import pipeline, storage
 from app.core.plan import PlanError
 from app.core.planner import LLMUnavailable, make_plan, prompt_for
 from app.llm import client
-from app.llm.config import LLMConfig
+from app.llm.config import ProviderConfig, providers_from_env
 
 
 def default_dataset(cache: Path) -> str:
@@ -36,33 +36,46 @@ def show(label: str, value: object) -> None:
 
 
 def llm_check() -> int:
-    """Is the model listed for this key, and does a tiny JSON call work? Never prints the key."""
-    config = LLMConfig.from_env()
-    print(f"provider: groq   model: {config.model}   base url: {config.base_url}")
-    print(f"GROQ_API_KEY set: {'yes' if config.api_key else 'no'}")
+    """Check every provider in LLM_PROVIDERS order: key set, model listed, one JSON call.
+
+    Never prints a key. Returns 0 when at least the first configured provider works.
+    """
+    results = [check_provider(p) for p in providers_from_env()]
+    working = [name for name, ok in results if ok]
+    print(f"working providers: {', '.join(working) or 'none'}")
+    return 0 if working else 1
+
+
+def check_provider(config: ProviderConfig) -> tuple[str, bool]:
+    print(f"=== {config.name}   model: {config.model}   base url: {config.base_url}")
+    print(f"{config.key_env} set: {'yes' if config.api_key else 'no'}")
+    if not config.api_key:
+        return config.name, False
     try:
         started = time.perf_counter()
         models = client.list_models(config)
         print(f"models listed: {len(models)} ({time.perf_counter() - started:.2f}s)")
         if config.model not in models:
-            gpt = [m for m in models if "gpt-oss" in m or "llama" in m]
-            print(f"FAIL: '{config.model}' is not in this key's model list. Similar: {gpt}")
-            return 1
+            similar = [m for m in models if any(w in m for w in ("gpt-oss", "nemotron",
+                                                                 "deepseek", "llama"))]
+            print(f"FAIL: '{config.model}' is not in this key's model list. Similar: {similar}")
+            return config.name, False
         print(f"'{config.model}' is listed")
         result = client.call_json("You reply with JSON only.",
                                   'Return this JSON object exactly: {"ok": true}', config=config)
     except LLMUnavailable as error:
         print(f"FAIL: {error.kind}: {error.reason}")
-        return 1
+        return config.name, False
     except client.ModelOutputError as error:
         print(f"FAIL: the model replied, but not with JSON: {error}")
-        return 1
+        return config.name, False
     ok = result.data == {"ok": True}
-    print(f"JSON call: {'ok' if ok else 'unexpected reply ' + str(result.data)}, "
+    print(f"JSON call (json mode + low reasoning effort accepted): "
+          f"{'ok' if ok else 'unexpected reply ' + str(result.data)}, "
           f"latency {result.latency_ms} ms, tokens {result.usage}")
     for header, value in result.rate_limits.items():
         print(f"  {header}: {value}")
-    return 0 if ok else 1
+    return config.name, ok
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -101,7 +114,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     show("plan" + (" (cached)" if result.cached else ""), result.plan.model_dump(exclude_none=True))
     for number, call in enumerate(calls, 1):
-        print(f"--- LLM call {number}: {call.latency_ms} ms, tokens {call.usage}")
+        print(f"--- LLM call {number}: {call.provider} {call.model}, {call.latency_ms} ms, "
+              f"tokens {call.usage} (cached {call.usage.get('cached_tokens', 0)})")
     if result.caveats:
         show("caveats", result.caveats)
     if args.command == "ask" and result.plan.status == "ok":

@@ -71,3 +71,25 @@ def test_insight_card_rows_can_be_opened(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert response.json()["total_rows"] == 300
+
+
+def test_an_insight_card_can_be_fetched_by_id(client: TestClient) -> None:
+    dataset_id = client.post("/api/datasets/sample").json()["dataset_id"]
+    card_id = client.get(f"/api/datasets/{dataset_id}/overview").json()["insights"][0][
+        "card_ids"][0]
+
+    card = client.get(f"/api/cards/{card_id}").json()
+
+    assert card["card_id"] == card_id
+    assert card["verified"] is True
+    assert card["sql"].startswith("SELECT")
+    assert card["plan"]["metric"] == "cancellation_rate"
+
+
+def test_unknown_card_id_returns_404(client: TestClient) -> None:
+    dataset_id = client.post("/api/datasets/sample").json()["dataset_id"]
+
+    response = client.get(f"/api/cards/{dataset_id}-00000000")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "card_not_found"

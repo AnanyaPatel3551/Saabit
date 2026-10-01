@@ -243,3 +243,37 @@ def test_clean_refuses_to_run_without_a_required_role(role: str) -> None:
 
     with pytest.raises(ValueError, match=role):
         clean(orders([{}]), roles)
+
+
+CITY_ROLES = {**ROLES, "city": "ship-city"}
+
+
+def test_city_spellings_that_differ_only_in_case_or_spaces_merge_into_the_most_common() -> None:
+    spellings = ["NEW DELHI"] * 3 + ["New Delhi", "new delhi", " New  Delhi "]
+    raw = orders([{"Order ID": f"D-{i}", "ship-city": c} for i, c in enumerate(spellings)])
+
+    df, log = clean(raw, CITY_ROLES)
+
+    assert set(df["city"]) == {"NEW DELHI"}
+    changed = {e.before: (e.after, e.rows_affected) for e in entries(log, "city_normalised")}
+    assert changed == {"New Delhi": ("NEW DELHI", 1), "new delhi": ("NEW DELHI", 1),
+                       " New  Delhi ": ("NEW DELHI", 1)}
+
+
+def test_different_cities_are_not_merged() -> None:
+    raw = orders([{"Order ID": "A-1", "ship-city": "MUMBAI"},
+                  {"Order ID": "A-2", "ship-city": "NAVI MUMBAI"}])
+
+    df, log = clean(raw, CITY_ROLES)
+
+    assert list(df["city"]) == ["MUMBAI", "NAVI MUMBAI"]
+    assert entries(log, "city_normalised") == []
+
+
+def test_city_tie_picks_the_alphabetically_first_spelling() -> None:
+    raw = orders([{"Order ID": "A-1", "ship-city": "Pune"},
+                  {"Order ID": "A-2", "ship-city": "PUNE"}])
+
+    df, _ = clean(raw, CITY_ROLES)
+
+    assert set(df["city"]) == {"PUNE"}

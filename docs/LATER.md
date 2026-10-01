@@ -58,8 +58,33 @@ came from and what would trigger doing it. Nothing here is being built right now
 ## API and deploy
 
 - **Split `requirements.txt`** into runtime and dev, so pytest and ruff are not in the image.
-- **Frontend type check (`npm run build`) in CI.**
 - **Render paid starter instance for judging week**, or ping before demos (free tier sleeps).
+
+## Frontend (from Phase 8)
+
+- **`GET /api/catalogue`** returning the metrics and dimensions this file supports (from `core/metrics.py`), so plan chips only offer what can be answered. Today the chips list every schema value and `/run` explains a bad choice.
+- **Code-split Recharts** (`import()` the chart) to bring the 632 kB bundle under Vite's 500 kB warning.
+- **Docker frontend stage on Node 22**: Vitest 5 and jsdom 30 ask for Node 22+; the image only builds (works on Node 20 with engine warnings), CI tests on Node 24.
+- **Browser end-to-end test** (Playwright) for the full sample flow; Vitest covers components only.
+- **Keep the dataset in the URL** so a refresh does not return to the landing page.
+- **Clarification answers re-plan** as "question (option)"; a structured answer field in /plan would be cleaner.
+
+## Eval (from Phase 9)
+
+- **E6 "unusual state-weeks" insight and the planted-anomaly test** (cut for the deadline): flag state-weeks with revenue > 3x that state's median week and >= 30 orders; inject a 3x spike into a copy and assert E6 finds it. Needs week-aligned windows to stay under the 500-row result cap.
+- **`eval.py --base-url`** to run against a deployed server. Blocked today because `/run` always calls the writer; needs a `write=false` option on `/run`.
+- **Writer-inclusive latency** in the eval (the PRD's p50 < 4 s / p95 < 8 s is for the full answer); today's eval times plan + compute only.
+- **Second-file demo** (PRD "Other tests"): one differently shaped CSV, 10 questions.
+- **Ambiguous place names** ("New Delhi" is a city and a state spelling): the planner picks one silently (eval x07). Offer a clarification when a value matches both a city and a state.
+- **City spellings beyond case and spaces** (Bangalore vs Bengaluru, Gurgaon vs Gurugram) would need a city dictionary like states.json.
+- **Detection: other look-alike status columns** (payment status, refund status are now excluded from the status role; review other roles for similar traps, e.g. "billing state").
+
+## LLM providers and tokens (from Phase 9 close-out)
+
+- **NIM latency is uneven** (single calls from 2 s to over 15 s on the trial endpoint): consider a longer timeout for the fallback provider only, or a third provider.
+- **Warm the plan cache at image build** for the example chips and demo questions, so the demo never waits on a model.
+- **Plan cache expiry**: files under `storage/plan_cache` are never deleted; fold them into the 24-hour expiry job.
+- **Share the cool-down across workers**: it is in-process memory today (one worker on Render, so fine for now).
 
 ## Sample data licence
 

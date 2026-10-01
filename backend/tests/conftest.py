@@ -12,10 +12,22 @@ SMALL_SAMPLE = FIXTURES / "amazon_300.csv.gz"
 
 
 @pytest.fixture(autouse=True)
-def no_real_llm(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Only tests marked live may reach Groq; the rest never use a real key or the network."""
+def no_real_llm(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Only tests marked live may reach an LLM; the rest never use a real key or the network.
+
+    Every test also starts with no provider cool-downs, the default provider order, and its
+    own empty plan cache on disk.
+    """
+    from app.llm import config
+
     if "live" not in request.keywords:
         monkeypatch.delenv("GROQ_API_KEY", raising=False)
+        monkeypatch.delenv("NIM_API_KEY", raising=False)
+    monkeypatch.delenv("LLM_PROVIDERS", raising=False)
+    monkeypatch.setenv("SAABIT_PLAN_CACHE", str(tmp_path / "plan_cache"))
+    config.clear_cool_downs()
 
 
 @pytest.fixture

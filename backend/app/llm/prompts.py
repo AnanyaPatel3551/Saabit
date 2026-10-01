@@ -6,6 +6,7 @@ at most MAX_VALUES distinct values, each cut to MAX_VALUE_CHARS and JSON-quoted,
 cannot pose as an instruction (Production readiness: prompt injection).
 """
 
+import hashlib
 import json
 from dataclasses import dataclass, field
 from datetime import date
@@ -169,17 +170,32 @@ def value_lines(ctx: PromptContext) -> str:
     return "\n".join(lines)
 
 
-def planner_system_prompt(ctx: PromptContext) -> str:
+def static_prompt() -> str:
+    """Everything that is the same for every file and question, in a fixed byte order.
+
+    It comes first in the system message so providers that cache prompt prefixes can reuse
+    it across questions and across files.
+    """
     examples = "\n".join(
         f"Q: {q}\nA: {json.dumps(p, ensure_ascii=False, separators=(',', ':'))}"
         for q, p in EXAMPLES
     )
-    partial = ", ".join(ctx.partial_months) or "none"
     return "\n\n".join([
         ROLE,
         f"RULES\n{RULES}",
         f"PLAN FIELDS\n{plan_schema()}",
         f"METRICS\n{metric_lines()}",
+        f"DOCUMENTED DEFAULTS (apply these; do not ask)\n{DEFAULTS}",
+        f"ASK A CLARIFYING QUESTION ONLY WHEN\n{ASK_INSTEAD}",
+        f"EXAMPLES (these assume the latest date is 2022-06-29)\n{examples}",
+    ])
+
+
+def dataset_prompt(ctx: PromptContext) -> str:
+    """The part that depends on the confirmed file: dimensions, dates, values, limits."""
+    partial = ", ".join(ctx.partial_months) or "none"
+    return "\n\n".join([
+        "THIS FILE (the sections below describe the user's file; use them for every plan)",
         f"DIMENSIONS IN THIS FILE\n{dimension_lines(ctx)}",
         "DATA: DATES\n"
         f"- first date: {ctx.date_min.isoformat()}\n"
@@ -187,10 +203,26 @@ def planner_system_prompt(ctx: PromptContext) -> str:
         f"- partial months: {partial}",
         f"DATA: ALLOWED FILTER VALUES\n{value_lines(ctx)}",
         "CANNOT ANSWER\n" + "\n".join(f"- {t}" for t in ctx.cannot_answer),
-        f"DOCUMENTED DEFAULTS (apply these; do not ask)\n{DEFAULTS}",
-        f"ASK A CLARIFYING QUESTION ONLY WHEN\n{ASK_INSTEAD}",
-        f"EXAMPLES (these assume the latest date is 2022-06-29)\n{examples}",
     ])
+
+
+def planner_system_prompt(ctx: PromptContext) -> str:
+    """Static block first, then the file's block; the question goes in the user message."""
+    return f"{static_prompt()}\n\n{dataset_prompt(ctx)}"
+
+
+def text_hash(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def prompt_version() -> str:
+    """Changes whenever the static prompt (rules, schema, metrics, examples) changes."""
+    return text_hash(static_prompt())
+
+
+def schema_hash(ctx: PromptContext) -> str:
+    """Changes whenever what the prompt says about the file changes."""
+    return text_hash(dataset_prompt(ctx))
 
 
 WRITER_RULES = """\

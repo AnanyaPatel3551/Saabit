@@ -24,6 +24,15 @@ PLACEHOLDER_HTML = (
 )
 
 
+class ProviderHealth(BaseModel):
+    """One LLM provider in fallback order; cooling_until is set after a long rate limit."""
+
+    name: str
+    model: str
+    configured: bool
+    cooling_until: str | None
+
+
 class LLMHealth(BaseModel):
     """Last known LLM state. Health checks never call the LLM; this is the latest outcome."""
 
@@ -32,6 +41,7 @@ class LLMHealth(BaseModel):
     status: str  # ok, unavailable, not_configured or unknown
     reason: str | None
     checked_at: str | None
+    providers: list[ProviderHealth] = []
 
 
 class Health(BaseModel):
