@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, Response, UploadFile
 
 from app.api.errors import LLMPaused, NotCleaned
 from app.api.sample import (
@@ -19,13 +19,14 @@ from app.api.schemas import (
     ConfirmIn,
     DataCheckOut,
     DatasetOut,
+    OverviewOut,
     PlanOut,
     QuestionIn,
     RoleOut,
     RunOut,
 )
 from app.api.shared import FIXES_FILE, clean_dataset, describe, source_file, validate_roles
-from app.core import detect, ingest, pipeline, storage
+from app.core import detect, ingest, overview, pipeline, storage
 from app.core.plan import Plan
 
 __all__ = ["SAMPLE_PATH", "SAMPLE_ROLES", "get_sample_path", "get_storage_root", "router"]
@@ -106,12 +107,14 @@ def get_dataset(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> D
 
 @router.post("/{dataset_id}/confirm", response_model=DataCheckOut)
 def confirm_roles(
-    dataset_id: str, body: ConfirmIn, root: StorageRoot, cache_dir: SampleCache
+    dataset_id: str, body: ConfirmIn, root: StorageRoot, cache_dir: SampleCache,
+    background: BackgroundTasks,
 ) -> DataCheckOut:
     """Accept the final roles, clean the data and return the data check (FR-2.4, Step 3).
 
-    The sample's roles are fixed and it is cleaned at image build, so confirming it
-    simply returns its stored data check.
+    Insights and recommendations are then computed in the background; GET /overview shows
+    "computing" until they are ready. The sample's roles are fixed and it is cleaned at
+    image build, so confirming it simply returns its stored data check.
     """
     sample = cached_sample_if(dataset_id, cache_dir)
     if sample is not None and sample.data_check is not None:
@@ -126,7 +129,36 @@ def confirm_roles(
     dataset.unmapped_columns = [c for c in dataset.columns if c not in set(roles.values())]
     dataset.data_check = check
     storage.write_metadata(root, dataset_id, dataset.model_dump(mode="json"))
+    overview_path = folder / overview.OVERVIEW_FILE
+    overview.mark_computing(overview_path)
+    workspace = pipeline.Workspace(dataset_id, root, cache_dir, folder / pipeline.CARDS_DIR)
+    background.add_task(overview.compute_overview, workspace, check.model_dump(mode="json"),
+                        overview_path)
     return check
+
+
+@router.get("/{dataset_id}/overview", response_model=OverviewOut)
+def get_overview(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> OverviewOut:
+    """Data check, insight cards and recommendations ("computing" until they are ready)."""
+    sample = cached_sample_if(dataset_id, cache_dir)
+    if sample is not None:
+        dataset, folder = sample, cache_dir
+    else:
+        dataset = DatasetOut.model_validate(storage.read_metadata(root, dataset_id))
+        folder = storage.dataset_dir(root, dataset_id)
+    if dataset.data_check is None:
+        raise NotCleaned("Insights are computed after the columns are confirmed. Confirm first.")
+    saved = overview.read_overview(folder / overview.OVERVIEW_FILE) or {"status": "computing"}
+    return OverviewOut(
+        status=saved["status"],
+        reason=saved.get("reason"),
+        computed_at=saved.get("computed_at"),
+        months=saved.get("months"),
+        data_check=dataset.data_check,
+        insights=saved.get("insights", []),
+        recommendations=saved.get("recommendations", []),
+        rules=saved.get("rules", []),
+    )
 
 
 @router.post("/{dataset_id}/plan", response_model=PlanOut)

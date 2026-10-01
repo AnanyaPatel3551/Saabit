@@ -22,7 +22,7 @@ def card_rows(
 ) -> RowsOut | StreamingResponse:
     """The cleaned lines behind a card: one page as JSON, or all of them as a CSV download."""
     context = pipeline.load_context(evidence.dataset_of(card_id), root, cache_dir)
-    card = evidence.load_card(context.cards_dir, card_id)
+    card = evidence.load_card(pipeline.card_dirs(context, cache_dir), card_id)
     if output == "csv":
         return StreamingResponse(
             evidence.source_rows_csv(context.query_db, card),

@@ -35,6 +35,7 @@ def rows_for(group_by: list[str], metric: str) -> list[dict]:
             "fulfilment": ["Amazon", "Merchant", "Amazon"]}
     values = {"revenue": [26234520.0, 23953534.0, 21390530.0], "orders": [45858, 39221, 35141],
               "units": [44000, 38000, 34000], "aov": [648.56, 610.7, 608.71],
+              "cancelled_orders": [5900, 6880, 4991],
               "cancellation_rate": [12.8604, 17.5445, 14.2759]}
     rows = []
     for i in range(3):

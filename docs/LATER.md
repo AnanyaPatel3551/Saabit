@@ -41,6 +41,15 @@ came from and what would trigger doing it. Nothing here is being built right now
 - **Two LLM calls per typed question** (planner ~1,860 tokens + writer ~500): about 3 new questions a minute on the 8,000 TPM free tier. Edited chips pay only the writer call.
 - **`cli ask --fake-answer` still plans with the real LLM**; it only fakes the writer. An offline way to test the checker by hand would need a `--plan` JSON option.
 
+## Insights and recommendations (from Phase 7)
+
+- **Wording check for "peak", "highest", "lowest", "rose", "fell"** in LLM answer sentences: the number checker passes correct numbers with wrong words ("peaked at ₹2.40 Cr in May" when April was higher). Enforce in code that a superlative sits next to the table's max/min.
+- **Recommendation text is code-written, not LLM-phrased** (principle 6 allows the LLM to phrase). Exact but plain; phrasing could be added behind the number checker.
+- **An overview can stay "computing" forever** if the server restarts while the background job runs. Add a started_at timeout (e.g. 10 minutes -> "failed", recompute on request).
+- **R2 and R3 confidence is the weakest item's**: one category that recovers in June makes all of R3 "Low". Per-item confidence is already in `backtest`; the UI could show it.
+- **Training months are assumed contiguous**: a partial month in the middle of the data would sit inside the training date range.
+- **Ranked template wording** reads "Top 10 by orders" without naming the dimension ("states").
+
 ## Storage and limits
 
 - **24-hour expiry of dataset folders** (PRD, Storage). Must skip the sample cache, and must also remove evidence cards: cards for the sample are saved under `storage/<sample id>/cards/` and grow with every question.

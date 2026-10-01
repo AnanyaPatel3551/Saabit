@@ -51,6 +51,14 @@ METRICS: dict[str, Metric] = {
         definition="Revenue divided by the count of distinct orders that are not cancelled.",
         decimals=2,
     ),
+    "cancelled_orders": Metric(
+        name="cancelled_orders",
+        label="Cancelled orders",
+        unit="orders",
+        required_roles=("order_id", "order_date", "status"),
+        definition="Count of distinct orders that are cancelled.",
+        decimals=0,
+    ),
     "cancellation_rate": Metric(
         name="cancellation_rate",
         label="Cancellation rate",

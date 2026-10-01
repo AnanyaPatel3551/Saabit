@@ -19,6 +19,8 @@ from app.main import create_app
 from tests.conftest import SMALL_SAMPLE
 
 ORIGINAL_CSV = SAMPLE_PATH.with_suffix("")
+CACHE_FILES = ["cards", "clean.parquet", "fixes.csv", "metadata.json", "overview.json",
+               "query.duckdb"]
 
 
 def make_client(tmp_path: Path, sample: Path, cache: Path) -> TestClient:
@@ -77,7 +79,7 @@ def test_prepare_writes_the_cache(tmp_path: Path) -> None:
     dataset = build_sample_cache(SMALL_SAMPLE, tmp_path / "cache")
 
     written = sorted(p.name for p in (tmp_path / "cache").iterdir())
-    assert written == ["clean.parquet", "fixes.csv", "metadata.json", "query.duckdb"]
+    assert written == CACHE_FILES
     assert dataset.rows == 300
     assert dataset.roles_confirmed is True
 
@@ -128,7 +130,7 @@ def test_two_sample_requests_do_not_create_two_copies(
     assert first == second
     assert not storage_root.exists() or not any(storage_root.iterdir())
     cached = sorted(p.name for p in sample_cache.iterdir())
-    assert cached == ["clean.parquet", "fixes.csv", "metadata.json", "query.duckdb"]
+    assert cached == CACHE_FILES
 
 
 def test_sample_is_reused_after_a_restart(tmp_path: Path, sample_cache: Path) -> None:

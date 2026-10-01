@@ -19,6 +19,7 @@ METRIC_COLUMNS = {
     "revenue": ("amount",),
     "units": ("qty",),
     "aov": ("amount",),
+    "cancelled_orders": (),
     "cancellation_rate": (),
 }
 
@@ -134,6 +135,8 @@ def metric_value(totals: pd.DataFrame, metric: str) -> pd.Series:
     if metric == "aov":
         live = totals["live_orders"].astype("float64")
         return (totals["revenue"].astype("float64") / live).where(live > 0)
+    if metric == "cancelled_orders":
+        return totals["cancelled_orders"].astype("float64")
     if metric == "cancellation_rate":
         orders = totals["orders"].astype("float64")
         return (100.0 * totals["cancelled_orders"].astype("float64") / orders).where(orders > 0)
@@ -173,6 +176,7 @@ def snippet(plan: Plan, columns: list[str]) -> str:
         "revenue": "df.amount[live].sum()",
         "units": "df.qty[live].sum()",
         "aov": "df.amount[live].sum() / df.order_id[live].nunique()",
+        "cancelled_orders": "df.order_id[df.is_cancelled].nunique()",
         "cancellation_rate": "100 * df.order_id[df.is_cancelled].nunique() / df.order_id.nunique()",
     }
     measure = measures[plan.metric or ""]

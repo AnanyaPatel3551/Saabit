@@ -97,10 +97,40 @@ def dataset_info(context: DatasetContext, source: compile_sql.Source | None = No
     )
 
 
+@dataclass(frozen=True)
+class Workspace:
+    """One dataset plus where its data and cards live: runs predefined plans as cards."""
+
+    dataset_id: str
+    storage_root: Path
+    sample_cache: Path
+    cards_dir: Path
+
+    def context(self) -> DatasetContext:
+        return load_context(self.dataset_id, self.storage_root, self.sample_cache)
+
+    def run(self, plan: dict) -> evidence.EvidenceCard:
+        """Run a plan given as a dict; PlanError means the dataset cannot answer it."""
+        return run_plan(self.dataset_id, Plan.model_validate(plan), self.storage_root,
+                        self.sample_cache, self.cards_dir)
+
+
+def card_dirs(context: DatasetContext, sample_cache: Path) -> list[Path]:
+    """Where a dataset's cards may be: its storage folder, then (for the sample) the cache."""
+    return [context.cards_dir, sample_cache / CARDS_DIR]
+
+
 def run_plan(
-    dataset_id: str, plan: Plan, storage_root: Path, sample_cache: Path
+    dataset_id: str,
+    plan: Plan,
+    storage_root: Path,
+    sample_cache: Path,
+    cards_dir: Path | None = None,
 ) -> evidence.EvidenceCard:
-    """Validate and snap the plan, run both engines, verify, and save the evidence card."""
+    """Validate and snap the plan, run both engines, verify, and save the evidence card.
+
+    cards_dir overrides where the card is saved (the sample's insight cards live in its cache).
+    """
     context = load_context(dataset_id, storage_root, sample_cache)
     with compile_sql.connect(context.query_db) as con:  # one read-only connection per run
         info = dataset_info(context, con)
@@ -127,5 +157,5 @@ def run_plan(
         pandas_result=None if check.verified else check.pandas_rows,
         mismatches=check.mismatches,
     )
-    evidence.save_card(context.cards_dir, card)
+    evidence.save_card(cards_dir or context.cards_dir, card)
     return card

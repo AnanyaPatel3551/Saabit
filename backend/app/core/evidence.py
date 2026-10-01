@@ -66,11 +66,13 @@ def save_card(cards_dir: Path, card: EvidenceCard) -> Path:
     return path
 
 
-def load_card(cards_dir: Path, card_id: str) -> EvidenceCard:
-    path = card_path(cards_dir, card_id)
-    if not path.is_file():
-        raise CardNotFound(card_id)
-    return EvidenceCard(**json.loads(path.read_text(encoding="utf-8")))
+def load_card(cards_dir: Path | list[Path], card_id: str) -> EvidenceCard:
+    """Load a card from the first folder that has it."""
+    for folder in cards_dir if isinstance(cards_dir, list) else [cards_dir]:
+        path = card_path(folder, card_id)
+        if path.is_file():
+            return EvidenceCard(**json.loads(path.read_text(encoding="utf-8")))
+    raise CardNotFound(card_id)
 
 
 def page_count(total: int, page_size: int = PAGE_SIZE) -> int:

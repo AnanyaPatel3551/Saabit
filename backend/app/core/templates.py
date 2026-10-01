@@ -99,6 +99,8 @@ def single_value(plan: Plan, row: dict, scope: str) -> str:
         return f"Units sold{scope}: {value}."
     if metric == "aov":
         return f"Average order value{scope} is {value}."
+    if metric == "cancelled_orders":
+        return f"There are {value} cancelled orders{scope}."
     return f"The cancellation rate{scope} is {value} of {orders} orders."
 
 

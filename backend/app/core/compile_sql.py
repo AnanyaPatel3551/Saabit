@@ -124,6 +124,8 @@ def metric_expression(metric: str, columns: set[str]) -> exp.Expression:
                                expressions=[zero.copy()])
         live_orders = count_distinct(when(live.copy(), col("order_id")))
         return exp.Div(this=revenue, expression=exp.Nullif(this=live_orders, expression=zero))
+    if metric == "cancelled_orders":
+        return count_distinct(when(cancelled.copy(), col("order_id")))
     if metric == "cancellation_rate":
         cancelled_orders = count_distinct(when(cancelled.copy(), col("order_id")))
         share = exp.Mul(this=number(100.0), expression=cancelled_orders)

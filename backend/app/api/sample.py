@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from app.api.errors import SampleUnavailable
 from app.api.schemas import DatasetOut
 from app.api.shared import clean_loaded, describe
-from app.core import detect, ingest
+from app.core import detect, ingest, overview, pipeline
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SAMPLE_PATH = REPO_ROOT / "data" / "sample" / "amazon_sale_report.csv.gz"
@@ -88,6 +88,11 @@ def build_sample_cache(sample_path: Path, cache_dir: Path) -> DatasetOut:
     dataset.data_check = clean_loaded(dataset_id, owned.pop(), skipped, SAMPLE_ROLES, cache_dir)
     payload = json.dumps(dataset.model_dump(mode="json"), ensure_ascii=False, indent=2)
     (cache_dir / METADATA_FILE).write_text(payload, encoding="utf-8")
+    ingest.release_memory()
+    # Insights and recommendations, with their evidence cards kept in the cache too.
+    workspace = pipeline.Workspace(dataset_id, cache_dir, cache_dir, cache_dir / "cards")
+    overview.compute_overview(workspace, dataset.data_check.model_dump(mode="json"),
+                              cache_dir / overview.OVERVIEW_FILE)
     return dataset
 
 

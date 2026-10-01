@@ -135,6 +135,23 @@ class RowsOut(BaseModel):
     rows: list[dict]
 
 
+class OverviewOut(BaseModel):
+    """The three workspace panels: data check, insight cards (E1-E5) and recommendations.
+
+    status is "computing" until the background job finishes, then "ready" or "failed".
+    rules lists every rule with its status (fired, not_fired, skipped) and reason.
+    """
+
+    status: str
+    reason: str | None
+    computed_at: str | None
+    months: dict | None
+    data_check: DataCheckOut
+    insights: list[dict]
+    recommendations: list[dict]
+    rules: list[dict]
+
+
 class ErrorDetail(BaseModel):
     code: str
     message: str
