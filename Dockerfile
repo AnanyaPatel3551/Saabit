@@ -26,4 +26,6 @@ COPY --from=frontend /app/frontend/dist /app/frontend/dist
 RUN useradd --create-home appuser && chown -R appuser /app
 USER appuser
 EXPOSE 8000
-CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+# No uvicorn access log: it prints full URLs, and ?question= can carry a question. Saabit
+# writes its own JSON line per request instead (app/api/observe.py).
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --no-access-log"]

@@ -33,7 +33,6 @@ from app.llm.prompts import (
 __all__ = ["LLMUnavailable", "PlannerResult", "make_plan", "plan_cache", "prompt_for"]
 
 CACHE_SIZE = 256
-PLAN_CACHE_ENV = "SAABIT_PLAN_CACHE"
 CLARIFY_MIN_OPTIONS = 2
 CLARIFY_MAX_OPTIONS = 4
 NOT_UNDERSTOOD = ("Saabit could not understand this question well enough to answer it safely. "
@@ -151,11 +150,6 @@ def describe(error: Exception) -> str:
     return str(error)
 
 
-def plan_cache_dir() -> Path:
-    """Where planned questions are kept on disk (SAABIT_PLAN_CACHE, default storage/plan_cache)."""
-    return Path(os.environ.get(PLAN_CACHE_ENV) or storage.storage_root() / "plan_cache")
-
-
 def cache_key(prompt: PromptContext, question: str) -> CacheKey:
     """(prompt version, dataset schema hash, normalised question)."""
     return prompt_version(), schema_hash(prompt), normalise_question(question)
@@ -163,7 +157,7 @@ def cache_key(prompt: PromptContext, question: str) -> CacheKey:
 
 def disk_path(key: CacheKey) -> Path:
     digest = hashlib.sha256("\n".join(key).encode("utf-8")).hexdigest()[:32]
-    return plan_cache_dir() / f"{digest}.json"
+    return storage.plan_cache_dir() / f"{digest}.json"
 
 
 def read_disk(key: CacheKey) -> PlannerResult | None:
@@ -225,7 +219,8 @@ def make_plan(
             raise
         except (ModelOutputError, ValidationError, PlanError, ValueError, TypeError) as exc:
             error = describe(exc)
-            logger.info("plan attempt %d rejected: %s", attempt, error)
+            # the reason can quote filter values from the file, so only its type is logged
+            logger.info("plan attempt %d rejected (%s)", attempt, type(exc).__name__)
             continue
         result = PlannerResult(plan=plan, caveats=caveats)
         plan_cache.put(key, result)

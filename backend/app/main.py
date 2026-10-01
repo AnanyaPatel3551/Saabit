@@ -1,7 +1,10 @@
 """FastAPI entry point: API routes plus the built React app on one URL."""
 
+import asyncio
+import logging
+import shutil
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -9,14 +12,20 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from app.api import observe
 from app.api.cards import router as cards_router
+from app.api.datasets import get_storage_root
 from app.api.datasets import router as datasets_router
 from app.api.errors import register_error_handlers
-from app.api.sample import log_sample_status
+from app.api.ratelimit import RateLimiter
+from app.api.sample import get_sample_cache_dir, log_sample_status, read_cached_sample
+from app.core import retention, storage
 from app.llm.config import status_dict
 
 VERSION = "0.1.0"
 FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+RETENTION_INTERVAL_S = 3600
+logger = logging.getLogger(__name__)
 
 PLACEHOLDER_HTML = (
     "<!doctype html><title>Saabit</title>"
@@ -42,6 +51,13 @@ class LLMHealth(BaseModel):
     reason: str | None
     checked_at: str | None
     providers: list[ProviderHealth] = []
+    state: str = "unknown"  # last call: ok (first provider), fallback, down; unknown before any
+
+
+class StorageHealth(BaseModel):
+    """Free space where datasets are stored."""
+
+    free_mb: int | None
 
 
 class Health(BaseModel):
@@ -50,11 +66,21 @@ class Health(BaseModel):
     status: str
     version: str
     llm: LLMHealth
+    storage: StorageHealth
+
+
+def free_mb(folder: Path) -> int | None:
+    """Free disk space for the folder (or its nearest existing parent), in MB."""
+    for candidate in (folder, *folder.resolve().parents):
+        if candidate.exists():
+            return shutil.disk_usage(candidate).free // (1024 * 1024)
+    return None
 
 
 def health() -> Health:
-    """Report that the service is up, its version, and the LLM's last known state."""
-    return Health(status="ok", version=VERSION, llm=LLMHealth(**status_dict()))
+    """Report that the service is up, its version, the LLM's last known state and free space."""
+    return Health(status="ok", version=VERSION, llm=LLMHealth(**status_dict()),
+                  storage=StorageHealth(free_mb=free_mb(storage.storage_root())))
 
 
 def placeholder() -> HTMLResponse:
@@ -70,16 +96,40 @@ def mount_frontend(app: FastAPI, dist: Path) -> None:
         app.add_api_route("/", placeholder, methods=["GET"], include_in_schema=False)
 
 
+def run_retention(app: FastAPI) -> None:
+    """One retention sweep over the storage folder, keeping the shared sample's folder."""
+    root = app.dependency_overrides.get(get_storage_root, get_storage_root)()
+    cache = app.dependency_overrides.get(get_sample_cache_dir, get_sample_cache_dir)()
+    sample = read_cached_sample(cache)
+    retention.sweep(root, sample.dataset_id if sample else None, storage.plan_cache_dir())
+
+
+async def retention_loop(app: FastAPI) -> None:
+    """Sweep at startup, then every hour. A failed sweep is logged and retried next hour."""
+    while True:
+        try:
+            await asyncio.to_thread(run_retention, app)
+        except Exception:
+            logger.exception("retention sweep failed")
+        await asyncio.sleep(RETENTION_INTERVAL_S)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """On startup, only check that the prepared sample cache exists. No data work here."""
+    """Check the prepared sample cache exists and start the hourly retention sweep."""
     log_sample_status(app)
+    task = asyncio.create_task(retention_loop(app))
     yield
+    task.cancel()
+    with suppress(asyncio.CancelledError):
+        await task
 
 
 def create_app(frontend_dist: Path = FRONTEND_DIST) -> FastAPI:
     """Build the app. API routes are added before the frontend so /api always wins."""
     app = FastAPI(title="Saabit", version=VERSION, lifespan=lifespan)
+    app.state.limiter = RateLimiter()
+    observe.install(app)
     register_error_handlers(app)
     app.add_api_route("/api/health", health, methods=["GET"], response_model=Health)
     app.include_router(datasets_router)

@@ -42,7 +42,7 @@ $Location = if ($Task -eq 'dev-frontend') { $Frontend } else { $Backend }
 Push-Location $Location
 try {
     switch ($Task) {
-        'dev-backend'  { & $Python -m uvicorn app.main:app --reload --port 8000 @EnvArgs }
+        'dev-backend'  { & $Python -m uvicorn app.main:app --reload --port 8000 --no-access-log @EnvArgs }
         'dev-frontend' { npm run dev }
         # Never the live LLM tests, even when keys are in the shell: they spend rate limits.
         'test'         { & $Python -m pytest -m "not live" }

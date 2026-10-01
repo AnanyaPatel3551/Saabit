@@ -38,6 +38,7 @@ SCENARIOS = {
     "confirm_25mb": "upload a 25 MB CSV, then POST /confirm (cleaning)",
     "run_10_plans": "10 plans through both engines on the full sample",
     "plan_10_questions": "10 questions through the planner (local stub instead of Groq)",
+    "answer_20_questions": "20 questions: /plan then /run with the writer (local stub)",
 }
 STUB_KEY = "memcheck-stub-not-a-real-key"
 PLANS = [
@@ -101,6 +102,11 @@ def run_scenario(name: str, upload: Path | None) -> dict:
 
     import httpx
     import uvicorn
+
+    if name == "answer_20_questions" and "GROQ_BASE_URL" not in os.environ:
+        # run on its own (e.g. inside the 512 MB container): start the stub here
+        os.environ.update({"GROQ_BASE_URL": start_llm_stub(), "GROQ_API_KEY": STUB_KEY,
+                           "LLM_PROVIDERS": "groq"})
     from app.main import app
 
     port = free_port()
@@ -131,6 +137,21 @@ def run_scenario(name: str, upload: Path | None) -> dict:
                                   json={"question": f"memcheck question {number}"}, timeout=120)
             planned += response.status_code == 200 and response.json()["plan"]["status"] == "ok"
         results.append(f"{planned}/{len(PLANS)} planned")
+    if name == "answer_20_questions":
+        sample_id = httpx.post(f"{base}/api/datasets/sample", timeout=120).json()["dataset_id"]
+        answered, slowest = 0, 0.0
+        for number in range(20):
+            started = time.perf_counter()
+            question = f"memcheck question {number}"
+            planned = httpx.post(f"{base}/api/datasets/{sample_id}/plan",
+                                 json={"question": question}, timeout=120)
+            if planned.status_code == 200:
+                response = httpx.post(f"{base}/api/datasets/{sample_id}/run",
+                                      params={"question": question},
+                                      json=planned.json()["plan"], timeout=120)
+                answered += response.status_code == 200
+            slowest = max(slowest, time.perf_counter() - started)
+        results.append(f"{answered}/20 answered, slowest {slowest:.2f}s")
     if name in ("upload_25mb", "confirm_25mb") and upload is not None:
         with upload.open("rb") as f:
             response = httpx.post(
@@ -217,6 +238,8 @@ def main() -> int:
             "SAABIT_SAMPLE_CACHE": str(tmp_path / "cache"),
             "GROQ_BASE_URL": start_llm_stub(),
             "GROQ_API_KEY": STUB_KEY,
+            "LLM_PROVIDERS": "groq",  # never reach a real provider from here
+            "NIM_API_KEY": "",
         }
         print(f"25 MB upload file: {upload.stat().st_size:,} bytes; budget {BUDGET_MB} MB peak "
               f"at runtime, {BUILD_BUDGET_MB} MB for the image-build step\n")

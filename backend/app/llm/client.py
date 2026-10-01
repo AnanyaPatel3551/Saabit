@@ -28,11 +28,12 @@ from app.llm.config import (
     cool_down,
     providers_from_env,
     record,
+    served_by,
 )
 
 __all__ = ["LLMConfig", "LLMUnavailable", "ModelOutputError", "complete_json", "list_models"]
 
-TIMEOUT_SECONDS = 15.0
+TIMEOUT_SECONDS = 15.0  # Groq's; each provider's own timeout is ProviderConfig.timeout
 RETRIES = 1  # one retry after a transient failure
 RETRY_DELAY_SECONDS = 0.5
 MAX_COMPLETION_TOKENS = 2048  # reasoning tokens count here too; low effort stays well below
@@ -191,6 +192,7 @@ def call_json(
                         providers[index + 1].name)
             continue
         record("ok", None, provider.name, provider.model)
+        served_by.set(provider.name)
         return result
     record("unavailable", f"{failure.kind}: {failure.reason}")
     raise failure
@@ -226,11 +228,11 @@ def call_provider(
             time.sleep(wait)
         started = time.perf_counter()
         try:
-            with httpx.Client(timeout=TIMEOUT_SECONDS, transport=transport) as client:
+            with httpx.Client(timeout=config.timeout, transport=transport) as client:
                 response = client.post(f"{config.base_url}/chat/completions",
                                        json=body, headers=headers)
         except httpx.TimeoutException:
-            failure = LLMUnavailable("timeout", f"no reply within {TIMEOUT_SECONDS:g} s")
+            failure = LLMUnavailable("timeout", f"no reply within {config.timeout:g} s")
         except httpx.TransportError as error:
             failure = LLMUnavailable("unreachable", f"could not connect ({type(error).__name__})")
         else:
@@ -326,11 +328,11 @@ def list_models(
     if not config.api_key:
         raise LLMUnavailable("not_configured", f"{config.key_env} is not set")
     try:
-        with httpx.Client(timeout=TIMEOUT_SECONDS, transport=transport) as client:
+        with httpx.Client(timeout=config.timeout, transport=transport) as client:
             response = client.get(f"{config.base_url}/models",
                                   headers={"Authorization": f"Bearer {config.api_key}"})
     except httpx.TimeoutException as error:
-        raise LLMUnavailable("timeout", f"no reply within {TIMEOUT_SECONDS:g} s") from error
+        raise LLMUnavailable("timeout", f"no reply within {config.timeout:g} s") from error
     except httpx.TransportError as error:
         raise LLMUnavailable("unreachable",
                              f"could not connect ({type(error).__name__})") from error

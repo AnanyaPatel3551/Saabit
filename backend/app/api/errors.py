@@ -1,9 +1,16 @@
-"""Turn known exceptions into typed JSON errors with a readable message."""
+"""Turn known exceptions into typed JSON errors with a readable message.
+
+Anything unexpected becomes one generic 500 with a request id; the full error and traceback
+go only to the server log, never to the user.
+"""
+
+import logging
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from app.api.observe import SECURITY_HEADERS
 from app.api.schemas import ErrorDetail, ErrorOut
 from app.core.compile_sql import QueryTimeout
 from app.core.evidence import CardNotFound
@@ -44,6 +51,17 @@ class NotCleaned(ApiError):
     code = "not_cleaned"
 
 
+class RateLimited(ApiError):
+    """Too many requests from one client (PRD Abuse); retry_after is in seconds."""
+
+    status_code = 429
+    code = "rate_limited"
+
+    def __init__(self, message: str, retry_after: int) -> None:
+        super().__init__(message)
+        self.retry_after = retry_after
+
+
 class LLMPaused(ApiError):
     """The planner's model is unreachable; typed questions pause (PRD Degraded mode)."""
 
@@ -51,9 +69,14 @@ class LLMPaused(ApiError):
     code = "llm_unavailable"
 
 
-def error_response(status_code: int, code: str, message: str) -> JSONResponse:
+logger = logging.getLogger(__name__)
+INTERNAL_MESSAGE = "Something went wrong on our side. Reference: {request_id}."
+
+
+def error_response(status_code: int, code: str, message: str,
+                   headers: dict[str, str] | None = None) -> JSONResponse:
     body = ErrorOut(error=ErrorDetail(code=code, message=message))
-    return JSONResponse(status_code=status_code, content=body.model_dump())
+    return JSONResponse(status_code=status_code, content=body.model_dump(), headers=headers)
 
 
 async def upload_error(_: Request, exc: Exception) -> JSONResponse:
@@ -73,7 +96,22 @@ async def sample_unavailable(_: Request, exc: Exception) -> JSONResponse:
 
 async def api_error(_: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, ApiError)
-    return error_response(exc.status_code, exc.code, exc.message)
+    headers = {"Retry-After": str(exc.retry_after)} if isinstance(exc, RateLimited) else None
+    return error_response(exc.status_code, exc.code, exc.message, headers)
+
+
+def request_id_of(request: Request) -> str:
+    return getattr(request.state, "request_id", "unknown")
+
+
+async def unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    """Last resort: log everything, tell the user only that it failed and the reference."""
+    request_id = request_id_of(request)
+    logger.error("unhandled error request_id=%s path=%s", request_id, request.url.path,
+                 exc_info=exc)
+    # This response is built outside the middleware, so it adds the security headers itself.
+    return error_response(500, "internal_error", INTERNAL_MESSAGE.format(request_id=request_id),
+                          {"X-Request-ID": request_id, **SECURITY_HEADERS})
 
 
 # Errors raised by core modules (which know nothing about HTTP) and the status each maps to.
@@ -106,3 +144,4 @@ def register_error_handlers(app: FastAPI) -> None:
     for kind in CORE_ERROR_STATUS:
         app.add_exception_handler(kind, core_error)
     app.add_exception_handler(RequestValidationError, invalid_request)
+    app.add_exception_handler(Exception, unexpected_error)

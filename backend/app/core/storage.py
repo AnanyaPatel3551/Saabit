@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 STORAGE_ENV = "SAABIT_STORAGE_DIR"
+PLAN_CACHE_ENV = "SAABIT_PLAN_CACHE"
 DEFAULT_STORAGE_DIR = "storage"
 ID_PATTERN = re.compile(r"^[0-9a-f]{12}$")
 METADATA_FILE = "metadata.json"
@@ -28,6 +29,11 @@ class DatasetNotFound(Exception):
 def storage_root() -> Path:
     """Folder that holds one sub-folder per dataset (SAABIT_STORAGE_DIR, default ./storage)."""
     return Path(os.environ.get(STORAGE_ENV) or DEFAULT_STORAGE_DIR)
+
+
+def plan_cache_dir() -> Path:
+    """Where planned questions are kept on disk (SAABIT_PLAN_CACHE, default storage/plan_cache)."""
+    return Path(os.environ.get(PLAN_CACHE_ENV) or storage_root() / "plan_cache")
 
 
 def new_dataset_id() -> str:

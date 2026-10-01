@@ -112,6 +112,7 @@ def write_answer(
     ok, unmatched = numcheck.check(sentence, numcheck.allowed_values(shown, plan, question))
     if not ok:
         numbers = [n.text for n in unmatched]
-        logger.info("answer had unmatched numbers %s, using template", numbers)
+        # only the count: the numbers themselves may come from the user's data
+        logger.info("answer had %d unmatched number(s), using template", len(numbers))
         return Answer(text=template.text, source="template", unmatched=numbers, rejected=sentence)
     return Answer(text=sentence, source="llm")

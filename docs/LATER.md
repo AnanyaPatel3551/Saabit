@@ -52,8 +52,6 @@ came from and what would trigger doing it. Nothing here is being built right now
 
 ## Storage and limits
 
-- **24-hour expiry of dataset folders** (PRD, Storage). Must skip the sample cache, and must also remove evidence cards: cards for the sample are saved under `storage/<sample id>/cards/` and grow with every question.
-- **Rate limits per IP**: 30 questions per 10 minutes, 5 uploads per hour (PRD, Abuse).
 
 ## API and deploy
 
@@ -83,8 +81,15 @@ came from and what would trigger doing it. Nothing here is being built right now
 
 - **NIM latency is uneven** (single calls from 2 s to over 15 s on the trial endpoint): consider a longer timeout for the fallback provider only, or a third provider.
 - **Warm the plan cache at image build** for the example chips and demo questions, so the demo never waits on a model.
-- **Plan cache expiry**: files under `storage/plan_cache` are never deleted; fold them into the 24-hour expiry job.
 - **Share the cool-down across workers**: it is in-process memory today (one worker on Render, so fine for now).
+
+## Hardening (from Phase 10a)
+
+- **Rate limits and cool-downs live in one process's memory**: a restart resets them, and several workers would each count separately. A shared store (Redis) would be needed to scale out.
+- **X-Forwarded-For trust**: the first address is used when the request comes through a private-network proxy, as specified. A client can put a fake address at the front of that header, so the limit can be dodged by a determined user; using the address the proxy itself appended (the last untrusted hop) is stronger.
+- **CSV downloads and spreadsheet formulas**: a cell from the user's own file that starts with = + - @ is exported as-is in the rows and fix-log CSVs; prefixing such cells would stop a spreadsheet app evaluating them.
+- **Retention uses file times and metadata**, not a database; a folder whose metadata is unreadable falls back to its modified time.
+- **Questions travel in the /run query string** (?question=); the access log is off for that reason. Moving the question into the request body would remove the risk at the source.
 
 ## Sample data licence
 

@@ -3,9 +3,11 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Response, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, UploadFile
 
 from app.api.errors import LLMPaused, NotCleaned
+from app.api.observe import note
+from app.api.ratelimit import ANSWERS, QUESTIONS, UPLOADS, limit
 from app.api.sample import (
     SAMPLE_PATH,
     SAMPLE_ROLES,
@@ -43,7 +45,7 @@ StorageRoot = Annotated[Path, Depends(get_storage_root)]
 SampleCache = Annotated[Path, Depends(get_sample_cache_dir)]
 
 
-@router.post("", response_model=DatasetOut)
+@router.post("", response_model=DatasetOut, dependencies=[Depends(limit(UPLOADS))])
 def upload_dataset(file: UploadFile, root: StorageRoot) -> DatasetOut:
     """Upload a CSV/XLSX; returns the dataset id and suggested roles (not yet confirmed).
 
@@ -161,26 +163,35 @@ def get_overview(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> 
     )
 
 
-@router.post("/{dataset_id}/plan", response_model=PlanOut)
+@router.post("/{dataset_id}/plan", response_model=PlanOut,
+             dependencies=[Depends(limit(QUESTIONS))])
 def plan_question(
-    dataset_id: str, body: QuestionIn, root: StorageRoot, cache_dir: SampleCache
+    dataset_id: str, body: QuestionIn, root: StorageRoot, cache_dir: SampleCache,
+    request: Request,
 ) -> PlanOut:
     """Turn a typed question into a validated plan (FR-4.1 to FR-4.5).
 
     The planner and LLM client are imported here, not at startup.
     """
     from app.core import planner
+    from app.llm.config import served_by
 
+    served_by.set(None)
     try:
         result = planner.make_plan(body.question, dataset_id, root, cache_dir)
     except planner.LLMUnavailable as error:
+        note(request, llm_provider="none")
         raise LLMPaused(error.message) from error
+    note(request, plan_status=result.plan.status,
+         llm_provider="plan cache" if result.cached else served_by.get())
     return PlanOut(plan=result.plan, caveats=result.caveats, cached=result.cached)
 
 
-@router.post("/{dataset_id}/run", response_model=RunOut)
+@router.post("/{dataset_id}/run", response_model=RunOut,
+             dependencies=[Depends(limit(ANSWERS))])
 def run_plan(
-    dataset_id: str, plan: Plan, root: StorageRoot, cache_dir: SampleCache, question: str = ""
+    dataset_id: str, plan: Plan, root: StorageRoot, cache_dir: SampleCache, request: Request,
+    question: str = "",
 ) -> RunOut:
     """Run a plan through both engines, then write a checked answer sentence.
 
@@ -188,10 +199,14 @@ def run_plan(
     typed appear in the sentence. If the LLM is down, a template sentence is used.
     """
     from app.core import narrate  # the writer reaches the LLM, so it is imported here
+    from app.llm.config import served_by
 
+    served_by.set(None)
     card = pipeline.run_plan(dataset_id, plan, root, cache_dir)
     answer = narrate.write_answer(question, Plan.model_validate(card.plan), card.result,
                                   card.verified, card.sql_result, card.pandas_result)
+    note(request, plan_status=plan.status, verified=card.verified, source=answer.source,
+         llm_provider=served_by.get() if answer.source == "llm" else None)
     return RunOut(verified=card.verified, sentence=answer.text, source=answer.source,
                   note=answer.note, card=CardOut.model_validate(card))
 

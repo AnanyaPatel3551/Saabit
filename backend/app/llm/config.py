@@ -12,10 +12,14 @@ import logging
 import os
 import threading
 import time
+from contextvars import ContextVar
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 
 logger = logging.getLogger(__name__)
+
+# Which provider answered the latest LLM call in this request (for the request log).
+served_by: ContextVar[str | None] = ContextVar("served_by", default=None)
 
 PROVIDERS_ENV = "LLM_PROVIDERS"
 DEFAULT_PROVIDERS = "groq,nim"
@@ -39,14 +43,16 @@ class ProviderSpec:
     base_url_env: str
     default_model: str
     default_base_url: str
+    timeout_s: float  # per call; the fallback gets longer because it only runs when needed
 
 
 SPECS: dict[str, ProviderSpec] = {
-    "groq": ProviderSpec(API_KEY_ENV, MODEL_ENV, BASE_URL_ENV, DEFAULT_MODEL, DEFAULT_BASE_URL),
+    "groq": ProviderSpec(API_KEY_ENV, MODEL_ENV, BASE_URL_ENV, DEFAULT_MODEL, DEFAULT_BASE_URL,
+                         15.0),
     # NIM does not serve openai/gpt-oss-120b (checked 1 Oct 2026); see docs for the choice.
     "nim": ProviderSpec("NIM_API_KEY", "NIM_MODEL", "NIM_BASE_URL",
                         "nvidia/nemotron-3-super-120b-a12b",
-                        "https://integrate.api.nvidia.com/v1"),
+                        "https://integrate.api.nvidia.com/v1", 30.0),
 }
 
 
@@ -60,6 +66,10 @@ class ProviderConfig:
     @property
     def key_env(self) -> str:
         return SPECS[self.name].key_env
+
+    @property
+    def timeout(self) -> float:
+        return SPECS[self.name].timeout_s
 
     @classmethod
     def from_env(cls, name: str = PROVIDER) -> "ProviderConfig":
@@ -137,6 +147,7 @@ class LLMStatus:
     reason: str | None
     checked_at: str | None
     providers: list[dict]
+    state: str  # last call: "ok" (first provider), "fallback", "down"; "unknown" before any call
 
 
 _last: tuple[str, str | None, str, str | None, str | None] | None = None
@@ -168,15 +179,25 @@ def current_status() -> LLMStatus:
     if not configured:
         first = configs[0] if configs else ProviderConfig.from_env()
         missing = "; ".join(f"{p.key_env} is not set" for p in configs) or "no provider listed"
-        return LLMStatus(first.name, first.model, "not_configured", missing, None, rows)
+        return LLMStatus(first.name, first.model, "not_configured", missing, None, rows, "down")
     usable = [p for p in configured if cooling_until(p.name) is None]
     active = usable[0] if usable else configured[0]
     with _lock:
         last = _last
     if last is None:
-        return LLMStatus(active.name, active.model, "unknown", "no call made yet", None, rows)
+        return LLMStatus(active.name, active.model, "unknown", "no call made yet", None, rows,
+                         "unknown")
     status, reason, when, provider, model = last
-    return LLMStatus(provider or active.name, model or active.model, status, reason, when, rows)
+    state = call_state(status, provider, configured[0].name)
+    return LLMStatus(provider or active.name, model or active.model, status, reason, when, rows,
+                     state)
+
+
+def call_state(status: str, provider: str | None, first: str) -> str:
+    """ok: the first configured provider answered; fallback: a later one did; down: none."""
+    if status != "ok":
+        return "down"
+    return "ok" if provider in (None, first) else "fallback"
 
 
 def status_dict() -> dict:
