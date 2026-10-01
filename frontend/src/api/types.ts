@@ -125,6 +125,9 @@ export interface Insight {
   reason: string | null;
   card_ids: string[];
   verified: boolean;
+  /** "engines": SQL and pandas computed it; "fix_log": a summary of cleaning, never Verified. */
+  source?: "engines" | "fix_log" | null;
+  caveats?: string[];
   text: string | null;
 }
 

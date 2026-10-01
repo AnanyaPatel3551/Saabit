@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Plan, RunOut } from "../api/types";
 import { RefusalCard } from "../components/AnswerCards";
 import { AskPanel } from "../components/AskPanel";
+import { InsightsPanel } from "../components/InsightsPanel";
 import { VerifiedBadge } from "../components/VerifiedBadge";
 import { okPlan } from "../lib/plan";
 
@@ -133,5 +134,31 @@ describe("Verified badge", () => {
   it("says Not verified in words when the engines disagree", () => {
     render(<VerifiedBadge verified={false} />);
     expect(screen.getByText("Not verified")).toBeTruthy();
+  });
+});
+
+describe("Insights panel", () => {
+  it("shows Verified only on two-engine cards, not on the fix-log card", async () => {
+    const insight = { status: "ok", reason: null, card_ids: [], verified: false, caveats: [] };
+    const overview = {
+      status: "ready", reason: null, computed_at: "now", months: null,
+      data_check: null, recommendations: [], rules: [],
+      insights: [
+        { ...insight, code: "E2", title: "Monthly revenue trend", source: "engines",
+          verified: true, card_ids: ["abc-1"],
+          text: "Revenue by month: Mar 2022 (partial, 1 day) ₹94,810.",
+          caveats: ["2022-03 is a partial month in this data, so it is not comparable to full months."] },
+        { ...insight, code: "E5", title: "Data fixes", source: "fix_log",
+          text: "Cleaning kept 128,975 rows." },
+      ],
+    };
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json(overview)));
+
+    render(<InsightsPanel datasetId="abc" onEvidence={() => undefined} />);
+
+    expect(await screen.findByText("Data fixes")).toBeTruthy();
+    expect(screen.getAllByText("Verified")).toHaveLength(1);
+    expect(screen.getByText("From the fix log")).toBeTruthy();
+    expect(screen.getByText(/2022-03 is a partial month/)).toBeTruthy();
   });
 });

@@ -2,6 +2,7 @@
 
 import csv
 import json
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -83,6 +84,22 @@ def cleaned_columns(fixes_csv: Path) -> dict[str, str]:
             changes[row["column"]][1] += int(row["rows_affected"])
     return {column: f"{entries} value(s) changed across {rows:,} rows"
             for column, (entries, rows) in changes.items()}
+
+
+PARTIAL_DAYS = re.compile(r"flagged partial: (\d+) days")
+
+
+def partial_month_days(fixes_csv: Path) -> dict[str, int]:
+    """Active days in each partial month, from the partial_month notes cleaning wrote."""
+    if not fixes_csv.is_file():
+        return {}
+    days = {}
+    with fixes_csv.open(encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            match = PARTIAL_DAYS.match(row["after"]) if row["rule"] == "partial_month" else None
+            if match:
+                days[row["before"]] = int(match.group(1))
+    return days
 
 
 def dataset_info(context: DatasetContext, source: compile_sql.Source | None = None) -> DatasetInfo:

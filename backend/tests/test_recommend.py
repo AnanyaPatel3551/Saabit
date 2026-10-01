@@ -102,6 +102,32 @@ def test_all_insight_cards_are_verified(real_sample_cache: Path) -> None:
         assert item["status"] == "ok", item
         for card_id in item["card_ids"]:
             assert evidence.load_card(real_sample_cache / "cards", card_id).verified
+    e5 = insights[4]
+    assert (e5["source"], e5["verified"], e5["card_ids"]) == ("fix_log", False, [])
+
+
+def test_verified_appears_only_on_two_engine_results(real_sample_cache: Path) -> None:
+    for item in overview_of(real_sample_cache)["insights"]:
+        if item["verified"]:
+            assert item["source"] == "engines" and item["card_ids"], item
+            for card_id in item["card_ids"]:
+                assert evidence.load_card(real_sample_cache / "cards", card_id).verified
+        else:
+            assert item["source"] != "engines" or item["status"] == "unverified", item
+
+
+def test_partial_month_is_marked_on_the_e2_card(real_sample_cache: Path) -> None:
+    e2 = overview_of(real_sample_cache)["insights"][1]
+
+    assert "Mar 2022 (partial, 1 day) " in e2["text"]
+    assert "Apr 2022 (partial" not in e2["text"]
+    assert any(c.startswith("2022-03 is a partial month") for c in e2["caveats"])
+
+
+def test_all_time_totals_do_not_carry_the_partial_month_note(real_sample_cache: Path) -> None:
+    for item in overview_of(real_sample_cache)["insights"]:
+        if item["code"] in ("E1", "E3", "E4"):
+            assert not any("partial month" in c for c in item["caveats"]), item
 
 
 def test_partial_month_caveat_is_on_the_e2_card(real_sample_cache: Path) -> None:

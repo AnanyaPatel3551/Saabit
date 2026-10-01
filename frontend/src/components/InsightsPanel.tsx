@@ -55,11 +55,21 @@ export function InsightsPanel({ datasetId, onEvidence }: {
               <li key={insight.code} className="rounded-xl border border-line bg-panel p-4">
                 <div className="mb-1 flex items-start justify-between gap-2">
                   <h3 className="font-display text-base text-text">{insight.title}</h3>
-                  {insight.status !== "skipped" && <VerifiedBadge verified={insight.verified} />}
+                  {/* Verified only where SQL and pandas both computed the card */}
+                  {insight.status !== "skipped" && insight.source === "engines"
+                    && <VerifiedBadge verified={insight.verified} />}
+                  {insight.source === "fix_log" && (
+                    <span className="whitespace-nowrap text-xs text-muted">From the fix log</span>
+                  )}
                 </div>
                 <p className="text-sm text-muted">
                   {insight.status === "skipped" ? `Skipped: ${insight.reason}` : insight.text}
                 </p>
+                {insight.status !== "skipped" && (insight.caveats ?? []).length > 0 && (
+                  <ul className="mt-2 space-y-1 text-xs text-amber">
+                    {insight.caveats?.map((c) => <li key={c}>Note: {c}</li>)}
+                  </ul>
+                )}
                 <div className="mt-2">{evidenceButton(insight.card_ids)}</div>
               </li>
             ))}

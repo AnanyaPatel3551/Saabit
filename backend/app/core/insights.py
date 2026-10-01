@@ -1,23 +1,26 @@
 """Build the E1-E5 insight cards (FR-8.2).
 
 E1-E4 are predefined plans run through the normal pipeline, so each is a verified evidence
-card. E5 summarises the fix log. Text is written by code from the results (no LLM), and a card
-whose columns the file lacks is skipped with the reason.
+card (source "engines"). E5 summarises the fix log (source "fix_log"): it is never marked
+Verified, because no two engines computed it. Text is written by code from the results (no
+LLM), and a card whose columns the file lacks is skipped with the reason.
 """
 
 from typing import Any
 
 from app.core import templates
 from app.core.evidence import EvidenceCard
-from app.core.pipeline import Workspace
+from app.core.pipeline import FIXES_FILE, Workspace, partial_month_days
 from app.core.plan import Plan, PlanError
 
 TOP_CATEGORIES = 4  # FR-8.2: E1 within each of the top 4 categories
 TOP_STATES = 10
 TOP_REVENUE_CATEGORIES = 5
+PARTIAL_NOTE = "is a partial month"  # the wording verify.caveats_for uses
 
 
 def insight(code: str, title: str, cards: list[EvidenceCard], text: str) -> dict[str, Any]:
+    """A card computed by both engines; its evidence cards' caveats travel with it."""
     verified = all(card.verified for card in cards)
     return {
         "code": code,
@@ -26,13 +29,24 @@ def insight(code: str, title: str, cards: list[EvidenceCard], text: str) -> dict
         "reason": None if verified else "The two engines disagreed on a supporting card.",
         "card_ids": [card.card_id for card in cards],
         "verified": verified,
+        "source": "engines",
+        "caveats": insight_caveats(cards),
         "text": text,
     }
 
 
+def insight_caveats(cards: list[EvidenceCard]) -> list[str]:
+    """The cards' caveats, once each. The partial-month note warns against comparing months,
+    so it is kept only on cards that group by month (not on all-time totals)."""
+    by_month = any("month" in card.plan.get("group_by", []) for card in cards)
+    notes = [c for card in cards for c in card.caveats
+             if by_month or PARTIAL_NOTE not in c]
+    return list(dict.fromkeys(notes))
+
+
 def skipped(code: str, title: str, reason: str) -> dict[str, Any]:
     return {"code": code, "title": title, "status": "skipped", "reason": reason,
-            "card_ids": [], "verified": False, "text": None}
+            "card_ids": [], "verified": False, "source": None, "caveats": [], "text": None}
 
 
 def sentence(card: EvidenceCard) -> str:
@@ -75,7 +89,21 @@ def within_text(overall: EvidenceCard, within: EvidenceCard, names: list[str]) -
 
 def e2(ws: Workspace) -> dict[str, Any]:
     card = ws.run({"metric": "revenue", "group_by": ["month"]})
-    return insight("E2", "Monthly revenue trend", [card], sentence(card))
+    partial = partial_month_days(ws.context().folder / FIXES_FILE)
+    return insight("E2", "Monthly revenue trend", [card], month_listing(card, partial))
+
+
+def month_listing(card: EvidenceCard, partial_days: dict[str, int]) -> str:
+    """Revenue by month, with each partial month marked: "Mar 2022 (partial, 1 day) ₹94,810"."""
+    metric = card.plan["metric"]
+    parts = []
+    for row in card.result:
+        label = templates.key_text("month", row["month"])
+        if row["month"] in partial_days:
+            days = partial_days[row["month"]]
+            label += f" (partial, {days} day{'' if days == 1 else 's'})"
+        parts.append(f"{label} {templates.format_value(metric, row.get('value'))}")
+    return f"Revenue by month: {', '.join(parts)}."
 
 
 def e3(ws: Workspace) -> dict[str, Any]:
@@ -109,7 +137,8 @@ def e5(data_check: dict[str, Any]) -> dict[str, Any]:
     if partial:
         text += f" Partial months: {', '.join(partial)}."
     return {"code": "E5", "title": "Data fixes", "status": "ok", "reason": None,
-            "card_ids": [], "verified": True, "text": text}
+            "card_ids": [], "verified": False, "source": "fix_log", "caveats": [],
+            "text": text}
 
 
 def build_insights(ws: Workspace, data_check: dict[str, Any]) -> list[dict[str, Any]]:
