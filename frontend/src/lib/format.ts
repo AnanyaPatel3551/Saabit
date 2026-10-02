@@ -49,9 +49,3 @@ export function keyLabel(dimension: string, key: unknown): string {
   return text;
 }
 
-/** "2022-03-31" -> "31 Mar 2022". */
-export function dayLabel(iso: string): string {
-  const [year, month, day] = iso.split("-").map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString("en-GB",
-    { day: "numeric", month: "short", year: "numeric" });
-}

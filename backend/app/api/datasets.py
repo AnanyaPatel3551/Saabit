@@ -19,6 +19,7 @@ from app.api.sample import (
 )
 from app.api.schemas import (
     CardOut,
+    Comparison,
     ConfirmIn,
     DataCheckOut,
     DatasetOut,
@@ -29,8 +30,10 @@ from app.api.schemas import (
     RunOut,
 )
 from app.api.shared import FIXES_FILE, clean_dataset, describe, source_file, validate_roles
-from app.core import detect, ingest, overview, pipeline, storage
+from app.core import detect, evidence, explain, ingest, overview, pipeline, storage
 from app.core.plan import Plan
+
+PREVIEW_ROWS = 5  # source rows shown under each answer; the CSV has them all
 
 __all__ = ["SAMPLE_PATH", "SAMPLE_ROLES", "get_sample_path", "get_storage_root", "router"]
 
@@ -169,7 +172,6 @@ def get_overview(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> 
         insights=saved.get("insights", []),
         recommendations=saved.get("recommendations", []),
         rules=saved.get("rules", []),
-        key_numbers=saved.get("key_numbers", []),
     )
 
 
@@ -213,9 +215,39 @@ def run_plan(
     answer = narrate.instant_answer(Plan.model_validate(card.plan), card.result, card.verified,
                                     card.sql_result, card.pandas_result)
     note(request, plan_status=plan.status, verified=card.verified, source=answer.source)
+    context = pipeline.load_context(dataset_id, root, cache_dir)
+    info = pipeline.dataset_info(context)
     return RunOut(verified=card.verified, sentence=answer.text, source=answer.source,
                   sentence_status="pending" if card.verified else "final",
-                  note=answer.note, card=CardOut.model_validate(card))
+                  note=answer.note, card=CardOut.model_validate(card),
+                  comparison=comparison_for(card, dataset_id, root, cache_dir),
+                  explanation=explain.explanation(card, context.folder / FIXES_FILE,
+                                                  info.date_min, info.date_max),
+                  rows_preview=preview_rows(context.query_db, card))
+
+
+def preview_rows(query_db: Path, card: evidence.EvidenceCard) -> list[dict]:
+    """The first few source rows behind a card (none when the card has no rows)."""
+    if not card.row_count:
+        return []
+    return evidence.source_rows(query_db, card, 1)["rows"][:PREVIEW_ROWS]
+
+
+def comparison_for(card: evidence.EvidenceCard, dataset_id: str, root: Path,
+                   cache_dir: Path) -> Comparison | None:
+    """For a filtered single number, the same measure over all orders in the same period.
+
+    It runs through both engines like any answer and is left out unless they agree.
+    """
+    plan = Plan.model_validate(card.plan)
+    if not card.verified or plan.group_by or not plan.filters:
+        return None
+    overall = pipeline.run_plan(dataset_id, plan.model_copy(update={"filters": []}), root,
+                                cache_dir)
+    if not overall.verified or not overall.result:
+        return None
+    return Comparison(label="all orders", value=overall.result[0].get("value"), verified=True,
+                      card_id=overall.card_id)
 
 
 @router.get("/{dataset_id}/fixes", response_class=Response)

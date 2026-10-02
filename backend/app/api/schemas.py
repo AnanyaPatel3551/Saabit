@@ -114,6 +114,15 @@ class PlanOut(BaseModel):
     cached: bool
 
 
+class Comparison(BaseModel):
+    """The same measure over all orders, for comparison with a filtered answer."""
+
+    label: str
+    value: float | None
+    verified: bool
+    card_id: str
+
+
 class RunOut(BaseModel):
     """Answer to a plan, returned as soon as both engines finish (numbers first).
 
@@ -129,6 +138,11 @@ class RunOut(BaseModel):
     sentence_status: str  # "pending" or "final"
     note: str | None
     card: CardOut
+    # Evidence shown with the answer. comparison: for a filtered single number, the same
+    # measure over all orders (its own two-engine card, included only when verified).
+    comparison: Comparison | None = None
+    explanation: list[str] = []  # "How this was calculated", written by code (core/explain.py)
+    rows_preview: list[dict] = []  # the first source rows behind the card
 
 
 class SentenceIn(BaseModel):
@@ -171,7 +185,6 @@ class OverviewOut(BaseModel):
     insights: list[dict]
     recommendations: list[dict]
     rules: list[dict]
-    key_numbers: list[dict] = []  # whole-file totals, each a verified evidence card
 
 
 class ErrorDetail(BaseModel):

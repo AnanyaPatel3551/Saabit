@@ -28,9 +28,11 @@ export const SENTENCE_TIMEOUT_MS = 10_000;
  * Chip edits never go back through /plan. Answers stay as a thread, newest first, saved in
  * this browser per dataset.
  */
-export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidence, range }: {
+export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidence, range,
+  partialMonths = [] }: {
   datasetId: string;
   range?: DataRange;
+  partialMonths?: string[];
   llmDown: boolean;
   llmReason: string | null;
   onLlmChange: (down: boolean, reason: string | null) => void;
@@ -39,6 +41,7 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
   const [question, setQuestion] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [entries, setEntries] = useState<HistoryEntry[]>(() => loadHistory(datasetId));
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());  // older answers opened
   const [chipPlan, setChipPlan] = useState<Plan | null>(() => newestPlan(loadHistory(datasetId)));
   const busy = status.kind === "loading";
   const firstUse = entries.length === 0 && status.kind === "idle";
@@ -173,12 +176,19 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
             </button>
           </div>
           <ol className="flex flex-col gap-4" aria-label="Question history, newest first">
-            {entries.map((entry) => (
+            {entries.map((entry, index) => (
               <li key={entry.id} className="flex flex-col gap-2">
                 <p className="text-sm text-muted">
                   <span className="sr-only">Question: </span>{entry.question}
                 </p>
-                <EntryCard entry={entry} onEvidence={onEvidence} onAsk={(q) => void ask(q)} />
+                <EntryCard entry={entry} onEvidence={onEvidence} onAsk={(q) => void ask(q)}
+                  partialMonths={partialMonths}
+                  collapsed={index > 0 && !expanded.has(entry.id)}
+                  onToggle={index > 0 ? () => setExpanded((now) => {
+                    const next = new Set(now);
+                    if (next.has(entry.id)) next.delete(entry.id); else next.add(entry.id);
+                    return next;
+                  }) : undefined} />
               </li>
             ))}
           </ol>
@@ -188,18 +198,23 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
   );
 }
 
-function EntryCard({ entry, onEvidence, onAsk }: {
+function EntryCard({ entry, onEvidence, onAsk, collapsed, onToggle, partialMonths }: {
   entry: HistoryEntry;
   onEvidence: (card: Card) => void;
   onAsk: (question: string) => void;
+  collapsed: boolean;
+  onToggle?: () => void;
+  partialMonths: string[];
 }) {
   if (entry.refusal) return <RefusalCard plan={entry.refusal} onAsk={onAsk} />;
   const run = entry.run;
   if (!run) return null;
-  if (!run.verified) return <UnverifiedCard answer={run} onEvidence={() => onEvidence(run.card)} />;
+  // the drawer draws the same chart, so the comparison travels with the card
+  const open = () => onEvidence({ ...run.card, comparison: run.comparison ?? null });
+  if (!run.verified) return <UnverifiedCard answer={run} onEvidence={open} />;
   const sentence = entry.sentence ?? { status: "done", text: run.sentence, source: run.source };
-  return <AnswerCard answer={run} sentence={sentence} caveats={entry.caveats}
-    onEvidence={() => onEvidence(run.card)} />;
+  return <AnswerCard answer={run} sentence={sentence} caveats={entry.caveats} onEvidence={open}
+    collapsed={collapsed} onToggle={onToggle} partialMonths={partialMonths} />;
 }
 
 function newestPlan(entries: HistoryEntry[]): Plan | null {

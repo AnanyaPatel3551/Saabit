@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Overview, Plan, RunOut } from "../api/types";
+import type { Plan, RunOut } from "../api/types";
 import { RefusalCard } from "../components/AnswerCards";
 import { AskPanel } from "../components/AskPanel";
 import { InsightsPanel } from "../components/InsightsPanel";
@@ -152,8 +152,9 @@ describe("Insights panel", () => {
           text: "Cleaning kept 128,975 rows." },
       ],
     };
-    render(<InsightsPanel overview={overview as unknown as Overview} error={null}
-      onEvidence={() => undefined} />);
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json(overview)));
+
+    render(<InsightsPanel datasetId="abc" onEvidence={() => undefined} />);
 
     expect(await screen.findByText("Data fixes")).toBeTruthy();
     expect(screen.getAllByText("Verified")).toHaveLength(1);

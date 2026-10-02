@@ -1,35 +1,44 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { getOverview } from "../api/client";
 import type { Overview, Recommendation } from "../api/types";
 import { monthLabel } from "../lib/format";
 import { VerifiedBadge } from "./VerifiedBadge";
 
-/** "Open evidence (N cards)", or nothing when there are no cards. */
-export function EvidenceLink({ ids, onEvidence }: {
-  ids: string[];
+const POLL_MS = 2000;
+
+/** Right panel: insight cards E1-E5 and ranked recommendations from /overview (FR-8). */
+export function InsightsPanel({ datasetId, onEvidence }: {
+  datasetId: string;
   onEvidence: (cardIds: string[]) => void;
 }) {
-  if (ids.length === 0) return null;
-  return (
-    <button type="button" onClick={() => onEvidence(ids)}
-      className="min-h-9 text-xs text-gold hover:underline">
+  const [overview, setOverview] = useState<Overview | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const poll = async () => {
+      try {
+        const next = await getOverview(datasetId);
+        if (!live) return;
+        setOverview(next);
+        if (next.status === "computing") timer = setTimeout(poll, POLL_MS);
+      } catch (e) {
+        if (live) setError((e as Error).message);
+      }
+    };
+    void poll();
+    return () => { live = false; clearTimeout(timer); };
+  }, [datasetId]);
+
+  const evidenceButton = (ids: string[]) => ids.length > 0 && (
+    <button type="button" onClick={() => onEvidence(ids)} className="text-xs text-gold hover:underline">
       Open evidence ({ids.length} {ids.length === 1 ? "card" : "cards"})
     </button>
   );
-}
 
-/**
- * Right column: insight cards E1-E5, then the recommendations after the first (which the
- * top strip shows), then the rules that did not fire. The overview comes from the workspace.
- */
-export function InsightsPanel({ overview, error, onEvidence }: {
-  overview: Overview | null;
-  error: string | null;
-  onEvidence: (cardIds: string[]) => void;
-}) {
-  const more = overview?.recommendations.slice(1) ?? [];
   return (
-    <section aria-labelledby="insights-heading" className="flex flex-col gap-4"
-      aria-busy={overview?.status === "computing"}>
+    <section aria-labelledby="insights-heading" className="flex flex-col gap-4" aria-busy={overview?.status === "computing"}>
       <h2 id="insights-heading" className="font-display text-2xl text-gold-soft">Insights</h2>
       {error && <p role="alert" className="text-sm text-bad">{error}</p>}
       {(!overview || overview.status === "computing") && !error && (
@@ -61,26 +70,30 @@ export function InsightsPanel({ overview, error, onEvidence }: {
                     {insight.caveats?.map((c) => <li key={c}>Note: {c}</li>)}
                   </ul>
                 )}
-                <div className="mt-2"><EvidenceLink ids={insight.card_ids} onEvidence={onEvidence} /></div>
+                <div className="mt-2">{evidenceButton(insight.card_ids)}</div>
               </li>
             ))}
           </ul>
 
-          {more.length > 0 && (
-            <>
-              <h2 className="mt-2 font-display text-xl text-gold-soft">More recommendations</h2>
-              <ol className="flex flex-col gap-3">
-                {more.map((rec, i) => (
-                  <RecommendationCard key={rec.code} rank={i + 2} rec={rec}
-                    evidence={<EvidenceLink ids={rec.cites} onEvidence={onEvidence} />} />
-                ))}
-              </ol>
-            </>
+          <h2 className="mt-2 font-display text-2xl text-gold-soft">Recommendations</h2>
+          {overview.months?.test && (
+            <p className="text-xs text-muted">
+              Rules decide on {overview.months.training.map(monthLabel).join(", ")} and are
+              backtested on {monthLabel(overview.months.test)}.
+            </p>
           )}
+          {overview.recommendations.length === 0 && (
+            <p className="text-sm text-muted">No rule fired on this data.</p>
+          )}
+          <ol className="flex flex-col gap-3">
+            {overview.recommendations.map((rec, i) => (
+              <RecommendationCard key={rec.code} rank={i + 1} rec={rec} evidence={evidenceButton(rec.cites)} />
+            ))}
+          </ol>
 
           {overview.rules.some((r) => r.status !== "fired") && (
             <details className="text-sm text-muted">
-              <summary className="min-h-9 cursor-pointer">Rules that did not fire</summary>
+              <summary className="cursor-pointer">Rules that did not fire</summary>
               <ul className="mt-2 space-y-1">
                 {overview.rules.filter((r) => r.status !== "fired").map((r) => (
                   <li key={r.code}><span className="text-text">{r.title}:</span> {r.reason}</li>
@@ -94,26 +107,15 @@ export function InsightsPanel({ overview, error, onEvidence }: {
   );
 }
 
-/** "Rules decide on Apr 2022, May 2022 and are backtested on Jun 2022." */
-export function backtestLine(overview: Overview): string | null {
-  const months = overview.months;
-  if (!months?.test) return null;
-  return `Rules decide on ${months.training.map(monthLabel).join(", ")} and are backtested on `
-    + `${monthLabel(months.test)}.`;
-}
-
-export function RecommendationCard({ rank, rec, evidence, highlighted, as = "li" }: {
+function RecommendationCard({ rank, rec, evidence }: {
   rank: number;
   rec: Recommendation;
   evidence: ReactNode;
-  highlighted?: boolean;
-  as?: "li" | "article";
 }) {
-  const Tag = as;
   return (
-    <Tag className={`rounded-xl border bg-panel p-4 ${highlighted ? "border-gold" : "border-gold/40"}`}>
-      <div className="mb-1 flex flex-wrap items-start justify-between gap-2">
-        <h3 className={`font-display text-text ${highlighted ? "text-xl" : "text-base"}`}>
+    <li className="rounded-xl border border-gold/40 bg-panel p-4">
+      <div className="mb-1 flex items-start justify-between gap-2">
+        <h3 className="font-display text-base text-text">
           <span className="text-gold">{rank}.</span> {rec.title}
         </h3>
         {rec.confidence && (
@@ -125,7 +127,7 @@ export function RecommendationCard({ rank, rec, evidence, highlighted, as = "li"
       </div>
       <p className="text-sm text-muted">{rec.text}</p>
       {rec.confidence_reason && (
-        <p className="mt-2 text-xs text-muted">Backtest: {rec.confidence_reason}</p>
+        <p className="mt-2 text-xs text-muted">Why this confidence: {rec.confidence_reason}</p>
       )}
       {rec.impact && (
         <div className="mt-2 rounded-lg bg-raised p-2 text-xs">
@@ -135,6 +137,6 @@ export function RecommendationCard({ rank, rec, evidence, highlighted, as = "li"
         </div>
       )}
       <div className="mt-2">{evidence}</div>
-    </Tag>
+    </li>
   );
 }

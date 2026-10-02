@@ -94,6 +94,16 @@ export interface Card {
   pandas_result: ResultRow[] | null;
   mismatches: string[];
   created_at: string;
+  /** Attached in the browser from RunOut, so the evidence drawer can draw the same chart. */
+  comparison?: Comparison | null;
+}
+
+/** The same measure over all orders, shown next to a filtered single number. */
+export interface Comparison {
+  label: string;
+  value: number | null;
+  verified: boolean;
+  card_id: string;
 }
 
 /** /run answers as soon as both engines finish; sentence is the template until the LLM's arrives. */
@@ -104,6 +114,11 @@ export interface RunOut {
   sentence_status: "pending" | "final";
   note: string | null;
   card: Card;
+  comparison?: Comparison | null;
+  /** "How this was calculated", written by code from the metric catalogue and the plan. */
+  explanation?: string[];
+  /** The first source rows behind the card. */
+  rows_preview?: Record<string, unknown>[];
 }
 
 export interface SentenceOut {
@@ -155,17 +170,6 @@ export interface Overview {
   insights: Insight[];
   recommendations: Recommendation[];
   rules: Recommendation[];
-  /** Whole-file totals, each a two-engine evidence card. */
-  key_numbers?: KeyNumber[];
-}
-
-export interface KeyNumber {
-  metric: MetricName;
-  label: string;
-  value: number | null;
-  orders: number | null;
-  verified: boolean;
-  card_id: string;
 }
 
 export interface Health {

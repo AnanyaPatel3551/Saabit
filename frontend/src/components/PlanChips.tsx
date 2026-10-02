@@ -17,13 +17,11 @@ export interface DataRange {
  * With no date range, the date fields show the data's real range; changing one sets a range
  * whose other end stays at the data's bound.
  */
-export function PlanChips({ plan, onChange, disabled, range, preview }: {
+export function PlanChips({ plan, onChange, disabled, range }: {
   plan: Plan;
   onChange: (plan: Plan) => void;
   disabled?: boolean;
   range?: DataRange;
-  /** Shown for illustration only (the landing page): nothing can be edited. */
-  preview?: boolean;
 }) {
   const [adding, setAdding] = useState(false);
   const [filterColumn, setFilterColumn] = useState<FilterColumn>("state");
@@ -58,8 +56,7 @@ export function PlanChips({ plan, onChange, disabled, range, preview }: {
   };
 
   return (
-    <fieldset disabled={disabled || preview} className={`flex flex-wrap items-center gap-2 ${
-      preview ? "" : "disabled:opacity-60"}`}>
+    <fieldset disabled={disabled} className="flex flex-wrap items-center gap-2 disabled:opacity-60">
       <legend className="mb-2 text-xs uppercase tracking-wider text-muted">Understood as</legend>
 
       <label className="sr-only" htmlFor="chip-metric">Metric</label>
@@ -68,7 +65,7 @@ export function PlanChips({ plan, onChange, disabled, range, preview }: {
         {METRIC_NAMES.map((m) => <option key={m} value={m}>{humanize(m)}</option>)}
       </select>
 
-      {[...plan.group_by, ...(plan.group_by.length < 2 && !preview ? [""] : [])].map((dim, index) => (
+      {[...plan.group_by, ...(plan.group_by.length < 2 ? [""] : [])].map((dim, index) => (
         <span key={`${index}-${dim}`} className="inline-flex items-center gap-1">
           <span className="text-xs text-muted">{index === 0 ? "by" : "and"}</span>
           <label className="sr-only" htmlFor={`chip-group-${index}`}>Group by {index + 1}</label>
@@ -83,22 +80,20 @@ export function PlanChips({ plan, onChange, disabled, range, preview }: {
       {plan.filters.map((filter, index) => (
         <span key={`${filter.column}-${index}`} className={`${chip} inline-flex items-center gap-2`}>
           {humanize(filter.column)} {filter.op === "not_in" ? "is not" : "is"} {filter.values.join(", ")}
-          {!preview && (
-            <button type="button" aria-label={`Remove filter ${humanize(filter.column)}`}
-              className="text-muted hover:text-bad"
-              onClick={() => update({ filters: plan.filters.filter((_, i) => i !== index) })}>
-              ×
-            </button>
-          )}
+          <button type="button" aria-label={`Remove filter ${humanize(filter.column)}`}
+            className="text-muted hover:text-bad"
+            onClick={() => update({ filters: plan.filters.filter((_, i) => i !== index) })}>
+            ×
+          </button>
         </span>
       ))}
 
-      {!preview && !adding && (
+      {!adding && (
         <button type="button" className={`${chip} text-gold`} onClick={() => setAdding(true)}>
           + filter
         </button>
       )}
-      {!preview && adding && (
+      {adding && (
         <span className="inline-flex flex-wrap items-center gap-1">
           <label className="sr-only" htmlFor="chip-filter-column">Filter column</label>
           <select id="chip-filter-column" className={select} value={filterColumn}

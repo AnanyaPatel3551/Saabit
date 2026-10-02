@@ -2,7 +2,7 @@ import { useState } from "react";
 import { confirmRoles } from "../api/client";
 import type { DataCheck, Dataset, Role } from "../api/types";
 import { REQUIRED_ROLES, ROLES, humanize } from "../lib/plan";
-import { isSynthetic } from "./DatasetChip";
+import { isSynthetic } from "./Workspace";
 
 function confidenceTag(confidence: number): string {
   if (confidence >= 0.8) return "High";

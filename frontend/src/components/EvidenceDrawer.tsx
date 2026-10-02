@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { cardRowsCsvUrl, getCard, getCardRows } from "../api/client";
 import type { Card, RowsOut } from "../api/types";
-import { indianDigits } from "../lib/format";
-import { ResultChart } from "./ResultChart";
+import { formatValue, indianDigits } from "../lib/format";
+import { EvidenceChart, ordersLabel } from "./EvidenceChart";
 import { VerifiedBadge } from "./VerifiedBadge";
 
 const TABS = ["Chart", "Plan", "SQL", "pandas", "Rows", "Caveats"] as const;
@@ -129,12 +129,12 @@ function TabBody({ tab, card }: { tab: Tab; card: Card }) {
   const code = "overflow-auto whitespace-pre rounded-lg border border-line bg-ink p-3 font-mono text-xs text-text";
   switch (tab) {
     case "Chart":
-      return card.verified ? <ResultChart plan={card.plan} rows={card.result} /> : (
+      return card.verified ? <ChartView card={card} rows={card.result} /> : (
         <div className="grid gap-4 sm:grid-cols-2">
           <div><h3 className="mb-2 text-sm text-muted">SQL result</h3>
-            <ResultChart plan={card.plan} rows={card.sql_result ?? []} /></div>
+            <ChartView card={card} rows={card.sql_result ?? []} /></div>
           <div><h3 className="mb-2 text-sm text-muted">pandas result</h3>
-            <ResultChart plan={card.plan} rows={card.pandas_result ?? []} /></div>
+            <ChartView card={card} rows={card.pandas_result ?? []} /></div>
         </div>
       );
     case "Plan":
@@ -163,6 +163,30 @@ function TabBody({ tab, card }: { tab: Tab; card: Card }) {
         </div>
       );
   }
+}
+
+/** The answer's chart; a single number comes with its order and row counts, never alone. */
+function ChartView({ card, rows }: { card: Card; rows: Card["result"] }) {
+  const plan = card.plan;
+  if (plan.group_by.length === 0) {
+    const row = rows[0];
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="flex flex-wrap items-baseline gap-x-3">
+          <span className="font-display text-4xl tabular-nums text-gold-soft">
+            {formatValue(plan.metric, row?.value ?? null)}
+          </span>
+          <span className="text-sm text-muted">
+            {row ? `${indianDigits(row.orders)} ${ordersLabel(plan.metric)} · ` : ""}
+            from {indianDigits(card.row_count)} source rows
+          </span>
+        </p>
+        <EvidenceChart plan={plan} rows={rows} comparison={card.comparison} />
+      </div>
+    );
+  }
+  if (rows.length === 0) return <p className="text-sm text-muted">No orders match this plan.</p>;
+  return <EvidenceChart plan={plan} rows={rows} />;
 }
 
 function RowsTab({ card }: { card: Card }) {

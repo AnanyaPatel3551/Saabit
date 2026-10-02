@@ -243,17 +243,3 @@ def test_impact_includes_formula_and_caveat(real_sample_cache: Path) -> None:
     assert impact["assumption"].startswith("If Merchant-fulfilled orders were cancelled at")
     assert impact["caveat"] == WITHIN_CATEGORY_CAVEAT
     assert impact["value"] == round(36376 * r1["training"]["gap"] / 100)
-
-
-def test_key_numbers_are_verified_cards(real_sample_cache: Path) -> None:
-    tiles = {k["metric"]: k for k in overview_of(real_sample_cache)["key_numbers"]}
-
-    assert list(tiles) == ["revenue", "orders", "cancellation_rate", "aov"]
-    for tile in tiles.values():
-        assert tile["verified"] and evidence.load_card(real_sample_cache / "cards",
-                                                       tile["card_id"]).verified
-    # values from the independent answer key (eval/questions.yaml s01 and s03, golden anchors)
-    assert tiles["revenue"]["value"] == pytest.approx(71673394.0, abs=0.01)
-    assert tiles["orders"]["value"] == 120378
-    assert tiles["cancellation_rate"]["value"] == pytest.approx(14.2759, abs=0.01)
-    assert tiles["aov"]["value"] == pytest.approx(694.56, abs=0.01)

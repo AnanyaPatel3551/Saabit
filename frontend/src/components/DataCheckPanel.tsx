@@ -2,13 +2,12 @@ import { fixesCsvUrl } from "../api/client";
 import type { DataCheck } from "../api/types";
 import { indianDigits } from "../lib/format";
 
-/** What the file can and cannot answer, and what cleaning fixed (FR-3.4, FR-3.5). Shown in
- * the header's "Data check" drawer, which has its own title. */
+/** Left panel: what the file can and cannot answer, and what cleaning fixed (FR-3.4, FR-3.5). */
 export function DataCheckPanel({ check }: { check: DataCheck }) {
   const fixedRows = check.fixes.reduce((total, f) => total + f.rows_affected, 0);
   return (
     <section aria-labelledby="check-heading" className="flex flex-col gap-4">
-      <h2 id="check-heading" className="sr-only">Data check</h2>
+      <h2 id="check-heading" className="font-display text-2xl text-gold-soft">Data check</h2>
       <p className="text-sm text-muted">
         {indianDigits(check.rows_in)} rows read, {indianDigits(check.rows_out)} kept after cleaning.
       </p>

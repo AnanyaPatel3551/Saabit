@@ -1,74 +1,184 @@
-import type { Plan, RunOut } from "../api/types";
+import { cardRowsCsvUrl } from "../api/client";
+import type { Plan, ResultRow, RunOut } from "../api/types";
+import { formatValue, indianDigits, keyLabel } from "../lib/format";
 import type { Sentence } from "../lib/history";
 import { reasonWithoutSuggestion, suggestedQuestion } from "../lib/plan";
-import { ResultChart } from "./ResultChart";
+import { EvidenceChart, ordersLabel } from "./EvidenceChart";
 import { VerifiedBadge } from "./VerifiedBadge";
 
 const card = "rounded-xl border bg-panel p-4 sm:p-5";
 const chipButton = "rounded-full border border-gold/50 px-3 py-1 text-sm text-gold-soft hover:bg-gold/10";
+const PREVIEW_COLUMNS = 8;
+
+/** The number to show big: the single value, the largest group, or the latest period. */
+function headline(plan: Plan, rows: ResultRow[]): { label: string | null; value: string; orders: number } | null {
+  if (rows.length === 0) return null;
+  if (plan.group_by.length === 0) {
+    return { label: null, value: formatValue(plan.metric, rows[0].value), orders: rows[0].orders };
+  }
+  const overTime = plan.group_by[0] === "month" || plan.group_by[0] === "week";
+  const pick = overTime ? rows[rows.length - 1]
+    : [...rows].sort((a, b) => (b.value ?? 0) - (a.value ?? 0))[0];
+  const label = plan.group_by.map((d) => keyLabel(d, pick[d])).join(" · ");
+  return { label: overTime ? `${label} (latest)` : `${label} (highest)`,
+           value: formatValue(plan.metric, pick.value), orders: pick.orders };
+}
+
+/** "SQL and pandas both gave 14.2%" or "...the same 5 results". */
+export function proofText(plan: Plan, rows: ResultRow[]): string {
+  if (plan.group_by.length === 0 && rows.length === 1) {
+    return `SQL and pandas both gave ${formatValue(plan.metric, rows[0].value)}`;
+  }
+  return `SQL and pandas gave the same ${rows.length} ${rows.length === 1 ? "result" : "results"}`;
+}
+
+function cell(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "boolean") return value ? "yes" : "no";
+  const text = String(value);
+  return /^\d{4}-\d{2}-\d{2}T/.test(text) ? text.slice(0, 10) : text;
+}
 
 /**
- * A verified answer: the numbers, badge, chart and caveats show at once; the sentence fills in
- * when the writer finishes (or the template, if it fails).
+ * A verified answer with its evidence: sentence, the big number, the proof line, a chart,
+ * how it was calculated, the first source rows and the caveats. Collapsed (older answers in
+ * the thread) it keeps only the sentence, the number and the proof line.
  */
-export function AnswerCard({ answer, sentence, caveats, onEvidence, preview }: {
+export function AnswerCard({ answer, sentence, caveats, onEvidence, collapsed, onToggle,
+  partialMonths = [] }: {
   answer: RunOut;
   sentence: Sentence;
   caveats: string[];
   onEvidence: () => void;
-  /** Shown for illustration only (the landing page): no evidence button. */
-  preview?: boolean;
+  collapsed?: boolean;
+  onToggle?: () => void;
+  partialMonths?: string[];
 }) {
   const plan = answer.card.plan;
+  const rows = answer.card.result;
+  const top = headline(plan, rows);
   const allCaveats = [...new Set([...caveats, ...answer.card.caveats])];
+  const preview = answer.rows_preview ?? [];
+  const columns = preview[0] ? Object.keys(preview[0]).slice(0, PREVIEW_COLUMNS) : [];
+
   return (
-    <article className={`${card} border-line`}>
-      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-        <p className="font-display text-xl leading-snug text-text" aria-live="polite"
-          aria-busy={sentence.status === "pending"}>
-          {sentence.status === "pending"
-            ? <span className="text-base text-muted">Writing the answer…</span>
-            : sentence.text}
+    <article className={`${card} flex flex-col gap-3 border-line`}>
+      <p className="font-display text-xl leading-snug text-text" aria-live="polite"
+        aria-busy={sentence.status === "pending"}>
+        {sentence.status === "pending"
+          ? <span className="text-base text-muted">Writing the answer…</span>
+          : sentence.text}
+      </p>
+
+      {top ? (
+        <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="font-display text-4xl tabular-nums text-gold-soft">{top.value}</span>
+          <span className="text-sm text-muted">
+            {top.label ? `${top.label} · ` : ""}{indianDigits(top.orders)} {ordersLabel(plan.metric)}
+          </span>
         </p>
-        <VerifiedBadge verified={answer.verified} />
-      </div>
-      <ResultChart plan={plan} rows={answer.card.result} />
-      {allCaveats.length > 0 && (
-        <ul className="mt-3 space-y-1 text-xs text-muted">
-          {allCaveats.map((c) => <li key={c}>Note: {c}</li>)}
-        </ul>
+      ) : (
+        <p className="text-sm text-muted">No orders match this question.</p>
       )}
-      <div className="mt-3 flex items-center justify-between text-xs text-muted">
-        <span>
-          {sentence.status === "done" && sentence.source === "template"
-            ? "Sentence written from a template." : ""}
-        </span>
-        {!preview && (
-          <button type="button" onClick={onEvidence} className="min-h-9 text-gold hover:underline">
-            Show evidence
-          </button>
-        )}
-      </div>
+
+      <p data-testid="proof-line" className="flex flex-wrap items-center gap-2 text-sm text-text">
+        <VerifiedBadge verified />
+        <span>{proofText(plan, rows)}</span>
+      </p>
+
+      {collapsed ? (
+        <button type="button" onClick={onToggle} className="min-h-9 self-start text-xs text-gold hover:underline">
+          Show the evidence
+        </button>
+      ) : (
+        <>
+          <EvidenceChart plan={plan} rows={rows} comparison={answer.comparison}
+            partialMonths={partialMonths} compact />
+
+          {(answer.explanation ?? []).length > 0 && (
+            <section aria-label="How this was calculated">
+              <h4 className="mb-1 text-xs uppercase tracking-wider text-muted">How this was calculated</h4>
+              <ul className="space-y-0.5 text-xs text-text">
+                {answer.explanation?.map((line) => <li key={line}>{line}</li>)}
+              </ul>
+            </section>
+          )}
+
+          {preview.length > 0 && (
+            <section aria-label="Source rows">
+              <h4 className="mb-1 text-xs uppercase tracking-wider text-muted">
+                First {preview.length} of {indianDigits(answer.card.row_count)} source rows
+              </h4>
+              <div className="overflow-x-auto rounded border border-line">
+                <table className="w-full text-[11px]">
+                  <thead className="bg-raised text-left text-muted">
+                    <tr>{columns.map((c) => <th key={c} scope="col" className="px-2 py-1 font-normal">{c}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {preview.map((row, i) => (
+                      <tr key={i} className="border-t border-line">
+                        {columns.map((c) => <td key={c} className="whitespace-nowrap px-2 py-1">{cell(row[c])}</td>)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <a href={cardRowsCsvUrl(answer.card.card_id)} download
+                className="mt-1 inline-block min-h-9 text-xs text-gold hover:underline">
+                Download all {indianDigits(answer.card.row_count)} rows (CSV)
+              </a>
+            </section>
+          )}
+
+          {allCaveats.length > 0 && (
+            <ul className="space-y-1 text-xs text-amber">
+              {allCaveats.map((c) => <li key={c}>Note: {c}</li>)}
+            </ul>
+          )}
+
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+            <span>
+              {sentence.status === "done" && sentence.source === "template"
+                ? "Sentence written from a template." : ""}
+            </span>
+            <span className="flex items-center gap-3">
+              {onToggle && (
+                <button type="button" onClick={onToggle} className="min-h-9 hover:text-text">Collapse</button>
+              )}
+              <button type="button" onClick={onEvidence} className="min-h-9 text-gold hover:underline">
+                Full evidence: SQL · pandas · plan
+              </button>
+            </span>
+          </div>
+        </>
+      )}
     </article>
   );
+}
+
+/** "SQL: ₹2,39,53,534. pandas: ₹2,41,93,069." from the could-not-verify note. */
+function bothValues(note: string | null): string {
+  const match = note?.match(/SQL: (.+?)\. pandas: (.+?)\.$/);
+  return match ? `SQL gave ${match[1]}; pandas gave ${match[2]}` : "SQL and pandas gave different results";
 }
 
 /** The engines disagreed: amber, both values, and no sentence (FR-6.4). */
 export function UnverifiedCard({ answer, onEvidence }: { answer: RunOut; onEvidence: () => void }) {
   return (
-    <article className={`${card} border-amber/70`} aria-live="polite">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <h3 className="font-display text-lg text-amber">Could not verify</h3>
+    <article className={`${card} flex flex-col gap-2 border-amber/70`} aria-live="polite">
+      <h3 className="font-display text-lg text-amber">Could not verify</h3>
+      <p data-testid="proof-line" className="flex flex-wrap items-center gap-2 text-sm text-text">
         <VerifiedBadge verified={false} />
-      </div>
-      <p className="text-sm text-text">{answer.note}</p>
+        <span>{bothValues(answer.note)}</span>
+      </p>
+      <p className="text-xs text-muted">{answer.note}</p>
       {answer.card.mismatches.length > 0 && (
-        <ul className="mt-2 list-disc pl-5 text-xs text-muted">
+        <ul className="list-disc pl-5 text-xs text-muted">
           {answer.card.mismatches.map((m) => <li key={m}>{m}</li>)}
         </ul>
       )}
-      <button type="button" onClick={onEvidence} className="mt-3 text-xs text-gold hover:underline">
-        Show both results in the evidence
+      <button type="button" onClick={onEvidence} className="min-h-9 self-start text-xs text-gold hover:underline">
+        Full evidence: both results, SQL · pandas · plan
       </button>
     </article>
   );
