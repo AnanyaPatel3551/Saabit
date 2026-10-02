@@ -1,51 +1,21 @@
 question_id,question,answer_given,refused,notes
-s01,What is the total revenue across all months?,₹78591992.17,,
-s02,How many units were sold in June 2022?,,,
-s03,What is the average order value overall?,,,
-s04,AOV in May 2022,,,
-s05,kitna revenue aaya Amazon fulfilment se?,,,
-s06,How many orders were fulfilled by the merchant?,,,
-s07,What is the cancellation rate for kurta?,,,
-s08,revenue from karnataka in may,,,
-s09,How many orders came through the Non-Amazon channel?,,,
-s10,Total units sold,,,
-s11,What was the cancellation rate in June 2022?,,,
-s12,Western Dress ki total sales kitni hai,,,
-b01,Top 5 states by orders,,,
-b02,Revenue by category,,,
-b03,How many orders by fulfilment type?,,,
-b04,Top 3 categories by units sold,,,
-b05,top 5 skus by unit sold,,,
-b06,Average order value by fulfilment,,,
-b07,Revenue by sales channel,,,
-b08,Cancellation rate by category,,,
-b09,top 5 states by revenue,,,
-b10,sabse zyada orders kis category mein hain,,,
-t01,Monthly revenue from April to June 2022,,,
-t02,monthly orders apr to jun,,,
-t03,How did the cancellation rate change month by month from April to June 2022?,,,
-t04,Amazon vs Merchant cancellation rate in May 2022,,,
-t05,Compare revenue in April and May 2022,,,
-t06,"AOV trend by month, April to June 2022",,,
-t07,"Set category revenue month by month, Apr-Jun 2022",,,
-t08,merchant orders har mahine april se june,,,
-x01,rajsthan ka cancellation kitna hai,,,
-x02,How many orders were placed in March 2022?,,,
-x03,Revenue in March 2022,,,
-x04,RJ se kitne orders aaye,,,
-x05,orders from orissa,,,
-x06,Pondicherry revenue,,,
-x07,How many orders from New Delhi?,,,
-x08,april mein total orders kitne the,,,
-x09,Units sold in April 2022,,,
-x10,Monthly revenue trend,,,
-u01,What is the profit margin by category?,,,
-u02,What share of orders were cash on delivery?,,,
-u03,forcast next month sales,,,
-u04,How many repeat customers do I have?,,,
-u05,What is the return on my ad spend?,,,
-u06,What is the average delivery time by state?,,,
-u07,How much inventory is left for each SKU?,,,
-u08,kaunsi age group ke customers sabse zyada khareedte hain,,,
-u09,How much did returns cost me in May 2022?,,,
-u10,profit kitna hua june mein,,,
+s01,What is the total revenue across all months?,78592678.30,no,Method not stated in the reply.
+s03,What is the average order value overall?,652.88,no,Method not stated in the reply.
+s05,kitna revenue aaya Amazon fulfilment se?,54322151.00,no,Method not stated in the reply.
+s07,What is the cancellation rate for kurta?,14.55,no,Its stated rule: cancellation rate = cancelled rows / all rows.
+s08,revenue from karnataka in may,3393125.07,no,Method not stated in the reply.
+b01,Top 5 states by orders,Maharashtra=20780; Karnataka=16182; Tamil Nadu=10519; Telangana=10405; Uttar Pradesh=10062,no,Its stated rule: orders = unique Order IDs.
+b03,How many orders by fulfilment type?,Amazon=82989; Merchant=37389,no,"Recorded its unique-order figures (its stated rule: orders = unique Order IDs). It also gave rows: Amazon 89,698 rows; Merchant 39,277 rows."
+b09,top 5 states by revenue,Maharashtra=13335534.14; Karnataka=10481114.37; Telangana=6916615.65; Uttar Pradesh=6816642.08; Tamil Nadu=6515650.11,no,Method not stated in the reply.
+b10,sabse zyada orders kis category mein hain,Set=50284,no,"It gave a row count (Set - 50,284 rows), not an order count."
+t01,Monthly revenue from April to June 2022,2022-04=28838708.32; 2022-05=26226476.75; 2022-06=23425809.38,no,Method not stated in the reply.
+t04,Amazon vs Merchant cancellation rate in May 2022,Amazon=12.52; Merchant=17.07,no,Its stated rule: cancellation rate = cancelled rows / all rows.
+x01,rajsthan ka cancellation kitna hai,13.80,no,"Its stated working: 374 cancelled rows / 2,711 rows."
+x02,How many orders were placed in March 2022?,158,no,No warning in this answer that March 2022 is an incomplete month. (It mentions March being short only inside its u03 forecast answer.)
+x04,RJ se kitne orders aaye,2506,no,Its stated rule: orders = unique Order IDs.
+x05,orders from orissa,2021,no,Its stated rule: orders = unique Order IDs.
+x07,How many orders from New Delhi?,76,no,Its stated rule: orders = unique Order IDs.
+x08,april mein total orders kitne the,45858,no,Its stated rule: orders = unique Order IDs.
+u01,What is the profit margin by category?,,yes,"Said it cannot be calculated: there is no cost/profit column; Amount is sales/revenue, not profit."
+u02,What share of orders were cash on delivery?,,yes,Said it cannot be calculated: there is no payment-method column identifying COD vs prepaid orders.
+u03,forcast next month sales,20750765.88,no,Gave a July 2022 forecast (linear trend on Apr-Jun monthly revenue) instead of refusing.

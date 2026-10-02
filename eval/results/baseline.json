@@ -1,0 +1,11 @@
+{
+  "answerable": {
+    "correct": 2,
+    "total": 17
+  },
+  "refused": {
+    "correct": 2,
+    "total": 3
+  },
+  "product": "ChatGPT (model not recorded), web app with file upload and code execution, 2026-10-02"
+}

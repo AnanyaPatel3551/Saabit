@@ -5,7 +5,8 @@ template) and scores each filled row with the same rubric as eval.py (eval/scori
 neither an answer nor a refusal are "not run" and left out of both columns, so the comparison is
 always on the same questions.
 
-Usage (from the repo root):  python eval/baseline/score_baseline.py [path/to/filled.csv]
+Usage (from the repo root):
+    python eval/baseline/score_baseline.py [path/to/filled.csv] [--product "label"]
 """
 
 from __future__ import annotations
@@ -59,6 +60,11 @@ def summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def main(argv: list[str]) -> int:
+    product = None
+    if "--product" in argv:  # e.g. --product "ChatGPT (model ...), web app ..., 2026-10-02"
+        at = argv.index("--product")
+        product = argv[at + 1]
+        argv = argv[:at] + argv[at + 2:]
     default = BASELINE_DIR / "baseline_results.csv"
     path = Path(argv[0]) if argv else (default if default.exists()
                                         else BASELINE_DIR / "baseline_template.csv")
@@ -100,7 +106,7 @@ def main(argv: list[str]) -> int:
         print(f"{label:<24}{mine:<16}{theirs}")
     if len(saabit_rows) < len(base_rows):
         print("\nSome questions have no Saabit result: run eval/eval.py (without --only) first.")
-    write_summary(b, next(iter(filled.values())).get("notes", "").strip() or None)
+    write_summary(b, product or next(iter(filled.values())).get("notes", "").strip() or None)
     return 0
 
 
