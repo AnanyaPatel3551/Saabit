@@ -90,6 +90,9 @@ RATE_LIMIT_HEADERS = (
 )
 
 
+SEED = 7  # with temperature 0, keeps repeated calls as alike as the provider allows
+
+
 def request_body(config: LLMConfig, system: str, user: str) -> dict[str, Any]:
     """The chat request. The system prompt (static parts first) and the user turn stay
     separate, so providers that cache prompt prefixes can reuse the system part."""
@@ -103,6 +106,7 @@ def request_body(config: LLMConfig, system: str, user: str) -> dict[str, Any]:
     if config.name == "groq":
         body["include_reasoning"] = False  # Groq-only switch
         body["max_completion_tokens"] = MAX_COMPLETION_TOKENS
+        body["seed"] = SEED  # Groq accepts a seed; the NIM endpoint's support is not documented
     else:
         body["max_tokens"] = MAX_COMPLETION_TOKENS
     return body

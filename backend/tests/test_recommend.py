@@ -120,8 +120,10 @@ def test_verified_appears_only_on_two_engine_results(real_sample_cache: Path) ->
 def test_partial_month_is_marked_on_the_e2_card(real_sample_cache: Path) -> None:
     e2 = overview_of(real_sample_cache)["insights"][1]
 
-    assert "Mar 2022 (partial, 1 day) " in e2["text"]
-    assert "Apr 2022 (partial" not in e2["text"]
+    assert "Mar 2022 (only 1 day of data, 31 Mar) ₹94,810" in e2["text"]
+    assert "Jun 2022 (29 of 30 days, missing 30 Jun)" in e2["text"]
+    assert "Apr 2022 (" not in e2["text"]
+    assert "2022-03" not in e2["text"]
     assert any(c.startswith(MARCH_NOTE) for c in e2["caveats"])
 
 
@@ -147,7 +149,7 @@ def test_rule_decision_uses_only_training_months(tmp_path: Path) -> None:
 
     r1 = next(r for r in rules if r["code"] == "R1")
     assert r1["status"] == "not_fired"
-    assert "training gap is 0.0 points" in r1["reason"]
+    assert "training gap is 0.0 percentage points" in r1["reason"]
     assert fired == [] or all(r["code"] != "R1" for r in fired)
 
 
@@ -239,7 +241,8 @@ def test_impact_includes_formula_and_caveat(real_sample_cache: Path) -> None:
     r1 = rule_of(overview_of(real_sample_cache), "R1")
     impact = r1["impact"]
 
-    assert impact["formula"].startswith("36,376 Merchant orders × 4.7-point gap ÷ 100 = about")
+    assert impact["formula"].startswith(
+        "36,376 Merchant orders × 4.7-percentage-point gap ÷ 100 = about")
     assert "fewer cancellations" in impact["formula"]
     assert impact["assumption"].startswith("If Merchant-fulfilled orders were cancelled at")
     assert impact["caveat"] == WITHIN_CATEGORY_CAVEAT

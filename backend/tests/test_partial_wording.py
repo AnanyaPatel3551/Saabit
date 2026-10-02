@@ -35,8 +35,8 @@ def test_the_trend_template_says_what_each_partial_month_holds() -> None:
     sentence = template_sentence(TREND, TREND_ROWS, PARTIAL)
 
     assert "Mar 2022 (only 1 day of data, 31 Mar) ₹94,810" in sentence
-    assert "Jun 2022 (29 of 30 days, missing 30 Jun) ₹2,13,90,530" in sentence
-    assert "Apr 2022 ₹2,62,34,520" in sentence
+    assert "Jun 2022 (29 of 30 days, missing 30 Jun) ₹2.14 Cr" in sentence
+    assert "Apr 2022 ₹2.62 Cr" in sentence
 
 
 def test_a_date_range_inside_june_says_june_is_missing_a_day() -> None:
@@ -73,7 +73,7 @@ def test_a_drop_into_june_must_mention_the_missing_day() -> None:
 
 
 def test_a_sentence_that_names_the_coverage_is_kept_and_its_day_numbers_pass() -> None:
-    writer = Writer("April had the most revenue at ₹2,62,34,520. March has only 1 day of data "
+    writer = Writer("April had the most revenue at ₹2.62 Cr. March has only 1 day of data "
                     "(31 Mar), so its ₹94,810 is not comparable.")
 
     answer = write_answer("monthly revenue trend", TREND, TREND_ROWS, True, complete=writer,

@@ -184,7 +184,7 @@ def test_cleaned_column_in_filter_adds_caveat(sample_cache: Path, tmp_path: Path
 
     card = run_plan(sample_id(sample_cache), plan, tmp_path, sample_cache)
 
-    assert any(c.startswith("State values were cleaned") for c in card.caveats)
+    assert any(c.startswith("State was cleaned before this was worked out") for c in card.caveats)
 
 
 def test_sql_has_limit_and_is_select_only(subset_cache: Path) -> None:

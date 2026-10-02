@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getEvalSummary } from "../api/client";
 import type { EvalSummary, Score } from "../api/types";
+import { plural } from "../lib/format";
 import { Logo } from "./Logo";
 
 const PENDING = "pending";
@@ -55,7 +56,7 @@ export function HowWeTest() {
               <p>It got {right} of {asked} right, including saying "I can't answer that" when the file could not.</p>
               <p>{run.verified_but_wrong === 0
                 ? "It never showed a wrong number as checked."
-                : `It showed ${run.verified_but_wrong} wrong number(s) as checked.`}</p>
+                : `It showed ${plural(run.verified_but_wrong, "wrong number")} as checked.`}</p>
             </>
           ) : (
             <p className="text-muted">The latest test results are not available yet.</p>

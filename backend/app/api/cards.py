@@ -66,7 +66,7 @@ def write_sentence(
     note(request, verified=card.verified, source=answer.source,
          llm_provider=served_by.get() if answer.source == "llm" else None)
     out = SentenceOut(sentence=answer.text, source=answer.source, note=answer.note)
-    if answer.source == "llm":
+    if card.verified and answer.text:  # the template too, so a repeat never changes wording
         answer_cache.write_sentence(answers_home, card_id, out.model_dump())
     return out
 

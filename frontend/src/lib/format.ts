@@ -49,3 +49,8 @@ export function keyLabel(dimension: string, key: unknown): string {
   return text;
 }
 
+
+/** "1 row", "1,24,093 rows", "53 state spellings": Indian grouping and a real plural. */
+export function plural(count: number, noun: string, nouns?: string): string {
+  return `${indianDigits(count)} ${Math.round(count) === 1 ? noun : (nouns ?? `${noun}s`)}`;
+}

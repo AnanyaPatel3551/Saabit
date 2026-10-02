@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { ApiError, planQuestion, runPlan, writeSentence } from "../api/client";
 import type { Card, Plan, RunOut } from "../api/types";
 import type { Coverage } from "../lib/coverage";
+import { monthLabel } from "../lib/format";
 import {
   clearHistory, loadHistory, newEntryId, saveHistory, type HistoryEntry, type Sentence,
 } from "../lib/history";
@@ -187,6 +188,22 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
         ))}
       </div>
 
+      {Object.keys(coverage).length > 0 && (
+        <div className="flex flex-wrap gap-2" aria-label="Months in your data" role="group">
+          <button type="button" onClick={() => fillBox(withMonth(question, null))}
+            className="min-h-9 rounded-full border border-line px-3 py-1 text-xs text-muted hover:border-gold/60 hover:text-text">
+            All dates
+          </button>
+          {Object.values(coverage).map((m) => (
+            <button key={m.month} type="button" onClick={() => fillBox(withMonth(question, monthLabel(m.month)))}
+              className="min-h-9 rounded-full border border-line px-3 py-1 text-xs text-muted hover:border-gold/60 hover:text-text">
+              {monthLabel(m.month)}
+              {m.partial && <span className="ml-1 text-amber">· {m.days === 1 ? "1 day" : m.note}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+
       {entries.length === 0 && status.kind === "idle" && (
         <div className="rounded-xl border border-dashed border-line p-4 text-sm text-muted">
           <p className="text-text">Ask your first question — or tap an example.</p>
@@ -248,6 +265,15 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
       )}
     </section>
   );
+}
+
+const MONTH_PHRASE = /\s*\bin (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{4}\b/gi;
+
+/** Add or replace "in May 2022" in a question; null removes it ("All dates"). */
+export function withMonth(question: string, month: string | null): string {
+  const base = question.replace(MONTH_PHRASE, "").trim();
+  if (!month) return base;
+  return base ? `${base} in ${month}` : `in ${month}`;
 }
 
 /** The newest card while it is being answered: progress, a needed choice, or a problem. */

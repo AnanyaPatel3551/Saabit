@@ -45,7 +45,7 @@ def test_hallucinated_number_falls_back_to_template() -> None:
     assert answer.source == "template"
     assert answer.unmatched == ["12%"]
     assert answer.rejected == "Revenue in May 2022 was ₹2.40 Cr, 12% higher than April."
-    assert "₹2,39,53,534" in answer.text
+    assert "₹2.40 Cr" in answer.text
 
 
 def test_more_than_two_sentences_falls_back_to_template() -> None:

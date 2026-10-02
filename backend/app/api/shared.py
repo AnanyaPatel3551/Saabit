@@ -40,7 +40,8 @@ def validate_roles(chosen: dict[str, str | None], columns: list[str]) -> dict[st
     """Check the user's final roles; return role -> column for the roles that are used."""
     unknown_roles = sorted(set(chosen) - set(detect.ROLES))
     if unknown_roles:
-        raise InvalidRoles(f"Unknown role(s): {', '.join(unknown_roles)}.")
+        word = "role" if len(unknown_roles) == 1 else "roles"
+        raise InvalidRoles(f"Unknown {word}: {', '.join(unknown_roles)}.")
     roles = {role: column for role, column in chosen.items() if column}
     missing_columns = sorted(c for c in roles.values() if c not in columns)
     if missing_columns:

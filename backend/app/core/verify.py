@@ -102,7 +102,7 @@ def caveats_for(
     used = list(dict.fromkeys([f.column for f in plan.filters] + list(plan.group_by)))
     for column in used:
         if column in cleaned_columns:
-            notes.append(f"{column.capitalize()} values were cleaned before this ran: "
+            notes.append(f"{column.capitalize()} was cleaned before this was worked out: "
                          f"{cleaned_columns[column]} (see What we cleaned up).")
     small = [r for r in rows if r["orders"] < SMALL_GROUP_ORDERS]
     if small:

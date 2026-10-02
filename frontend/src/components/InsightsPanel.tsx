@@ -7,9 +7,11 @@ import { VerifiedBadge } from "./VerifiedBadge";
 const POLL_MS = 2000;
 
 /** Right panel: insight cards E1-E5 and ranked recommendations from /overview (FR-8). */
-export function InsightsPanel({ datasetId, onEvidence }: {
+export function InsightsPanel({ datasetId, onEvidence, onCount }: {
   datasetId: string;
   onEvidence: (cardIds: string[]) => void;
+  /** How many insight cards have something to show, once they are ready. */
+  onCount?: (count: number) => void;
 }) {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +24,7 @@ export function InsightsPanel({ datasetId, onEvidence }: {
         const next = await getOverview(datasetId);
         if (!live) return;
         setOverview(next);
+        if (next.status === "ready") onCount?.(next.insights.filter((i) => i.status !== "skipped").length);
         if (next.status === "computing") timer = setTimeout(poll, POLL_MS);
       } catch (e) {
         if (live) setError((e as Error).message);
@@ -29,11 +32,11 @@ export function InsightsPanel({ datasetId, onEvidence }: {
     };
     void poll();
     return () => { live = false; clearTimeout(timer); };
-  }, [datasetId]);
+  }, [datasetId]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const evidenceButton = (ids: string[]) => ids.length > 0 && (
     <button type="button" onClick={() => onEvidence(ids)} className="text-xs text-gold hover:underline">
-      Open evidence ({ids.length} {ids.length === 1 ? "card" : "cards"})
+      See how we got this ({ids.length} {ids.length === 1 ? "answer" : "answers"})
     </button>
   );
 
@@ -42,7 +45,7 @@ export function InsightsPanel({ datasetId, onEvidence }: {
       <h2 id="insights-heading" className="font-display text-2xl text-gold-soft">Insights</h2>
       {error && <p role="alert" className="text-sm text-bad">{error}</p>}
       {(!overview || overview.status === "computing") && !error && (
-        <p role="status" className="text-sm text-muted">Computing insight cards and checking rules…</p>
+        <p role="status" className="text-sm text-muted">Working out the insights…</p>
       )}
       {overview?.status === "failed" && (
         <p role="alert" className="text-sm text-bad">Insights could not be computed: {overview.reason}</p>

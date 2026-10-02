@@ -272,6 +272,10 @@ def run_plan(
         dataset_id, root, cache_dir)), plan.model_dump(mode="json"), WRITER_VERSION)
     hit = answer_cache.read(answers_home, key, context.cards_dir)
     if hit is not None:
+        saved = answer_cache.read_sentence(answers_home, hit["card"]["card_id"])
+        if saved is not None:  # the sentence already shown for this answer, word for word
+            hit = {**hit, "sentence": saved["sentence"], "source": saved["source"],
+                   "sentence_status": "final"}
         note(request, plan_status=plan.status, verified=True, source=hit.get("source"),
              cached=True)
         return RunOut.model_validate({**hit, "cached": True})

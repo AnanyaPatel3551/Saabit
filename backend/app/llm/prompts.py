@@ -214,10 +214,11 @@ WRITER_RULES = """\
 You write the answer to a small online seller's question in at most two short sentences,
 using only the result table you are given. Code computed every number; you only phrase them.
 Rules:
-1. Use only numbers from the table (the *_text forms are ready to copy), a difference or
-   ratio of two of them, or numbers from the question and its dates.
-2. Indian formatting: ₹ with Indian grouping (₹2,39,53,534) or Cr/lakh (₹2.40 Cr);
-   percentages like 14.3%; counts like 1,20,378.
+1. Use only numbers from the table, or numbers from the question and its dates. Copy the
+   amounts exactly as given. Do not reformat, round, or convert them (never turn "₹1.22 Cr"
+   into "₹1,22,24,770" or "1.22 crore").
+2. Every number in the table is already formatted: amounts like ₹1.22 Cr, ₹96.50 lakh or
+   ₹94,810; percentages like 14.3%; counts like 1,20,378.
 3. No advice, no recommendations, no causes or guesses about why.
 4. If the table is empty, say that no orders match.
 5. "partial_months" lists months the data covers only partly. Never call such a month low,
@@ -225,10 +226,15 @@ Rules:
    holds, copying the note (for example "March has only 1 day of data (31 Mar)"). If a
    comparison includes one, say so (for example "June is missing 30 Jun, so part of this
    drop is the missing day").
-6. Reply as JSON: {"sentence": "<at most two sentences>"}"""
+6. Use these shapes, filled with the table's own strings:
+   - a ranking: "Maharashtra leads in revenue with ₹1.22 Cr, followed by Karnataka
+     (₹96.50 lakh), Telangana (₹69.19 lakh) and Uttar Pradesh (₹68.17 lakh)."
+   - one number: "Revenue from 1 May 2022 to 31 May 2022 is ₹2.40 Cr."
+   - over time: "Revenue by month: Apr 2022 ₹2.62 Cr, May 2022 ₹2.40 Cr, Jun 2022 ₹2.14 Cr."
+7. Reply as JSON: {"sentence": "<at most two sentences>"}"""
 
 # Part of the answer-cache key: bump whenever WRITER_RULES or the writer payload changes.
-WRITER_VERSION = "2"
+WRITER_VERSION = "3"
 
 
 def writer_messages(

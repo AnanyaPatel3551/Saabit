@@ -1,26 +1,30 @@
 import { downloadFixes } from "../api/client";
 import type { DataCheck } from "../api/types";
 import { monthCoverage, partialOnly } from "../lib/coverage";
-import { indianDigits, monthLabel } from "../lib/format";
+import { indianDigits, monthLabel, plural } from "../lib/format";
 import { CsvDownload } from "./CsvDownload";
 
-/** One plain sentence per kind of clean-up (rules from backend core/clean.py). */
-function cleanUpSentence(rule: string, entries: number, rows: number): string | null {
-  const n = indianDigits(entries);
-  const r = indianDigits(rows);
-  switch (rule) {
-    case "state_normalised": return `Merged ${n} different spellings of state names into one name each (${r} rows).`;
-    case "city_normalised": return `Tidied ${n} city names that differed only in capitals or spaces (${r} rows).`;
-    case "amount_cleaned": return `Read ${r} amounts written with ₹ signs or commas as plain numbers.`;
-    case "amount_unparseable": return `Left out ${r} rows whose amount could not be read as a number.`;
-    case "date_unparseable": return `Left out ${r} rows whose date could not be read.`;
-    case "duplicate_row": return `Removed ${r} rows that were exact copies of another row.`;
-    case "qty_not_integer": return `Noted ${r} rows where the quantity is not a whole number.`;
-    case "date_order": return "Worked out which way round your dates are written (day or month first).";
-    case "partial_month":
-    case "state_unknown": return null;  // shown under "Good to know"
-    default: return `${rule.replace(/_/g, " ")}: ${r} rows.`;
-  }
+// What each cleaning rule did, in the same words as the backend (core/templates.CLEAN_UP),
+// so "What we cleaned up" here and the Data fixes insight card read alike.
+const CLEAN_UP: Record<string, [string, string]> = {
+  state_normalised: ["state spelling", "fixed"],
+  city_normalised: ["city spelling", "merged"],
+  amount_cleaned: ["amount", "read as a plain number"],
+  amount_unparseable: ["unreadable amount", "left out"],
+  date_unparseable: ["unreadable date", "left out"],
+  duplicate_row: ["duplicate row", "removed"],
+  qty_not_integer: ["quantity that is not a whole number", "noted"],
+};
+const COUNTED_BY_ROWS = new Set(["duplicate_row", "date_unparseable", "amount_unparseable", "qty_not_integer"]);
+
+/** "53 state spellings fixed in 1,24,093 rows." (null for notes shown under Good to know). */
+export function cleanUpSentence(rule: string, entries: number, rows: number): string | null {
+  if (rule === "partial_month" || rule === "state_unknown") return null;
+  if (rule === "date_order") return "Worked out which way round your dates are written (day or month first).";
+  const [noun, verb] = CLEAN_UP[rule] ?? [rule.replace(/_/g, " "), "changed"];
+  const nouns = noun === "quantity that is not a whole number" ? "quantities that are not whole numbers" : undefined;
+  if (COUNTED_BY_ROWS.has(rule)) return `${plural(rows, noun, nouns)} ${verb}.`;
+  return `${plural(entries, noun, nouns)} ${verb} in ${plural(rows, "row")}.`;
 }
 
 /** Left panel: what the file can and cannot answer, what we cleaned up and what is good to

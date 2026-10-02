@@ -13,6 +13,7 @@ from app.core.detect import (
     detect_roles,
 )
 from app.core.ingest import read_table
+from app.core.templates import indian_digits
 from tests.conftest import FIXTURES
 
 
@@ -162,7 +163,7 @@ def test_reasons_say_how_many_rows_were_checked_when_the_file_is_larger() -> Non
 
     order_id = by_role(detect_roles(df, total_rows=128975))["order_id"]
 
-    assert any("(first 100 of 128,975 rows)" in reason for reason in order_id.reasons)
+    assert any("(first 100 of 1,28,975 rows)" in reason for reason in order_id.reasons)
 
 
 def test_reasons_have_no_row_note_when_every_row_was_checked() -> None:
@@ -177,7 +178,7 @@ def test_value_checks_use_at_most_50000_rows() -> None:
 
     order_id = by_role(detect_roles(pd.DataFrame({"Order ID": ids_then_repeats})))["order_id"]
 
-    assert any(f"(first 50,000 of {rows:,} rows)" in r for r in order_id.reasons)
+    assert any(f"(first 50,000 of {indian_digits(rows)} rows)" in r for r in order_id.reasons)
     assert any("100% of values are distinct" in r for r in order_id.reasons)
 
 

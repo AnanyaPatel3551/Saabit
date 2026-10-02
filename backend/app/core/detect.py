@@ -8,6 +8,7 @@ from functools import cache, cached_property
 import pandas as pd
 
 from app.core.states import state_lookup
+from app.core.templates import indian_digits
 
 ROLES = (
     "order_id", "order_date", "amount", "status", "state", "city",
@@ -327,7 +328,8 @@ def suggestion_for(
 
 def check_scope(checked: int, total: int) -> str:
     """Note for the reasons when the value checks saw only part of the file."""
-    return f" (first {checked:,} of {total:,} rows)" if total > checked else ""
+    return (f" (first {indian_digits(checked)} of {indian_digits(total)} rows)"
+            if total > checked else "")
 
 
 def detect_roles(df: pd.DataFrame, total_rows: int | None = None) -> DetectionResult:

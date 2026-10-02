@@ -67,7 +67,7 @@ def test_top_n_template_names_the_leader() -> None:
 
     text = template_sentence(plan, [{"state": "Maharashtra", "value": 20780.0, "orders": 20780}])
 
-    assert text == "Maharashtra has the highest orders at 20,780."
+    assert text == "Maharashtra leads in orders with 20,780."
 
 
 def test_filter_and_dates_appear_in_the_template() -> None:

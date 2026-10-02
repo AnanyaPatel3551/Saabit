@@ -13,6 +13,7 @@ from itertools import permutations
 
 from app.core.coverage import MonthCoverage
 from app.core.plan import Plan
+from app.core.templates import display_inr
 
 CRORE = 10_000_000
 LAKH = 100_000
@@ -139,3 +140,17 @@ def misleads_on_partial(text: str, partial: dict[str, MonthCoverage]) -> bool:
             if JUDGEMENT.search(sentence) or not COVERAGE_WORDS.search(sentence):
                 return True
     return False
+
+
+def off_style_amounts(text: str) -> list[str]:
+    """Amounts not written exactly in the one sentence style (templates.display_inr): e.g.
+    "₹1,22,24,770" where "₹1.22 Cr" was given, or "1.22 crore". The writer is told to copy
+    amounts as given, so any other spelling means it reformatted one."""
+    off = []
+    for number in extract_numbers(text):
+        if number.kind != "money":
+            continue
+        written = re.sub(r"\s+", " ", number.text).replace("₹ ", "₹")
+        if written != display_inr(number.value):
+            off.append(number.text)
+    return off

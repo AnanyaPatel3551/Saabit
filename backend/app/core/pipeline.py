@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-from app.core import compile_pandas, compile_sql, evidence, storage, verify
+from app.core import compile_pandas, compile_sql, evidence, storage, templates, verify
 from app.core.coverage import MonthCoverage, partial_coverage
 from app.core.plan import DatasetInfo, Plan, snap_values, validate_plan
 
@@ -76,15 +76,17 @@ def cleaned_columns(fixes_csv: Path) -> dict[str, str]:
     """Columns whose values cleaning changed, with a short description for caveats."""
     if not fixes_csv.is_file():
         return {}
-    changes: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    changes: dict[tuple[str, str], list[int]] = defaultdict(lambda: [0, 0])
     with fixes_csv.open(encoding="utf-8", newline="") as f:
         for row in csv.DictReader(f):
             if row["rule"] in INFORMATIONAL_RULES or row["column"] == "*":
                 continue
-            changes[row["column"]][0] += 1
-            changes[row["column"]][1] += int(row["rows_affected"])
-    return {column: f"{entries} value(s) changed across {rows:,} rows"
-            for column, (entries, rows) in changes.items()}
+            changes[(row["column"], row["rule"])][0] += 1
+            changes[(row["column"], row["rule"])][1] += int(row["rows_affected"])
+    described: dict[str, list[str]] = defaultdict(list)
+    for (column, rule), (entries, rows) in changes.items():
+        described[column].append(templates.clean_up_text(rule, entries, rows))
+    return {column: "; ".join(parts) for column, parts in described.items()}
 
 
 PARTIAL_DAYS = re.compile(r"flagged partial: (\d+) days")

@@ -122,8 +122,8 @@ def r1_fulfilment_gap(ws: Workspace, split: MonthSplit, days: int) -> dict[str, 
     low = min(rates, key=lambda k: rates[k]["value"])
     gap = rates[high]["value"] - rates[low]["value"]
     if gap < GAP_POINTS:
-        return rule(code, title, "not_fired", f"The training gap is {gap:.1f} points, under "
-                    f"{GAP_POINTS:g}.", [train])
+        return rule(code, title, "not_fired", f"The training gap is {gap:.1f} percentage "
+                    f"points, under {GAP_POINTS:g}.", [train])
     try:
         top = ws.run({"metric": "orders", "group_by": ["category"],
                       "date_range": split.training_range,
@@ -178,9 +178,9 @@ def r1_fulfilment_gap(ws: Workspace, split: MonthSplit, days: int) -> dict[str, 
     result.update(
         text=(f"{high}-fulfilled orders were cancelled more often than {low}-fulfilled ones in "
               f"{split.training_label} ({templates.format_pct(rates[high]['value'])} vs "
-              f"{templates.format_pct(rates[low]['value'])}, a {gap:.1f}-point gap), and the gap "
-              f"held in each of the top {len(names)} categories. Test moving the top {high} SKUs "
-              f"by cancelled orders to {low} fulfilment."),
+              f"{templates.format_pct(rates[low]['value'])}, a {gap:.1f}-percentage-point gap), "
+              f"and the gap held in each of the top {len(names)} categories. Test moving the "
+              f"top {high} products (SKUs) by cancelled orders to {low} fulfilment."),
         training={"months": split.training, "high": {"fulfilment": high, **rates[high]},
                   "low": {"fulfilment": low, **rates[low]}, "gap": gap,
                   "categories": category_gaps, "top_skus_card": skus.card_id},
@@ -191,9 +191,9 @@ def r1_fulfilment_gap(ws: Workspace, split: MonthSplit, days: int) -> dict[str, 
         confidence_reason=confidence_note(confidence, test_gap, least_orders, split.test or ""),
         impact={
             "value": round(estimate),
-            "formula": (f"{templates.format_count(high_orders)} {high} orders × {gap:.1f}-point "
-                        f"gap ÷ 100 = about {about(estimate)} fewer cancellations over the "
-                        f"{days} days of data"),
+            "formula": (f"{templates.format_count(high_orders)} {high} orders × "
+                        f"{gap:.1f}-percentage-point gap ÷ 100 = about {about(estimate)} fewer "
+                        f"cancellations over the {days} days of data"),
             "assumption": (f"If {high}-fulfilled orders were cancelled at {low}'s training rate "
                            f"({templates.format_pct(rates[low]['value'])})."),
             "caveat": WITHIN_CATEGORY_CAVEAT,
@@ -206,12 +206,13 @@ def confidence_note(level: str, test_gap: float | None, least: int, month: str) 
     if test_gap is None:
         return f"Low: {label(month)} does not have both fulfilment types to test on."
     if level == "High":
-        return (f"High: in {label(month)} the gap kept its sign at {test_gap:.1f} points, with at "
-                f"least {templates.format_count(least)} orders per group.")
+        return (f"High: in {label(month)} the gap kept its sign at {test_gap:.1f} percentage "
+                f"points, with at least {templates.format_count(least)} orders per group.")
     if level == "Medium":
-        return (f"Medium: the gap kept its sign in {label(month)} ({test_gap:.1f} points) but was "
-                f"under {GAP_POINTS:g} points or had under {HIGH_MIN_ORDERS:,} orders per group.")
-    return f"Low: the gap reversed in {label(month)} ({test_gap:.1f} points)."
+        return (f"Medium: the gap kept its sign in {label(month)} ({test_gap:.1f} percentage "
+                f"points) but was under {GAP_POINTS:g} percentage points or had under "
+                f"{templates.format_count(HIGH_MIN_ORDERS)} orders per group.")
+    return f"Low: the gap reversed in {label(month)} ({test_gap:.1f} percentage points)."
 
 
 def weakest(levels: list[str]) -> str:
@@ -231,7 +232,7 @@ def r2_state_hotspot(ws: Workspace, split: MonthSplit) -> dict[str, Any]:
                  key=lambda r: r["value"] - base, reverse=True)[:LISTED]
     if not hot:
         return rule(code, title, "not_fired", f"No state with at least {HOTSPOT_MIN_ORDERS} "
-                    f"orders is {HOTSPOT_POINTS:g} or more points above the overall "
+                    f"orders is {HOTSPOT_POINTS:g} or more percentage points above the overall "
                     f"{templates.format_pct(base)}.", [overall, states])
     names = [r["state"] for r in hot]
     test_overall = ws.run({"metric": "cancellation_rate", "date_range": split.test_range})
@@ -262,7 +263,7 @@ def r2_state_hotspot(ws: Workspace, split: MonthSplit) -> dict[str, Any]:
     result = rule(code, title, "fired", None, cards)
     result.update(
         text=(f"In {split.training_label}, orders shipped to {', '.join(names)} were cancelled at "
-              f"least {HOTSPOT_POINTS:g} points more often than the "
+              f"least {HOTSPOT_POINTS:g} percentage points more often than the "
               f"{templates.format_pct(base)} overall rate ({details}). Look into delivery and "
               f"address problems for these states."),
         training={"months": split.training, "overall": base, "states": hot},
@@ -321,8 +322,8 @@ def r3_declining_category(ws: Workspace, split: MonthSplit) -> dict[str, Any]:
                  else "Medium" if change is not None and change < 0 else "Low")
         checks.append({"category": name, "test_change": change, "confidence": level})
     lost = sum((series[0] - series[-1]) * test_days for _, series in falling)
-    details = ", ".join(f"{name} {templates.format_inr(series[0])} → "
-                        f"{templates.format_inr(series[-1])} a day" for name, series in falling)
+    details = ", ".join(f"{name} {templates.display_inr(series[0])} → "
+                        f"{templates.display_inr(series[-1])} a day" for name, series in falling)
     result = rule(code, title, "fired", None, cards)
     result.update(
         text=(f"Revenue per day fell in every training month for {', '.join(names)} "
@@ -335,7 +336,7 @@ def r3_declining_category(ws: Workspace, split: MonthSplit) -> dict[str, Any]:
         impact={
             "value": round(lost),
             "formula": f"Σ (first − last training revenue per day) × {test_days} days = about "
-                       f"{templates.format_inr(round(lost / 1000) * 1000)} less revenue a month",
+                       f"{templates.display_inr(round(lost / 1000) * 1000)} less revenue a month",
             "assumption": "If revenue per day stays at the last training month's level.",
             "caveat": ASSOCIATION_CAVEAT,
         },

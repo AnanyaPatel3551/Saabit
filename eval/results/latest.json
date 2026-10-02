@@ -1,32 +1,33 @@
 {
   "meta": {
-    "finished_at": "2026-10-02 01:07",
+    "finished_at": "2026-10-02 18:48",
     "providers": [
+      "groq openai/gpt-oss-120b",
       "nim nvidia/nemotron-3-super-120b-a12b"
     ],
     "served_by": {
-      "nim nvidia/nemotron-3-super-120b-a12b": 65
+      "groq openai/gpt-oss-120b": 65
     },
     "plans_from_cache": 0,
-    "prompt_tokens": 111738,
-    "cached_tokens": 0,
+    "prompt_tokens": 107784,
+    "cached_tokens": 55296,
     "questions": 65,
     "llm_calls": 65,
-    "minutes": 7.2,
+    "minutes": 17.1,
     "stopped": null
   },
   "scorecards": {
     "questions": {
       "answerable": 40,
-      "answerable_correct": 38,
+      "answerable_correct": 39,
       "unanswerable": 10,
       "refused_correctly": 10,
       "verified_but_wrong": 0,
-      "verified_but_misread": 2,
-      "plan_failures": 2,
+      "verified_but_misread": 0,
+      "plan_failures": 1,
       "compute_failures": 0,
-      "p50_s": 3.907,
-      "p95_s": 25.156
+      "p50_s": 1.266,
+      "p95_s": 2.735
     },
     "anchors": {
       "answerable": 13,
@@ -37,8 +38,8 @@
       "verified_but_misread": 0,
       "plan_failures": 0,
       "compute_failures": 0,
-      "p50_s": 2.844,
-      "p95_s": 20.422
+      "p50_s": 1.188,
+      "p95_s": 1.703
     }
   },
   "rows": [
@@ -48,9 +49,9 @@
       "group": "single_metric",
       "question": "What is the total revenue across all months?",
       "correct": true,
-      "latency_s": 2.407,
+      "latency_s": 1.203,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -68,12 +69,10 @@
         "result": [
           {
             "value": 71673394.0,
-            "orders": 120378
+            "orders": 103193
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -90,12 +89,10 @@
         "result": [
           {
             "value": 71673394.0,
-            "orders": 120378
+            "orders": 103193
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -105,9 +102,9 @@
       "group": "single_metric",
       "question": "How many units were sold in June 2022?",
       "correct": true,
-      "latency_s": 25.156,
+      "latency_s": 2.484,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -128,10 +125,12 @@
         "result": [
           {
             "value": 32475.0,
-            "orders": 35141
+            "orders": 30184
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -148,11 +147,12 @@
         "result": [
           {
             "value": 32475.0,
-            "orders": 35141
+            "orders": 30184
           }
         ],
         "caveats": [
-          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -163,9 +163,9 @@
       "group": "single_metric",
       "question": "What is the average order value overall?",
       "correct": true,
-      "latency_s": 2.047,
+      "latency_s": 1.172,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -183,12 +183,10 @@
         "result": [
           {
             "value": 694.5567431899451,
-            "orders": 120378
+            "orders": 103193
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -205,12 +203,10 @@
         "result": [
           {
             "value": 694.5567431899451,
-            "orders": 120378
+            "orders": 103193
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -220,9 +216,9 @@
       "group": "single_metric",
       "question": "AOV in May 2022",
       "correct": true,
-      "latency_s": 5.015,
+      "latency_s": 1.14,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -243,7 +239,7 @@
         "result": [
           {
             "value": 710.0078252363874,
-            "orders": 39221
+            "orders": 33737
           }
         ],
         "caveats": [],
@@ -263,7 +259,7 @@
         "result": [
           {
             "value": 710.0078252363874,
-            "orders": 39221
+            "orders": 33737
           }
         ],
         "caveats": [],
@@ -276,9 +272,9 @@
       "group": "single_metric",
       "question": "kitna revenue aaya Amazon fulfilment se?",
       "correct": true,
-      "latency_s": 4.953,
+      "latency_s": 1.203,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -304,12 +300,10 @@
         "result": [
           {
             "value": 50593039.0,
-            "orders": 84002
+            "orders": 73199
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -326,12 +320,10 @@
         "result": [
           {
             "value": 50593039.0,
-            "orders": 84002
+            "orders": 73199
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -341,9 +333,9 @@
       "group": "single_metric",
       "question": "How many orders were fulfilled by the merchant?",
       "correct": true,
-      "latency_s": 3.5,
+      "latency_s": 3.063,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -372,9 +364,7 @@
             "orders": 36376
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -394,9 +384,7 @@
             "orders": 36376
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -406,9 +394,9 @@
       "group": "single_metric",
       "question": "What is the cancellation rate for kurta?",
       "correct": true,
-      "latency_s": 3.313,
+      "latency_s": 1.156,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -437,9 +425,7 @@
             "orders": 46561
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -459,9 +445,7 @@
             "orders": 46561
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -471,9 +455,9 @@
       "group": "single_metric",
       "question": "revenue from karnataka in may",
       "correct": true,
-      "latency_s": 9.266,
+      "latency_s": 1.25,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -502,11 +486,11 @@
         "result": [
           {
             "value": 3107811.0,
-            "orders": 5136
+            "orders": 4443
           }
         ],
         "caveats": [
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "verified": true,
         "error": null
@@ -524,11 +508,11 @@
         "result": [
           {
             "value": 3107811.0,
-            "orders": 5136
+            "orders": 4443
           }
         ],
         "caveats": [
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -539,9 +523,9 @@
       "group": "single_metric",
       "question": "How many orders came through the Non-Amazon channel?",
       "correct": true,
-      "latency_s": 3.766,
+      "latency_s": 1.093,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -570,9 +554,7 @@
             "orders": 124
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -592,9 +574,7 @@
             "orders": 124
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -604,9 +584,9 @@
       "group": "single_metric",
       "question": "Total units sold",
       "correct": true,
-      "latency_s": 2.609,
+      "latency_s": 1.452,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -624,12 +604,10 @@
         "result": [
           {
             "value": 110992.0,
-            "orders": 120378
+            "orders": 103193
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -646,12 +624,10 @@
         "result": [
           {
             "value": 110992.0,
-            "orders": 120378
+            "orders": 103193
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -661,9 +637,9 @@
       "group": "single_metric",
       "question": "What was the cancellation rate in June 2022?",
       "correct": true,
-      "latency_s": 2.406,
+      "latency_s": 1.204,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -687,7 +663,9 @@
             "orders": 35141
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -708,7 +686,8 @@
           }
         ],
         "caveats": [
-          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -719,9 +698,9 @@
       "group": "single_metric",
       "question": "Western Dress ki total sales kitni hai",
       "correct": true,
-      "latency_s": 20.25,
+      "latency_s": 1.0,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -747,12 +726,10 @@
         "result": [
           {
             "value": 10209590.0,
-            "orders": 14994
+            "orders": 12924
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -769,12 +746,10 @@
         "result": [
           {
             "value": 10209590.0,
-            "orders": 14994
+            "orders": 12924
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -784,9 +759,9 @@
       "group": "breakdown",
       "question": "Top 5 states by orders",
       "correct": true,
-      "latency_s": 4.094,
+      "latency_s": 1.266,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -834,8 +809,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "verified": true,
         "error": null
@@ -884,8 +858,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -896,9 +869,9 @@
       "group": "breakdown",
       "question": "Revenue by category",
       "correct": true,
-      "latency_s": 2.063,
+      "latency_s": 1.781,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -919,12 +892,12 @@
           {
             "category": "Blouse",
             "value": 418389.0,
-            "orders": 897
+            "orders": 784
           },
           {
             "category": "Bottom",
             "value": 135453.0,
-            "orders": 410
+            "orders": 356
           },
           {
             "category": "Dupatta",
@@ -934,36 +907,35 @@
           {
             "category": "Ethnic Dress",
             "value": 732744.0,
-            "orders": 1148
+            "orders": 1004
           },
           {
             "category": "Saree",
             "value": 114694.0,
-            "orders": 144
+            "orders": 123
           },
           {
             "category": "Set",
             "value": 35731673.0,
-            "orders": 47845
+            "orders": 40855
           },
           {
             "category": "Top",
             "value": 4904066.0,
-            "orders": 10155
+            "orders": 8924
           },
           {
             "category": "Western Dress",
             "value": 10209590.0,
-            "orders": 14994
+            "orders": 12924
           },
           {
             "category": "kurta",
             "value": 19425870.0,
-            "orders": 46561
+            "orders": 39743
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
           "Based on fewer than 30 orders: Dupatta (2)."
         ],
         "verified": true,
@@ -993,12 +965,12 @@
           {
             "category": "Blouse",
             "value": 418389.0,
-            "orders": 897
+            "orders": 784
           },
           {
             "category": "Bottom",
             "value": 135453.0,
-            "orders": 410
+            "orders": 356
           },
           {
             "category": "Dupatta",
@@ -1008,36 +980,35 @@
           {
             "category": "Ethnic Dress",
             "value": 732744.0,
-            "orders": 1148
+            "orders": 1004
           },
           {
             "category": "Saree",
             "value": 114694.0,
-            "orders": 144
+            "orders": 123
           },
           {
             "category": "Set",
             "value": 35731673.0,
-            "orders": 47845
+            "orders": 40855
           },
           {
             "category": "Top",
             "value": 4904066.0,
-            "orders": 10155
+            "orders": 8924
           },
           {
             "category": "Western Dress",
             "value": 10209590.0,
-            "orders": 14994
+            "orders": 12924
           },
           {
             "category": "kurta",
             "value": 19425870.0,
-            "orders": 46561
+            "orders": 39743
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
           "Based on fewer than 30 orders: Dupatta (2)."
         ],
         "error": null
@@ -1049,9 +1020,9 @@
       "group": "breakdown",
       "question": "How many orders by fulfilment type?",
       "correct": true,
-      "latency_s": 1.656,
+      "latency_s": 1.922,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1080,9 +1051,7 @@
             "orders": 36376
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -1111,9 +1080,7 @@
             "orders": 36376
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -1123,9 +1090,9 @@
       "group": "breakdown",
       "question": "Top 3 categories by units sold",
       "correct": true,
-      "latency_s": 3.0,
+      "latency_s": 1.375,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1149,22 +1116,20 @@
           {
             "category": "Set",
             "value": 43033.0,
-            "orders": 47845
+            "orders": 40855
           },
           {
             "category": "kurta",
             "value": 42792.0,
-            "orders": 46561
+            "orders": 39743
           },
           {
             "category": "Western Dress",
             "value": 13418.0,
-            "orders": 14994
+            "orders": 12924
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -1186,22 +1151,20 @@
           {
             "category": "Set",
             "value": 43033.0,
-            "orders": 47845
+            "orders": 40855
           },
           {
             "category": "kurta",
             "value": 42792.0,
-            "orders": 46561
+            "orders": 39743
           },
           {
             "category": "Western Dress",
             "value": 13418.0,
-            "orders": 14994
+            "orders": 12924
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -1211,9 +1174,9 @@
       "group": "breakdown",
       "question": "top 5 skus by unit sold",
       "correct": true,
-      "latency_s": 2.281,
+      "latency_s": 1.282,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1237,32 +1200,30 @@
           {
             "sku": "JNE3797-KR-L",
             "value": 647.0,
-            "orders": 773
+            "orders": 646
           },
           {
             "sku": "JNE3797-KR-M",
             "value": 555.0,
-            "orders": 657
+            "orders": 550
           },
           {
             "sku": "JNE3797-KR-S",
             "value": 489.0,
-            "orders": 587
+            "orders": 488
           },
           {
             "sku": "JNE3405-KR-L",
             "value": 452.0,
-            "orders": 535
+            "orders": 449
           },
           {
             "sku": "J0230-SKD-M",
             "value": 435.0,
-            "orders": 506
+            "orders": 433
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -1286,32 +1247,30 @@
           {
             "sku": "JNE3797-KR-L",
             "value": 647.0,
-            "orders": 773
+            "orders": 646
           },
           {
             "sku": "JNE3797-KR-M",
             "value": 555.0,
-            "orders": 657
+            "orders": 550
           },
           {
             "sku": "JNE3797-KR-S",
             "value": 489.0,
-            "orders": 587
+            "orders": 488
           },
           {
             "sku": "JNE3405-KR-L",
             "value": 452.0,
-            "orders": 535
+            "orders": 449
           },
           {
             "sku": "J0230-SKD-M",
             "value": 435.0,
-            "orders": 506
+            "orders": 433
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -1321,9 +1280,9 @@
       "group": "breakdown",
       "question": "Average order value by fulfilment",
       "correct": true,
-      "latency_s": 5.813,
+      "latency_s": 1.328,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1344,17 +1303,15 @@
           {
             "fulfilment": "Amazon",
             "value": 691.1711772018743,
-            "orders": 84002
+            "orders": 73199
           },
           {
             "fulfilment": "Merchant",
             "value": 702.8190638127626,
-            "orders": 36376
+            "orders": 29994
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -1375,17 +1332,15 @@
           {
             "fulfilment": "Amazon",
             "value": 691.1711772018743,
-            "orders": 84002
+            "orders": 73199
           },
           {
             "fulfilment": "Merchant",
             "value": 702.8190638127626,
-            "orders": 36376
+            "orders": 29994
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -1395,9 +1350,9 @@
       "group": "breakdown",
       "question": "Revenue by sales channel",
       "correct": true,
-      "latency_s": 1.954,
+      "latency_s": 1.766,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1418,17 +1373,15 @@
           {
             "channel": "Amazon.in",
             "value": 71673394.0,
-            "orders": 120254
+            "orders": 103070
           },
           {
             "channel": "Non-Amazon",
             "value": 0.0,
-            "orders": 124
+            "orders": 123
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -1449,17 +1402,15 @@
           {
             "channel": "Amazon.in",
             "value": 71673394.0,
-            "orders": 120254
+            "orders": 103070
           },
           {
             "channel": "Non-Amazon",
             "value": 0.0,
-            "orders": 124
+            "orders": 123
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -1469,9 +1420,9 @@
       "group": "breakdown",
       "question": "Cancellation rate by category",
       "correct": true,
-      "latency_s": 2.281,
+      "latency_s": 2.735,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1536,7 +1487,6 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
           "Based on fewer than 30 orders: Dupatta (2)."
         ],
         "verified": true,
@@ -1610,7 +1560,6 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
           "Based on fewer than 30 orders: Dupatta (2)."
         ],
         "error": null
@@ -1622,9 +1571,9 @@
       "group": "breakdown",
       "question": "top 5 states by revenue",
       "correct": true,
-      "latency_s": 2.781,
+      "latency_s": 1.407,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1648,32 +1597,31 @@
           {
             "state": "Maharashtra",
             "value": 12224770.0,
-            "orders": 20780
+            "orders": 18002
           },
           {
             "state": "Karnataka",
             "value": 9649981.0,
-            "orders": 16182
+            "orders": 14085
           },
           {
             "state": "Telangana",
             "value": 6290128.0,
-            "orders": 10405
+            "orders": 8900
           },
           {
             "state": "Uttar Pradesh",
             "value": 6186656.0,
-            "orders": 10062
+            "orders": 8531
           },
           {
             "state": "Tamil Nadu",
             "value": 5954349.0,
-            "orders": 10519
+            "orders": 9079
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "verified": true,
         "error": null
@@ -1698,32 +1646,31 @@
           {
             "state": "Maharashtra",
             "value": 12224770.0,
-            "orders": 20780
+            "orders": 18002
           },
           {
             "state": "Karnataka",
             "value": 9649981.0,
-            "orders": 16182
+            "orders": 14085
           },
           {
             "state": "Telangana",
             "value": 6290128.0,
-            "orders": 10405
+            "orders": 8900
           },
           {
             "state": "Uttar Pradesh",
             "value": 6186656.0,
-            "orders": 10062
+            "orders": 8531
           },
           {
             "state": "Tamil Nadu",
             "value": 5954349.0,
-            "orders": 10519
+            "orders": 9079
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -1734,9 +1681,9 @@
       "group": "breakdown",
       "question": "sabse zyada orders kis category mein hain",
       "correct": true,
-      "latency_s": 2.078,
+      "latency_s": 1.688,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1763,9 +1710,7 @@
             "orders": 47845
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -1788,9 +1733,7 @@
             "orders": 47845
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -1800,9 +1743,9 @@
       "group": "trend",
       "question": "Monthly revenue from April to June 2022",
       "correct": true,
-      "latency_s": 7.86,
+      "latency_s": 1.72,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1826,20 +1769,22 @@
           {
             "month": "2022-04",
             "value": 26234520.0,
-            "orders": 45858
+            "orders": 39132
           },
           {
             "month": "2022-05",
             "value": 23953534.0,
-            "orders": 39221
+            "orders": 33737
           },
           {
             "month": "2022-06",
             "value": 21390530.0,
-            "orders": 35141
+            "orders": 30184
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -1861,21 +1806,22 @@
           {
             "month": "2022-04",
             "value": 26234520.0,
-            "orders": 45858
+            "orders": 39132
           },
           {
             "month": "2022-05",
             "value": 23953534.0,
-            "orders": 39221
+            "orders": 33737
           },
           {
             "month": "2022-06",
             "value": 21390530.0,
-            "orders": 35141
+            "orders": 30184
           }
         ],
         "caveats": [
-          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -1886,9 +1832,9 @@
       "group": "trend",
       "question": "monthly orders apr to jun",
       "correct": true,
-      "latency_s": 5.969,
+      "latency_s": 1.423,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -1925,7 +1871,9 @@
             "orders": 35141
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -1961,7 +1909,8 @@
           }
         ],
         "caveats": [
-          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -1972,9 +1921,9 @@
       "group": "trend",
       "question": "How did the cancellation rate change month by month from April to June 2022?",
       "correct": true,
-      "latency_s": 4.172,
+      "latency_s": 2.094,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2011,7 +1960,9 @@
             "orders": 35141
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -2047,7 +1998,8 @@
           }
         ],
         "caveats": [
-          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -2058,9 +2010,9 @@
       "group": "trend",
       "question": "Amazon vs Merchant cancellation rate in May 2022",
       "correct": true,
-      "latency_s": 8.047,
+      "latency_s": 2.344,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2131,9 +2083,9 @@
       "group": "trend",
       "question": "Compare revenue in April and May 2022",
       "correct": true,
-      "latency_s": 25.609,
+      "latency_s": 1.485,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2157,12 +2109,12 @@
           {
             "month": "2022-04",
             "value": 26234520.0,
-            "orders": 45858
+            "orders": 39132
           },
           {
             "month": "2022-05",
             "value": 23953534.0,
-            "orders": 39221
+            "orders": 33737
           }
         ],
         "caveats": [],
@@ -2186,12 +2138,12 @@
           {
             "month": "2022-04",
             "value": 26234520.0,
-            "orders": 45858
+            "orders": 39132
           },
           {
             "month": "2022-05",
             "value": 23953534.0,
-            "orders": 39221
+            "orders": 33737
           }
         ],
         "caveats": [],
@@ -2204,9 +2156,9 @@
       "group": "trend",
       "question": "AOV trend by month, April to June 2022",
       "correct": true,
-      "latency_s": 4.281,
+      "latency_s": 1.688,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2230,20 +2182,22 @@
           {
             "month": "2022-04",
             "value": 670.4109168966575,
-            "orders": 45858
+            "orders": 39132
           },
           {
             "month": "2022-05",
             "value": 710.0078252363874,
-            "orders": 39221
+            "orders": 33737
           },
           {
             "month": "2022-06",
             "value": 708.6711502782931,
-            "orders": 35141
+            "orders": 30184
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -2265,21 +2219,22 @@
           {
             "month": "2022-04",
             "value": 670.4109168966575,
-            "orders": 45858
+            "orders": 39132
           },
           {
             "month": "2022-05",
             "value": 710.0078252363874,
-            "orders": 39221
+            "orders": 33737
           },
           {
             "month": "2022-06",
             "value": 708.6711502782931,
-            "orders": 35141
+            "orders": 30184
           }
         ],
         "caveats": [
-          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -2290,9 +2245,9 @@
       "group": "trend",
       "question": "Set category revenue month by month, Apr-Jun 2022",
       "correct": true,
-      "latency_s": 14.891,
+      "latency_s": 1.515,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2324,20 +2279,22 @@
           {
             "month": "2022-04",
             "value": 14124033.0,
-            "orders": 19224
+            "orders": 16394
           },
           {
             "month": "2022-05",
             "value": 11528223.0,
-            "orders": 15218
+            "orders": 13002
           },
           {
             "month": "2022-06",
             "value": 10027885.0,
-            "orders": 13333
+            "orders": 11399
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -2359,21 +2316,22 @@
           {
             "month": "2022-04",
             "value": 14124033.0,
-            "orders": 19224
+            "orders": 16394
           },
           {
             "month": "2022-05",
             "value": 11528223.0,
-            "orders": 15218
+            "orders": 13002
           },
           {
             "month": "2022-06",
             "value": 10027885.0,
-            "orders": 13333
+            "orders": 11399
           }
         ],
         "caveats": [
-          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -2384,9 +2342,9 @@
       "group": "trend",
       "question": "merchant orders har mahine april se june",
       "correct": true,
-      "latency_s": 10.031,
+      "latency_s": 1.375,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2431,7 +2389,9 @@
             "orders": 9444
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -2467,7 +2427,8 @@
           }
         ],
         "caveats": [
-          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-04-01 to 2022-06-30 was clipped to 2022-04-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -2478,9 +2439,9 @@
       "group": "trap",
       "question": "rajsthan ka cancellation kitna hai",
       "correct": true,
-      "latency_s": 3.703,
+      "latency_s": 1.141,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2510,8 +2471,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "verified": true,
         "error": null
@@ -2533,8 +2493,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -2545,9 +2504,9 @@
       "group": "trap",
       "question": "How many orders were placed in March 2022?",
       "correct": true,
-      "latency_s": 2.969,
+      "latency_s": 1.14,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2572,7 +2531,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
+          "Mar 2022 is a partial month: only 1 day of data (31 Mar), so it is not comparable to full months."
         ],
         "verified": true,
         "error": null
@@ -2596,7 +2555,7 @@
         ],
         "caveats": [
           "The date range 2022-03-01 to 2022-03-31 was clipped to 2022-03-31 to 2022-03-31, the dates this dataset covers.",
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
+          "Mar 2022 is a partial month: only 1 day of data (31 Mar), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -2607,9 +2566,9 @@
       "group": "trap",
       "question": "Revenue in March 2022",
       "correct": true,
-      "latency_s": 5.891,
+      "latency_s": 1.453,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2630,11 +2589,11 @@
         "result": [
           {
             "value": 94810.0,
-            "orders": 158
+            "orders": 140
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
+          "Mar 2022 is a partial month: only 1 day of data (31 Mar), so it is not comparable to full months."
         ],
         "verified": true,
         "error": null
@@ -2653,12 +2612,12 @@
         "result": [
           {
             "value": 94810.0,
-            "orders": 158
+            "orders": 140
           }
         ],
         "caveats": [
           "The date range 2022-03-01 to 2022-03-31 was clipped to 2022-03-31 to 2022-03-31, the dates this dataset covers.",
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
+          "Mar 2022 is a partial month: only 1 day of data (31 Mar), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -2669,9 +2628,9 @@
       "group": "trap",
       "question": "RJ se kitne orders aaye",
       "correct": true,
-      "latency_s": 9.859,
+      "latency_s": 1.203,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2701,8 +2660,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "verified": true,
         "error": null
@@ -2724,8 +2682,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -2735,50 +2692,40 @@
       "source": "questions",
       "group": "trap",
       "question": "orders from orissa",
-      "correct": true,
-      "latency_s": 3.422,
+      "correct": false,
+      "latency_s": 0.922,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
-        "status": "ok",
-        "reason": null,
+        "status": "needs_clarification",
+        "reason": "Which state do you mean?",
         "plan": {
-          "status": "ok",
-          "metric": "orders",
+          "status": "needs_clarification",
+          "metric": null,
           "group_by": [],
-          "filters": [
-            {
-              "column": "state",
-              "op": "eq",
-              "values": [
-                "Odisha"
-              ]
-            }
-          ],
+          "filters": [],
           "date_range": null,
           "sort": null,
           "limit": null,
-          "clarification": null,
+          "clarification": {
+            "question": "Which state do you mean?",
+            "options": [
+              "Odisha",
+              "Other"
+            ]
+          },
           "unsupported_reason": null
         },
-        "result": [
-          {
-            "value": 2024.0,
-            "orders": 2024
-          }
-        ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
-        ],
-        "verified": true,
+        "result": null,
+        "caveats": [],
+        "verified": null,
         "error": null
       },
       "expected": {
         "expected_status": "ok",
         "expected": 2024
       },
-      "failure": null,
+      "failure": "plan",
       "verified_but_wrong": false,
       "verified_but_misread": false,
       "expected_plan_run": {
@@ -2791,8 +2738,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -2802,10 +2748,10 @@
       "source": "questions",
       "group": "trap",
       "question": "Pondicherry revenue",
-      "correct": false,
-      "latency_s": 25.515,
+      "correct": true,
+      "latency_s": 1.953,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2815,10 +2761,10 @@
           "group_by": [],
           "filters": [
             {
-              "column": "city",
+              "column": "state",
               "op": "eq",
               "values": [
-                "Pondicherry"
+                "Puducherry"
               ]
             }
           ],
@@ -2830,14 +2776,12 @@
         },
         "result": [
           {
-            "value": 13843.0,
-            "orders": 21
+            "value": 175764.0,
+            "orders": 259
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "City values were cleaned before this ran: 1664 value(s) changed across 14,811 rows (see the fix log).",
-          "Based on fewer than 30 orders: (all) (21)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "verified": true,
         "error": null
@@ -2846,21 +2790,20 @@
         "expected_status": "ok",
         "expected": 175764.0
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
-      "verified_but_misread": true,
+      "verified_but_misread": false,
       "expected_plan_run": {
         "correct": true,
         "verified": true,
         "result": [
           {
             "value": 175764.0,
-            "orders": 310
+            "orders": 259
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -2870,10 +2813,10 @@
       "source": "questions",
       "group": "trap",
       "question": "How many orders from New Delhi?",
-      "correct": false,
-      "latency_s": 4.687,
+      "correct": true,
+      "latency_s": 1.483,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2883,10 +2826,10 @@
           "group_by": [],
           "filters": [
             {
-              "column": "city",
+              "column": "state",
               "op": "eq",
               "values": [
-                "NEW DELHI"
+                "Delhi"
               ]
             }
           ],
@@ -2898,13 +2841,12 @@
         },
         "result": [
           {
-            "value": 5948.0,
-            "orders": 5948
+            "value": 6609.0,
+            "orders": 6609
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "City values were cleaned before this ran: 1664 value(s) changed across 14,811 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "verified": true,
         "error": null
@@ -2913,9 +2855,9 @@
         "expected_status": "ok",
         "expected": 6609
       },
-      "failure": "plan",
+      "failure": null,
       "verified_but_wrong": false,
-      "verified_but_misread": true,
+      "verified_but_misread": false,
       "expected_plan_run": {
         "correct": true,
         "verified": true,
@@ -2926,8 +2868,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -2938,9 +2879,9 @@
       "group": "trap",
       "question": "april mein total orders kitne the",
       "correct": true,
-      "latency_s": 8.75,
+      "latency_s": 0.796,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -2994,9 +2935,9 @@
       "group": "trap",
       "question": "Units sold in April 2022",
       "correct": true,
-      "latency_s": 5.0,
+      "latency_s": 1.046,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3017,7 +2958,7 @@
         "result": [
           {
             "value": 42096.0,
-            "orders": 45858
+            "orders": 39132
           }
         ],
         "caveats": [],
@@ -3037,7 +2978,7 @@
         "result": [
           {
             "value": 42096.0,
-            "orders": 45858
+            "orders": 39132
           }
         ],
         "caveats": [],
@@ -3050,9 +2991,9 @@
       "group": "trap",
       "question": "Monthly revenue trend",
       "correct": true,
-      "latency_s": 1.906,
+      "latency_s": 1.124,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3073,26 +3014,27 @@
           {
             "month": "2022-03",
             "value": 94810.0,
-            "orders": 158
+            "orders": 140
           },
           {
             "month": "2022-04",
             "value": 26234520.0,
-            "orders": 45858
+            "orders": 39132
           },
           {
             "month": "2022-05",
             "value": 23953534.0,
-            "orders": 39221
+            "orders": 33737
           },
           {
             "month": "2022-06",
             "value": 21390530.0,
-            "orders": 35141
+            "orders": 30184
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
+          "Mar 2022 is a partial month: only 1 day of data (31 Mar), so it is not comparable to full months.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "verified": true,
         "error": null
@@ -3117,26 +3059,27 @@
           {
             "month": "2022-03",
             "value": 94810.0,
-            "orders": 158
+            "orders": 140
           },
           {
             "month": "2022-04",
             "value": 26234520.0,
-            "orders": 45858
+            "orders": 39132
           },
           {
             "month": "2022-05",
             "value": 23953534.0,
-            "orders": 39221
+            "orders": 33737
           },
           {
             "month": "2022-06",
             "value": 21390530.0,
-            "orders": 35141
+            "orders": 30184
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
+          "Mar 2022 is a partial month: only 1 day of data (31 Mar), so it is not comparable to full months.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -3147,9 +3090,9 @@
       "group": "unanswerable",
       "question": "What is the profit margin by category?",
       "correct": true,
-      "latency_s": 1.656,
+      "latency_s": 0.953,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
         "reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue by category.",
@@ -3185,12 +3128,12 @@
       "group": "unanswerable",
       "question": "What share of orders were cash on delivery?",
       "correct": true,
-      "latency_s": 3.062,
+      "latency_s": 2.406,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: cancellation rate.",
+        "reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: orders by state.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3200,7 +3143,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: cancellation rate."
+          "unsupported_reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: orders by state."
         },
         "result": null,
         "caveats": [],
@@ -3225,12 +3168,12 @@
       "group": "unanswerable",
       "question": "forcast next month sales",
       "correct": true,
-      "latency_s": 2.984,
+      "latency_s": 1.093,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
-        "reason": "Saabit does not forecast: a few months of data cannot support an honest forecast. Nearest question: monthly revenue trend.",
+        "reason": "Saabit does not forecast. Nearest question: monthly revenue trend.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3240,7 +3183,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "Saabit does not forecast: a few months of data cannot support an honest forecast. Nearest question: monthly revenue trend."
+          "unsupported_reason": "Saabit does not forecast. Nearest question: monthly revenue trend."
         },
         "result": null,
         "caveats": [],
@@ -3266,12 +3209,12 @@
       "group": "unanswerable",
       "question": "How many repeat customers do I have?",
       "correct": true,
-      "latency_s": 3.907,
+      "latency_s": 3.235,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no customer identifier column, so repeat customers cannot be computed. Nearest question: orders.",
+        "reason": "The file does not contain customer identifiers, so repeat customers cannot be computed. Nearest question: total orders.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3281,7 +3224,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no customer identifier column, so repeat customers cannot be computed. Nearest question: orders."
+          "unsupported_reason": "The file does not contain customer identifiers, so repeat customers cannot be computed. Nearest question: total orders."
         },
         "result": null,
         "caveats": [],
@@ -3305,12 +3248,12 @@
       "group": "unanswerable",
       "question": "What is the return on my ad spend?",
       "correct": true,
-      "latency_s": 2.359,
+      "latency_s": 1.032,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no ad spend column, so return on ad spend cannot be computed. Nearest question: revenue by channel.",
+        "reason": "The file does not contain advertising spend data, so return on ad spend cannot be computed. Nearest question: revenue by channel.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3320,7 +3263,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no ad spend column, so return on ad spend cannot be computed. Nearest question: revenue by channel."
+          "unsupported_reason": "The file does not contain advertising spend data, so return on ad spend cannot be computed. Nearest question: revenue by channel."
         },
         "result": null,
         "caveats": [],
@@ -3347,12 +3290,12 @@
       "group": "unanswerable",
       "question": "What is the average delivery time by state?",
       "correct": true,
-      "latency_s": 9.359,
+      "latency_s": 1.03,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no delivery time column, so average delivery time cannot be computed. Nearest question: average order value by state.",
+        "reason": "The file does not contain delivery time data, so average delivery time cannot be computed. Nearest question: revenue by state.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3362,7 +3305,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no delivery time column, so average delivery time cannot be computed. Nearest question: average order value by state."
+          "unsupported_reason": "The file does not contain delivery time data, so average delivery time cannot be computed. Nearest question: revenue by state."
         },
         "result": null,
         "caveats": [],
@@ -3387,12 +3330,12 @@
       "group": "unanswerable",
       "question": "How much inventory is left for each SKU?",
       "correct": true,
-      "latency_s": 15.485,
+      "latency_s": 0.829,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no inventory column, so inventory left cannot be computed. Nearest question: units sold per SKU.",
+        "reason": "The file does not contain inventory data, so inventory cannot be computed. Nearest question: units by sku.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3402,7 +3345,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no inventory column, so inventory left cannot be computed. Nearest question: units sold per SKU."
+          "unsupported_reason": "The file does not contain inventory data, so inventory cannot be computed. Nearest question: units by sku."
         },
         "result": null,
         "caveats": [],
@@ -3426,12 +3369,12 @@
       "group": "unanswerable",
       "question": "kaunsi age group ke customers sabse zyada khareedte hain",
       "correct": true,
-      "latency_s": 6.703,
+      "latency_s": 1.016,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no age group column, so age group analysis cannot be computed. Nearest question: orders by category.",
+        "reason": "The file has no age group column, so this cannot be answered. Nearest question: revenue by category.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3441,7 +3384,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no age group column, so age group analysis cannot be computed. Nearest question: orders by category."
+          "unsupported_reason": "The file has no age group column, so this cannot be answered. Nearest question: revenue by category."
         },
         "result": null,
         "caveats": [],
@@ -3468,12 +3411,12 @@
       "group": "unanswerable",
       "question": "How much did returns cost me in May 2022?",
       "correct": true,
-      "latency_s": 23.109,
+      "latency_s": 0.891,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no returns column, so returns cost cannot be computed. Nearest question: revenue in May 2022.",
+        "reason": "The file has no returns or cost column, so return cost cannot be computed. Nearest question: revenue in May 2022.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3483,7 +3426,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no returns column, so returns cost cannot be computed. Nearest question: revenue in May 2022."
+          "unsupported_reason": "The file has no returns or cost column, so return cost cannot be computed. Nearest question: revenue in May 2022."
         },
         "result": null,
         "caveats": [],
@@ -3507,12 +3450,12 @@
       "group": "unanswerable",
       "question": "profit kitna hua june mein",
       "correct": true,
-      "latency_s": 2.75,
+      "latency_s": 1.094,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue for June.",
+        "reason": "The file has no cost column, so profit cannot be computed. Nearest question: revenue in June.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -3522,7 +3465,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue for June."
+          "unsupported_reason": "The file has no cost column, so profit cannot be computed. Nearest question: revenue in June."
         },
         "result": null,
         "caveats": [],
@@ -3546,9 +3489,9 @@
       "group": "anchor",
       "question": "How many orders are there in total?",
       "correct": true,
-      "latency_s": 1.203,
+      "latency_s": 1.125,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3569,9 +3512,7 @@
             "orders": 120378
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -3591,9 +3532,7 @@
             "orders": 120378
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -3603,9 +3542,9 @@
       "group": "anchor",
       "question": "What is the overall cancellation rate?",
       "correct": true,
-      "latency_s": 1.5,
+      "latency_s": 1.14,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3626,9 +3565,7 @@
             "orders": 120378
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -3648,9 +3585,7 @@
             "orders": 120378
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -3660,9 +3595,9 @@
       "group": "anchor",
       "question": "What was revenue in April 2022?",
       "correct": true,
-      "latency_s": 2.688,
+      "latency_s": 1.189,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3683,7 +3618,7 @@
         "result": [
           {
             "value": 26234520.0,
-            "orders": 45858
+            "orders": 39132
           }
         ],
         "caveats": [],
@@ -3703,7 +3638,7 @@
         "result": [
           {
             "value": 26234520.0,
-            "orders": 45858
+            "orders": 39132
           }
         ],
         "caveats": [],
@@ -3716,9 +3651,9 @@
       "group": "anchor",
       "question": "What was revenue in May 2022?",
       "correct": true,
-      "latency_s": 2.266,
+      "latency_s": 1.361,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3739,7 +3674,7 @@
         "result": [
           {
             "value": 23953534.0,
-            "orders": 39221
+            "orders": 33737
           }
         ],
         "caveats": [],
@@ -3759,7 +3694,7 @@
         "result": [
           {
             "value": 23953534.0,
-            "orders": 39221
+            "orders": 33737
           }
         ],
         "caveats": [],
@@ -3772,9 +3707,9 @@
       "group": "anchor",
       "question": "What was revenue in June 2022?",
       "correct": true,
-      "latency_s": 3.031,
+      "latency_s": 1.265,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3795,10 +3730,12 @@
         "result": [
           {
             "value": 21390530.0,
-            "orders": 35141
+            "orders": 30184
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -3815,11 +3752,12 @@
         "result": [
           {
             "value": 21390530.0,
-            "orders": 35141
+            "orders": 30184
           }
         ],
         "caveats": [
-          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -3830,9 +3768,9 @@
       "group": "anchor",
       "question": "How many orders were placed in May 2022?",
       "correct": true,
-      "latency_s": 2.844,
+      "latency_s": 1.266,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3886,9 +3824,9 @@
       "group": "anchor",
       "question": "How many orders were placed in June 2022?",
       "correct": true,
-      "latency_s": 6.422,
+      "latency_s": 1.703,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3912,7 +3850,9 @@
             "orders": 35141
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -3933,7 +3873,8 @@
           }
         ],
         "caveats": [
-          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -3944,9 +3885,9 @@
       "group": "anchor",
       "question": "How many orders came from Rajasthan?",
       "correct": true,
-      "latency_s": 5.234,
+      "latency_s": 1.063,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -3976,8 +3917,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "verified": true,
         "error": null
@@ -3999,8 +3939,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -4011,9 +3950,9 @@
       "group": "anchor",
       "question": "What is the cancellation rate in Rajasthan?",
       "correct": true,
-      "latency_s": 1.282,
+      "latency_s": 1.078,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -4043,8 +3982,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "verified": true,
         "error": null
@@ -4066,8 +4004,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -4078,9 +4015,9 @@
       "group": "anchor",
       "question": "Which state has the most orders?",
       "correct": true,
-      "latency_s": 1.937,
+      "latency_s": 1.438,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -4108,8 +4045,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "verified": true,
         "error": null
@@ -4134,8 +4070,7 @@
           }
         ],
         "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months.",
-          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see the fix log)."
+          "State values were cleaned before this ran: 53 value(s) changed across 124,093 rows (see What we cleaned up)."
         ],
         "error": null
       }
@@ -4146,9 +4081,9 @@
       "group": "anchor",
       "question": "What is the cancellation rate by fulfilment type?",
       "correct": true,
-      "latency_s": 2.343,
+      "latency_s": 1.235,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -4177,9 +4112,7 @@
             "orders": 36376
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "verified": true,
         "error": null
       },
@@ -4208,9 +4141,7 @@
             "orders": 36376
           }
         ],
-        "caveats": [
-          "2022-03 is a partial month in this data, so it is not comparable to full months."
-        ],
+        "caveats": [],
         "error": null
       }
     },
@@ -4220,9 +4151,9 @@
       "group": "anchor",
       "question": "Cancellation rate by fulfilment in April and May 2022",
       "correct": true,
-      "latency_s": 13.625,
+      "latency_s": 1.016,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -4293,9 +4224,9 @@
       "group": "anchor",
       "question": "Cancellation rate by fulfilment in June 2022",
       "correct": true,
-      "latency_s": 20.422,
+      "latency_s": 1.188,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "ok",
         "reason": null,
@@ -4327,7 +4258,9 @@
             "orders": 9444
           }
         ],
-        "caveats": [],
+        "caveats": [
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
+        ],
         "verified": true,
         "error": null
       },
@@ -4357,7 +4290,8 @@
           }
         ],
         "caveats": [
-          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers."
+          "The date range 2022-06-01 to 2022-06-30 was clipped to 2022-06-01 to 2022-06-29, the dates this dataset covers.",
+          "Jun 2022 is a partial month: 29 of 30 days of data (missing 30 Jun), so it is not comparable to full months."
         ],
         "error": null
       }
@@ -4368,9 +4302,9 @@
       "group": "unanswerable",
       "question": "What is the profit margin by category?",
       "correct": true,
-      "latency_s": 7.125,
+      "latency_s": 1.125,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
         "reason": "The file has no cost column, so profit and margin cannot be computed. Nearest question: revenue by category.",
@@ -4406,12 +4340,12 @@
       "group": "unanswerable",
       "question": "What share of orders were cash on delivery?",
       "correct": true,
-      "latency_s": 9.563,
+      "latency_s": 1.015,
       "cached_plan": false,
-      "served_by": "nim nvidia/nemotron-3-super-120b-a12b",
+      "served_by": "groq openai/gpt-oss-120b",
       "got": {
         "status": "unsupported",
-        "reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: cancellation rate.",
+        "reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: orders by fulfilment.",
         "plan": {
           "status": "unsupported",
           "metric": null,
@@ -4421,7 +4355,7 @@
           "sort": null,
           "limit": null,
           "clarification": null,
-          "unsupported_reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: cancellation rate."
+          "unsupported_reason": "The file has no payment method column, so cash on delivery share cannot be computed. Nearest question: orders by fulfilment."
         },
         "result": null,
         "caveats": [],

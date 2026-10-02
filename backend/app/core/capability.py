@@ -28,7 +28,7 @@ REQUIREMENTS: list[tuple[str, tuple[str, ...], str]] = [
     ("breakdown by state", ("state",), "no state column was confirmed"),
     ("breakdown by city", ("city",), "no city column was confirmed"),
     ("breakdown by category", ("category",), "no category column was confirmed"),
-    ("breakdown by SKU", ("sku",), "no SKU column was confirmed"),
+    ("breakdown by product (SKU)", ("sku",), "no product (SKU) column was confirmed"),
     ("breakdown by fulfilment", ("fulfilment",), "no fulfilment column was confirmed"),
     ("breakdown by sales channel", ("channel",), "no sales channel column was confirmed"),
 ]
@@ -48,7 +48,8 @@ def capability_report(roles: set[str]) -> CapabilityReport:
     for topic, needed, missing_reason in REQUIREMENTS:
         if all(role in roles for role in needed):
             columns = " and ".join(needed).replace("_", " ")
-            can.append(CapabilityItem(topic, f"uses the confirmed {columns} column(s)"))
+            noun = "column" if len(needed) == 1 else "columns"
+            can.append(CapabilityItem(topic, f"uses the confirmed {columns} {noun}"))
         else:
             cannot.append(CapabilityItem(topic, missing_reason))
     return CapabilityReport(can_answer=can, cannot_answer=cannot + ALWAYS_UNSUPPORTED)

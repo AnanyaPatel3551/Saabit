@@ -14,7 +14,7 @@ from app.core.plan import Plan
 from app.core.templates import day_text, format_count
 
 MERGED_SHOWN = 4  # spellings listed per value, e.g. "RJ, Rajsthan, Rajshthan"
-LABELS = {"state": "State", "city": "City", "category": "Category", "sku": "SKU",
+LABELS = {"state": "State", "city": "City", "category": "Category", "sku": "Product (SKU)",
           "fulfilment": "Fulfilment", "channel": "Sales channel"}
 
 

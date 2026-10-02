@@ -42,12 +42,70 @@ def format_inr(value: float, short: bool = False) -> str:
     return f"₹{value:.2f}"
 
 
+def display_inr(value: float) -> str:
+    """THE amount style for answer sentences (templates, writer input, number checker):
+    ₹1.22 Cr from ₹1 crore, ₹96.50 lakh from ₹1 lakh, else Indian grouping (₹94,810; paise
+    only below ₹1,000). Exact full-rupee values stay in charts, tables and evidence."""
+    sign = "-" if value < 0 else ""
+    amount = abs(value)
+    if amount >= 10_000_000:
+        return f"{sign}₹{amount / 10_000_000:.2f} Cr"
+    if amount >= 100_000:
+        return f"{sign}₹{amount / 100_000:.2f} lakh"
+    if amount >= 1000 or float(amount).is_integer():
+        return f"{sign}₹{indian_digits(round(amount))}"
+    return f"{sign}₹{amount:.2f}"
+
+
+def display_value(metric: str, value: float | None) -> str:
+    """A result value as written in sentences: amounts via display_inr, rates with one
+    decimal, counts with Indian grouping and no decimals."""
+    if value is None:
+        return "not available"
+    if metric in ("revenue", "aov"):
+        return display_inr(value)
+    if metric == "cancellation_rate":
+        return format_pct(value)
+    return format_count(value)
+
+
 def format_pct(value: float, decimals: int = 1) -> str:
     return f"{value:.{decimals}f}%"
 
 
 def format_count(value: float) -> str:
     return indian_digits(round(value))
+
+
+def plural(count: float, noun: str, nouns: str | None = None) -> str:
+    """'1 row', '1,24,093 rows', '53 state spellings' (Indian grouping, a real plural)."""
+    word = noun if round(count) == 1 else (nouns or f"{noun}s")
+    return f"{format_count(count)} {word}"
+
+
+# What each cleaning rule did, in words (rules from core/clean.py). Used by answer caveats
+# and the "Data fixes" insight card, and mirrored by the frontend's "What we cleaned up".
+CLEAN_UP = {
+    "state_normalised": ("state spelling", "fixed"),
+    "city_normalised": ("city spelling", "merged"),
+    "amount_cleaned": ("amount", "read as a plain number"),
+    "amount_unparseable": ("unreadable amount", "left out"),
+    "date_unparseable": ("unreadable date", "left out"),
+    "duplicate_row": ("duplicate row", "removed"),
+    "qty_not_integer": ("quantity that is not a whole number", "noted"),
+}
+
+
+def clean_up_text(rule: str, entries: int, rows: int) -> str:
+    """'53 state spellings fixed in 1,24,093 rows'."""
+    noun, verb = CLEAN_UP.get(rule, (rule.replace("_", " "), "changed"))
+    nouns = IRREGULAR.get(noun)
+    if rule in ("duplicate_row", "date_unparseable", "amount_unparseable", "qty_not_integer"):
+        return f"{plural(rows, noun, nouns)} {verb}"
+    return f"{plural(entries, noun, nouns)} {verb} in {plural(rows, 'row')}"
+
+
+IRREGULAR = {"quantity that is not a whole number": "quantities that are not whole numbers"}
 
 
 def format_value(metric: str, value: float | None) -> str:
@@ -110,7 +168,7 @@ def range_note(plan: Plan, partial: Partial) -> str:
 
 def single_value(plan: Plan, row: dict, scope: str) -> str:
     metric = plan.metric or ""
-    value = format_value(metric, row.get("value"))
+    value = display_value(metric, row.get("value"))
     orders = format_count(row["orders"])
     if metric == "orders":
         return f"There are {orders} orders{scope}."
@@ -126,17 +184,21 @@ def single_value(plan: Plan, row: dict, scope: str) -> str:
 
 
 def ranked(plan: Plan, rows: list[dict], scope: str, partial: Partial) -> str:
-    """Sorted and limited by value: name the leader, or list the top N."""
+    """Sorted and limited by value, in the one ranking shape the writer is also shown:
+    '{1st} leads with {v1}, followed by {2nd} ({v2}), {3rd} ({v3}) and {4th} ({v4}).'"""
     metric = plan.metric or ""
     label = METRICS[metric].label.lower()
-    word = "highest" if plan.sort is None or plan.sort.dir == "desc" else "lowest"
-    if len(rows) == 1:
-        value = format_value(metric, rows[0].get("value"))
-        return f"{noted_label(plan, rows[0], partial)} has the {word} {label}{scope} at {value}."
-    listed = ", ".join(f"{noted_label(plan, r, partial)}: {format_value(metric, r.get('value'))}"
-                       for r in rows)
-    order = "Top" if word == "highest" else "Bottom"
-    return f"{order} {len(rows)} by {label}{scope}: {listed}."
+    leads = "leads" if plan.sort is None or plan.sort.dir == "desc" else "is lowest"
+
+    def shown(row: dict) -> str:
+        return display_value(metric, row.get("value"))
+
+    first = f"{noted_label(plan, rows[0], partial)} {leads} in {label}{scope} with {shown(rows[0])}"
+    rest = [f"{noted_label(plan, r, partial)} ({shown(r)})" for r in rows[1:]]
+    if not rest:
+        return f"{first}."
+    tail = rest[0] if len(rest) == 1 else ", ".join(rest[:-1]) + f" and {rest[-1]}"
+    return f"{first}, followed by {tail}."
 
 
 def listing(plan: Plan, rows: list[dict], scope: str, partial: Partial) -> str:
@@ -144,7 +206,7 @@ def listing(plan: Plan, rows: list[dict], scope: str, partial: Partial) -> str:
     metric = plan.metric or ""
     label = METRICS[metric].label
     by = " and ".join(plan.group_by)
-    shown = ", ".join(f"{noted_label(plan, r, partial)} {format_value(metric, r.get('value'))}"
+    shown = ", ".join(f"{noted_label(plan, r, partial)} {display_value(metric, r.get('value'))}"
                       for r in rows[:LISTED])
     more = ", and others" if len(rows) > LISTED else ""
     return f"{label} by {by}{scope}: {shown}{more}."

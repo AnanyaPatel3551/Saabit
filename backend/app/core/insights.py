@@ -6,11 +6,13 @@ Verified, because no two engines computed it. Text is written by code from the r
 LLM), and a card whose columns the file lacks is skipped with the reason.
 """
 
+from datetime import date
 from typing import Any
 
 from app.core import templates
+from app.core.coverage import MonthCoverage, partial_coverage
 from app.core.evidence import EvidenceCard
-from app.core.pipeline import FIXES_FILE, Workspace, partial_month_days
+from app.core.pipeline import Workspace, partial_months_of
 from app.core.plan import Plan, PlanError
 
 TOP_CATEGORIES = 4  # FR-8.2: E1 within each of the top 4 categories
@@ -79,28 +81,21 @@ def within_text(overall: EvidenceCard, within: EvidenceCard, names: list[str]) -
         if high in cells and low in cells:
             gaps.append((name, cells[high] - cells[low]))
     holds = sum(gap > 0 for _, gap in gaps)
-    shown = ", ".join(f"{name} {gap:+.1f} pts" for name, gap in gaps)
+    shown = ", ".join(f"{name} {gap:+.1f} percentage points" for name, gap in gaps)
     return (f"{high} is higher than {low} in {holds} of the top {len(names)} categories "
             f"({shown}).")
 
 
 def e2(ws: Workspace) -> dict[str, Any]:
     card = ws.run({"metric": "revenue", "group_by": ["month"]})
-    partial = partial_month_days(ws.context().folder / FIXES_FILE)
+    partial = partial_months_of(ws.context())
     return insight("E2", "Monthly revenue trend", [card], month_listing(card, partial))
 
 
-def month_listing(card: EvidenceCard, partial_days: dict[str, int]) -> str:
-    """Revenue by month, with each partial month marked: "Mar 2022 (partial, 1 day) ₹94,810"."""
-    metric = card.plan["metric"]
-    parts = []
-    for row in card.result:
-        label = templates.key_text("month", row["month"])
-        if row["month"] in partial_days:
-            days = partial_days[row["month"]]
-            label += f" (partial, {days} day{'' if days == 1 else 's'})"
-        parts.append(f"{label} {templates.format_value(metric, row.get('value'))}")
-    return f"Revenue by month: {', '.join(parts)}."
+def month_listing(card: EvidenceCard, partial: dict[str, MonthCoverage]) -> str:
+    """Revenue by month in the answers' style, each partial month marked with its days:
+    "Mar 2022 (only 1 day of data, 31 Mar) ₹94,810, Apr 2022 ₹2.62 Cr, ..."."""
+    return templates.template_sentence(Plan.model_validate(card.plan), card.result, partial)
 
 
 def e3(ws: Workspace) -> dict[str, Any]:
@@ -116,7 +111,24 @@ def e4(ws: Workspace) -> dict[str, Any]:
 
 
 def rows_text(count: int) -> str:
-    return f"{templates.format_count(count)} row{'' if count == 1 else 's'}"
+    return templates.plural(count, "row")
+
+
+def parse_day(value: object) -> date | None:
+    try:
+        return date.fromisoformat(str(value)[:10]) if value else None
+    except ValueError:
+        return None
+
+
+def partial_note(data_check: dict[str, Any]) -> str:
+    """'Mar 2022 has only 1 day of data; Jun 2022 has 29 of 30 days of data (missing 30 Jun).'
+    The same edge-based months as the answers and the "Good to know" list."""
+    partial = partial_coverage(parse_day(data_check.get("date_min")),
+                               parse_day(data_check.get("date_max")))
+    if not partial:
+        return ""
+    return "; ".join(f"{c.label} has {c.sentence_note()}" for _, c in sorted(partial.items()))
 
 
 def e5(data_check: dict[str, Any]) -> dict[str, Any]:
@@ -124,15 +136,17 @@ def e5(data_check: dict[str, Any]) -> dict[str, Any]:
     notes_only = ("date_order", "partial_month", "state_unknown")
     fixes = [f for f in data_check.get("fixes", []) if f["rule"] not in notes_only]
     rows_in, rows_out = data_check.get("rows_in", 0), data_check.get("rows_out", 0)
-    parts = [f"{f['rule'].replace('_', ' ')} in {rows_text(f['rows_affected'])}" for f in fixes]
+    parts = [templates.clean_up_text(f["rule"], f.get("entries", 0), f["rows_affected"])
+             for f in fixes]
     text = (f"Cleaning kept {rows_text(rows_out)} of {rows_text(rows_in)}. "
-            + ("Fixes: " + "; ".join(parts) + "." if parts else "No values needed fixing."))
+            + ("What we cleaned up: " + "; ".join(parts) + "." if parts
+               else "Nothing needed cleaning."))
     unknown = data_check.get("unknown_states") or []
     if unknown:
-        text += f" Unknown state values kept as they are: {', '.join(unknown)}."
-    partial = data_check.get("partial_months") or []
-    if partial:
-        text += f" Partial months: {', '.join(partial)}."
+        text += f" State names we didn't recognise, kept as written: {', '.join(unknown)}."
+    note = partial_note(data_check)
+    if note:
+        text += f" Good to know: {note}."
     return {"code": "E5", "title": "Data fixes", "status": "ok", "reason": None,
             "card_ids": [], "verified": False, "source": "fix_log", "caveats": [],
             "text": text}

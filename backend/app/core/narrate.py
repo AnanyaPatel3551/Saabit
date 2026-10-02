@@ -39,16 +39,14 @@ class Answer:
 
 
 def formatted_rows(plan: Plan, rows: list[dict]) -> list[dict]:
-    """Rows with ready-to-copy text for each number, so the LLM does not format by itself."""
+    """Rows as the writer sees them: group keys plus ready-to-copy display strings only (no
+    raw numbers), so every model and the template write amounts in one style."""
     metric = plan.metric or ""
     out = []
     for row in rows[:MAX_TABLE_ROWS]:
-        item = dict(row)
-        value = row.get("value")
-        item["value_text"] = templates.format_value(metric, value)
-        if metric in ("revenue", "aov") and value is not None and abs(value) >= 100_000:
-            item["value_short"] = templates.format_inr(value, short=True)
-        item["orders_text"] = templates.format_count(row["orders"])
+        item = {k: v for k, v in row.items() if k not in ("value", "orders")}
+        item["value"] = templates.display_value(metric, row.get("value"))
+        item["orders"] = templates.format_count(row["orders"])
         out.append(item)
     return out
 
@@ -153,6 +151,11 @@ def write_answer(
     if numcheck.misleads_on_partial(sentence, partial):
         logger.info("answer treated a partial month as a full one, using template")
         return Answer(text=template.text, source="template", rejected=sentence)
+    restyled = numcheck.off_style_amounts(sentence)
+    if restyled:
+        logger.info("answer reformatted %d amount(s), using template", len(restyled))
+        return Answer(text=template.text, source="template", unmatched=restyled,
+                      rejected=sentence)
     ok, unmatched = numcheck.check(sentence,
                                    numcheck.allowed_values(shown, plan, question, partial))
     if not ok:
