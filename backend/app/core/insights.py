@@ -10,13 +10,13 @@ from typing import Any
 
 from app.core import templates
 from app.core.evidence import EvidenceCard
+from app.core.metrics import METRICS
 from app.core.pipeline import FIXES_FILE, Workspace, partial_month_days
 from app.core.plan import Plan, PlanError
 
 TOP_CATEGORIES = 4  # FR-8.2: E1 within each of the top 4 categories
 TOP_STATES = 10
 TOP_REVENUE_CATEGORIES = 5
-PARTIAL_NOTE = "is a partial month"  # the wording verify.caveats_for uses
 
 
 def insight(code: str, title: str, cards: list[EvidenceCard], text: str) -> dict[str, Any]:
@@ -36,12 +36,9 @@ def insight(code: str, title: str, cards: list[EvidenceCard], text: str) -> dict
 
 
 def insight_caveats(cards: list[EvidenceCard]) -> list[str]:
-    """The cards' caveats, once each. The partial-month note warns against comparing months,
-    so it is kept only on cards that group by month (not on all-time totals)."""
-    by_month = any("month" in card.plan.get("group_by", []) for card in cards)
-    notes = [c for card in cards for c in card.caveats
-             if by_month or PARTIAL_NOTE not in c]
-    return list(dict.fromkeys(notes))
+    """The cards' caveats, once each (the engines already leave the partial-month note off
+    all-time totals)."""
+    return list(dict.fromkeys(c for card in cards for c in card.caveats))
 
 
 def skipped(code: str, title: str, reason: str) -> dict[str, Any]:
@@ -139,6 +136,27 @@ def e5(data_check: dict[str, Any]) -> dict[str, Any]:
     return {"code": "E5", "title": "Data fixes", "status": "ok", "reason": None,
             "card_ids": [], "verified": False, "source": "fix_log", "caveats": [],
             "text": text}
+
+
+KEY_METRICS = ("revenue", "orders", "cancellation_rate", "aov")
+
+
+def key_numbers(ws: Workspace) -> list[dict[str, Any]]:
+    """Whole-file totals for the workspace tiles, each a two-engine evidence card.
+
+    A metric the file cannot support (e.g. no status column) is left out, not guessed.
+    """
+    tiles = []
+    for metric in KEY_METRICS:
+        try:
+            card = ws.run({"metric": metric})
+        except PlanError:
+            continue
+        row = card.result[0] if card.result else {}
+        tiles.append({"metric": metric, "label": METRICS[metric].label,
+                      "value": row.get("value"), "orders": row.get("orders"),
+                      "verified": card.verified, "card_id": card.card_id})
+    return tiles
 
 
 def build_insights(ws: Workspace, data_check: dict[str, Any]) -> list[dict[str, Any]]:

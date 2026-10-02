@@ -103,7 +103,11 @@ def clean_loaded(
     compile_sql.create_query_db(out_dir)
     (out_dir / FIXES_FILE).write_text(clean.fix_log_csv(log), encoding="utf-8")
     rows_out = len(cleaned)
-    del cleaned
+    dates = cleaned["order_date"]
+    date_min = pd.Timestamp(dates.min()).date().isoformat() if rows_out else None
+    date_max = pd.Timestamp(dates.max()).date().isoformat() if rows_out else None
+    orders = int(cleaned["order_id"].nunique())
+    del cleaned, dates
     ingest.release_memory()
     report = capability.capability_report(set(roles))
     return DataCheckOut(
@@ -114,4 +118,7 @@ def clean_loaded(
         unknown_states=clean.unknown_states(log),
         fixes=fix_summary(log),
         capability=CapabilityOut.model_validate(report),
+        date_min=date_min,
+        date_max=date_max,
+        orders=orders,
     )

@@ -170,3 +170,10 @@ def test_cleaned_sample_matches_the_answer_key_counts(
     assert clean["state"].nunique() == 37
     assert set(SAMPLE_ROLES) <= {"order_id", "order_date", "amount", "status", "state", "city",
                                  "category", "sku", "fulfilment", "qty", "channel"}
+
+
+def test_data_check_reports_the_date_range_and_order_count(real_sample_cache: Path) -> None:
+    check = json.loads((real_sample_cache / "metadata.json").read_text("utf-8"))["data_check"]
+
+    assert (check["date_min"], check["date_max"]) == ("2022-03-31", "2022-06-29")
+    assert check["orders"] == 120378

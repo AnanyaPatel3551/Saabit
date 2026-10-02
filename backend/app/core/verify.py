@@ -66,9 +66,14 @@ def label(key: tuple) -> str:
 
 
 def months_in(plan: Plan, months: list[str]) -> list[str]:
-    """Which of the given YYYY-MM months fall inside the plan's date range."""
+    """Partial months worth a note: inside a chosen date range, or in a time breakdown.
+
+    An all-time total (no date range, no month or week grouping) gets no note: it does
+    not compare months, so a short month does not mislead.
+    """
+    by_time = any(d in ("month", "week") for d in plan.group_by)
     if plan.date_range is None:
-        return list(months)
+        return list(months) if by_time else []
     first = plan.date_range.start.strftime("%Y-%m")
     last = plan.date_range.end.strftime("%Y-%m")
     return [m for m in months if first <= m <= last]

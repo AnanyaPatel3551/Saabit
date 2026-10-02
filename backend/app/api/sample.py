@@ -4,6 +4,9 @@ import hashlib
 import json
 import logging
 import os
+import shutil
+import tempfile
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -11,10 +14,13 @@ from fastapi import FastAPI
 from app.api.errors import SampleUnavailable
 from app.api.schemas import DatasetOut
 from app.api.shared import clean_loaded, describe
-from app.core import detect, ingest, overview, pipeline
+from app.core import detect, ingest, overview, pipeline, storage
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SAMPLE_PATH = REPO_ROOT / "data" / "sample" / "amazon_sale_report.csv.gz"
+# Synthetic Shopify-style file: shows a differently shaped export going through confirm.
+SHOPIFY_PATH = REPO_ROOT / "data" / "sample_shopify" / "shopify_synthetic.csv"
+SHOPIFY_DIR = "shopify"
 SAMPLE_CACHE_ENV = "SAABIT_SAMPLE_CACHE"
 DEFAULT_SAMPLE_CACHE = Path(__file__).resolve().parents[2] / "sample_cache"
 METADATA_FILE = "metadata.json"
@@ -93,6 +99,40 @@ def build_sample_cache(sample_path: Path, cache_dir: Path) -> DatasetOut:
     workspace = pipeline.Workspace(dataset_id, cache_dir, cache_dir, cache_dir / "cards")
     overview.compute_overview(workspace, dataset.data_check.model_dump(mode="json"),
                               cache_dir / overview.OVERVIEW_FILE)
+    return dataset
+
+
+def build_shopify_cache(path: Path, cache_dir: Path) -> DatasetOut:
+    """Prepare the synthetic Shopify-style file at image build: its raw copy and the suggested
+    roles (not confirmed). Each visitor then gets their own copy to confirm and clean."""
+    if not path.is_file():
+        raise SampleUnavailable("The synthetic Shopify-style sample is missing.")
+    folder = cache_dir / SHOPIFY_DIR
+    folder.mkdir(parents=True, exist_ok=True)
+    raw = storage.raw_path(folder, ".csv")
+    shutil.copyfile(path, raw)
+    with tempfile.TemporaryDirectory() as work:
+        table = ingest.read_table(raw, path.name, Path(work))
+    detection = detect.detect_roles(table.head, table.rows)
+    dataset = describe(SHOPIFY_DIR, path.name, raw.stat().st_size, table.rows, table.columns,
+                       detection, confirmed=False)
+    (folder / METADATA_FILE).write_text(json.dumps(dataset.model_dump(mode="json"), indent=2),
+                                        encoding="utf-8")
+    return dataset
+
+
+def copy_shopify_sample(cache_dir: Path, root: Path) -> DatasetOut:
+    """A fresh dataset made from the prepared synthetic file, ready for the confirm screen."""
+    folder = cache_dir / SHOPIFY_DIR
+    if not (folder / METADATA_FILE).is_file():
+        raise SampleUnavailable("The synthetic Shopify-style sample has not been prepared. "
+                                "Run 'python -m app.prepare_sample'.")
+    prepared = DatasetOut.model_validate_json((folder / METADATA_FILE).read_text("utf-8"))
+    dataset_id, target = storage.new_dataset(root)
+    shutil.copyfile(storage.raw_path(folder, ".csv"), storage.raw_path(target, ".csv"))
+    dataset = prepared.model_copy(update={"dataset_id": dataset_id,
+                                          "created_at": datetime.now(UTC)})
+    storage.write_metadata(root, dataset_id, dataset.model_dump(mode="json"))
     return dataset
 
 

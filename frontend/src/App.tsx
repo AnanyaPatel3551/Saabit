@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { DataCheck, Dataset } from "./api/types";
 import { ConfirmColumns } from "./components/ConfirmColumns";
+import { HowWeTest } from "./components/HowWeTest";
 import { Landing } from "./components/Landing";
 import { Workspace } from "./components/Workspace";
 
@@ -9,13 +10,24 @@ type Stage =
   | { name: "confirm"; dataset: Dataset }
   | { name: "workspace"; dataset: Dataset; check: DataCheck };
 
-/** One page, three stages: landing (S1), confirm columns (S2), workspace (S3). */
+/** The stage a freshly loaded dataset opens on: the sample's roles are already confirmed. */
+export function stageFor(dataset: Dataset): Stage {
+  return dataset.roles_confirmed && dataset.data_check
+    ? { name: "workspace", dataset, check: dataset.data_check }
+    : { name: "confirm", dataset };
+}
+
+/**
+ * One page app with three stages: landing (S1), confirm columns (S2), workspace (S3). The
+ * only other page, /how-we-test, is picked by the URL (no router library).
+ */
 export default function App() {
   const [stage, setStage] = useState<Stage>({ name: "landing" });
   const restart = () => setStage({ name: "landing" });
 
+  if (window.location.pathname === "/how-we-test") return <HowWeTest />;
   if (stage.name === "landing") {
-    return <Landing onDataset={(dataset) => setStage({ name: "confirm", dataset })} />;
+    return <Landing onDataset={(dataset) => setStage(stageFor(dataset))} />;
   }
   if (stage.name === "confirm") {
     return (
@@ -23,5 +35,6 @@ export default function App() {
         onConfirmed={(check) => setStage({ name: "workspace", dataset: stage.dataset, check })} />
     );
   }
-  return <Workspace dataset={stage.dataset} check={stage.check} onBack={restart} />;
+  return <Workspace key={stage.dataset.dataset_id} dataset={stage.dataset} check={stage.check}
+    onBack={restart} />;
 }

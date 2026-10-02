@@ -53,6 +53,11 @@ class DataCheckOut(BaseModel):
     unknown_states: list[str]
     fixes: list[FixSummaryOut]
     capability: CapabilityOut
+    # Facts about the cleaned file for display (dataset chip, date pickers). Optional, so
+    # metadata written before they existed still loads.
+    date_min: str | None = None  # first order date, YYYY-MM-DD
+    date_max: str | None = None
+    orders: int | None = None  # distinct order IDs
 
 
 class ConfirmIn(BaseModel):
@@ -166,6 +171,7 @@ class OverviewOut(BaseModel):
     insights: list[dict]
     recommendations: list[dict]
     rules: list[dict]
+    key_numbers: list[dict] = []  # whole-file totals, each a verified evidence card
 
 
 class ErrorDetail(BaseModel):

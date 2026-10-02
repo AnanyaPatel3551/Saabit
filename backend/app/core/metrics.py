@@ -16,6 +16,9 @@ class Metric:
     required_roles: tuple[str, ...]
     definition: str
     decimals: int  # rounding for display; comparisons use full precision
+    # Which orders the result's "orders" column counts, matching the definition: metrics
+    # over orders that are not cancelled count only those; the others count every order.
+    orders_counted: str = "all"  # "all" or "not_cancelled"
 
 
 METRICS: dict[str, Metric] = {
@@ -26,6 +29,7 @@ METRICS: dict[str, Metric] = {
         required_roles=("order_id", "order_date", "amount"),
         definition="Sum of amount over order lines whose order is not cancelled.",
         decimals=2,
+        orders_counted="not_cancelled",
     ),
     "orders": Metric(
         name="orders",
@@ -42,6 +46,7 @@ METRICS: dict[str, Metric] = {
         required_roles=("order_id", "order_date", "qty"),
         definition="Sum of qty over order lines whose order is not cancelled.",
         decimals=0,
+        orders_counted="not_cancelled",
     ),
     "aov": Metric(
         name="aov",
@@ -50,6 +55,7 @@ METRICS: dict[str, Metric] = {
         required_roles=("order_id", "order_date", "amount"),
         definition="Revenue divided by the count of distinct orders that are not cancelled.",
         decimals=2,
+        orders_counted="not_cancelled",
     ),
     "cancelled_orders": Metric(
         name="cancelled_orders",

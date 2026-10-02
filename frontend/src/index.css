@@ -32,3 +32,19 @@ body {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* Landing hero: three lines appear one after another, about 1.5 s in all. People who ask
+   for reduced motion see them at once. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.hero-line {
+  opacity: 0;
+  animation: rise-in 0.5s ease-out forwards;
+}
+.hero-line-2 { animation-delay: 0.5s; }
+.hero-line-3 { animation-delay: 1s; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-line { opacity: 1; animation: none; }
+}

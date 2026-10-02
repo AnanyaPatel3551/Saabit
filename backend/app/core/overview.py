@@ -48,6 +48,7 @@ def compute_overview(ws: pipeline.Workspace, data_check: dict[str, Any], path: P
             "computed_at": now(),
             "months": {"training": split.training, "test": split.test},
             "insights": insights.build_insights(ws, data_check),
+            "key_numbers": insights.key_numbers(ws),
             "recommendations": recommendations,
             "rules": rules,
         }

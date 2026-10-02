@@ -12,6 +12,14 @@ interface ChartRow {
   orders: number;
 }
 
+/** Metrics defined over orders that are not cancelled: their order count is those orders
+ * too (backend metrics.Metric.orders_counted). */
+const LIVE_ORDER_METRICS = new Set(["revenue", "aov", "units"]);
+
+export function ordersLabel(metric: string | null): string {
+  return metric && LIVE_ORDER_METRICS.has(metric) ? "orders (not cancelled)" : "orders";
+}
+
 /** Group keys joined into one label, e.g. "Set · Merchant". */
 export function chartRows(plan: Plan, rows: ResultRow[]): ChartRow[] {
   return rows.map((row) => ({
@@ -35,7 +43,7 @@ export function ResultChart({ plan, rows }: { plan: Plan; rows: ResultRow[] }) {
       <p className="font-display text-4xl text-gold-soft">
         {formatValue(metric, only?.value ?? null)}
         <span className="ml-3 align-middle font-sans text-sm text-muted">
-          {only ? `${indianDigits(only.orders)} orders` : "no rows"}
+          {only ? `${indianDigits(only.orders)} ${ordersLabel(metric)}` : "no rows"}
         </span>
       </p>
     );
@@ -60,7 +68,9 @@ export function ResultChart({ plan, rows }: { plan: Plan; rows: ResultRow[] }) {
                   {plan.group_by.map(humanize).join(" · ")}
                 </th>
                 <th scope="col" className="py-1 pr-3 text-right font-normal">{humanize(metric ?? "value")}</th>
-                <th scope="col" className="py-1 text-right font-normal">Orders</th>
+                <th scope="col" className="py-1 text-right font-normal">
+                  {metric && LIVE_ORDER_METRICS.has(metric) ? "Orders (not cancelled)" : "Orders"}
+                </th>
               </tr>
             </thead>
             <tbody>

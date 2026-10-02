@@ -2,6 +2,7 @@ import { useState } from "react";
 import { confirmRoles } from "../api/client";
 import type { DataCheck, Dataset, Role } from "../api/types";
 import { REQUIRED_ROLES, ROLES, humanize } from "../lib/plan";
+import { isSynthetic } from "./DatasetChip";
 
 function confidenceTag(confidence: number): string {
   if (confidence >= 0.8) return "High";
@@ -41,9 +42,17 @@ export function ConfirmColumns({ dataset, onConfirmed, onBack }: {
     <main className="mx-auto max-w-5xl px-4 py-10">
       <button type="button" onClick={onBack} className="mb-4 text-sm text-muted hover:text-text">← Start over</button>
       <h1 className="font-display text-3xl text-text">Confirm your columns</h1>
-      <p className="mt-2 text-sm text-muted">
-        {dataset.filename} · {dataset.rows.toLocaleString("en-IN")} rows. Check what each column is used for.
-        {fixed && " The sample's columns are fixed, so you only need to confirm."}
+      <p className="mt-3 text-text">
+        We guessed what each column is. Change any that look wrong, then confirm.
+      </p>
+      <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
+        <span>{dataset.filename} · {dataset.rows.toLocaleString("en-IN")} rows.</span>
+        {isSynthetic(dataset) && (
+          <span className="rounded border border-line px-1.5 py-0.5 text-xs">
+            Synthetic data: made up to show a different file format
+          </span>
+        )}
+        {fixed && <span>The sample's columns are fixed, so you only need to confirm.</span>}
       </p>
 
       <div className="mt-6 overflow-x-auto rounded-xl border border-line">

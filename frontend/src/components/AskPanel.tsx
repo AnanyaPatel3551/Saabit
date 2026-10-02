@@ -1,64 +1,77 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError, planQuestion, runPlan, writeSentence } from "../api/client";
 import type { Card, Plan, RunOut } from "../api/types";
+import {
+  clearHistory, loadHistory, newEntryId, saveHistory, type HistoryEntry, type Sentence,
+} from "../lib/history";
 import { EXAMPLES } from "../lib/plan";
 import {
   AnswerCard, ClarificationCard, LlmBanner, RefusalCard, UnverifiedCard,
 } from "./AnswerCards";
-import { PlanChips } from "./PlanChips";
+import { PlanChips, type DataRange } from "./PlanChips";
 
-type View =
+export type { Sentence } from "../lib/history";
+
+/** What is happening right now, above the thread of past answers. */
+type Status =
   | { kind: "idle" }
   | { kind: "loading"; label: string }
-  | { kind: "answer"; run: RunOut; caveats: string[]; sentence: Sentence }
   | { kind: "clarify"; plan: Plan; question: string }
-  | { kind: "refuse"; plan: Plan }
   | { kind: "error"; message: string };
 
-/** The answer sentence: pending while the writer works, then the LLM's or the template. */
-export type Sentence = { status: "pending" } | { status: "done"; text: string | null; source: string };
-
 /** After this long the template is shown instead of waiting for the writer. */
-export const SENTENCE_TIMEOUT_MS = 20_000;
+export const SENTENCE_TIMEOUT_MS = 10_000;
 
 /**
  * Centre panel. Owns /plan (typed questions), /run (planned questions, example chips and
  * edited plan chips; returns the numbers first) and the card sentence call that follows.
- * Chip edits never go back through /plan.
+ * Chip edits never go back through /plan. Answers stay as a thread, newest first, saved in
+ * this browser per dataset.
  */
-export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidence }: {
+export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidence, range }: {
   datasetId: string;
+  range?: DataRange;
   llmDown: boolean;
   llmReason: string | null;
   onLlmChange: (down: boolean, reason: string | null) => void;
   onEvidence: (card: Card) => void;
 }) {
   const [question, setQuestion] = useState("");
-  const [view, setView] = useState<View>({ kind: "idle" });
-  const [chipPlan, setChipPlan] = useState<Plan | null>(null);
-  const latest = useRef(0);  // ignores sentences that arrive for an older answer
-  const busy = view.kind === "loading";
+  const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [entries, setEntries] = useState<HistoryEntry[]>(() => loadHistory(datasetId));
+  const [chipPlan, setChipPlan] = useState<Plan | null>(() => newestPlan(loadHistory(datasetId)));
+  const busy = status.kind === "loading";
+  const firstUse = entries.length === 0 && status.kind === "idle";
+  const mounted = useRef(true);
+
+  useEffect(() => () => { mounted.current = false; }, []);
+  useEffect(() => saveHistory(datasetId, entries), [datasetId, entries]);
+
+  function add(entry: HistoryEntry) {
+    setEntries((now) => [entry, ...now]);
+  }
 
   async function run(plan: Plan, asked: string, caveats: string[] = []) {
-    const turn = ++latest.current;
     setChipPlan(plan);
-    setView({ kind: "loading", label: "Computing with SQL and pandas…" });
+    setStatus({ kind: "loading", label: "Computing with SQL and pandas…" });
     let result: RunOut;
     try {
       result = await runPlan(datasetId, plan);
     } catch (error) {
-      setView({ kind: "error", message: messageOf(error) });
+      setStatus({ kind: "error", message: messageOf(error) });
       return;
     }
     setChipPlan(result.card.plan);
+    setStatus({ kind: "idle" });
     const template: Sentence = { status: "done", text: result.sentence, source: result.source };
     const waitForWriter = result.sentence_status === "pending" && !llmDown;
-    setView({ kind: "answer", run: result, caveats,
-              sentence: waitForWriter ? { status: "pending" } : template });
+    const id = newEntryId();
+    add({ id, question: asked || "Edited plan", askedAt: new Date().toISOString(), run: result,
+          caveats, sentence: waitForWriter ? { status: "pending" } : template });
     if (!waitForWriter) return;
     const finished = await sentenceOrTemplate(result, asked, template);
-    if (turn === latest.current) {
-      setView((now) => now.kind === "answer" ? { ...now, sentence: finished } : now);
+    if (mounted.current) {
+      setEntries((now) => now.map((e) => (e.id === id ? { ...e, sentence: finished } : e)));
     }
   }
 
@@ -66,26 +79,38 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
     const asked = text.trim();
     if (!asked) return;
     setQuestion(asked);
-    setChipPlan(null);
-    setView({ kind: "loading", label: "Understanding the question…" });
+    setStatus({ kind: "loading", label: "Understanding the question…" });
     try {
       const planned = await planQuestion(datasetId, asked);
       if (llmDown) onLlmChange(false, null);
       const plan = planned.plan;
-      if (plan.status === "needs_clarification") setView({ kind: "clarify", plan, question: asked });
-      else if (plan.status === "unsupported") setView({ kind: "refuse", plan });
-      else await run(plan, asked, planned.caveats);
+      if (plan.status === "needs_clarification") {
+        setStatus({ kind: "clarify", plan, question: asked });
+      } else if (plan.status === "unsupported") {
+        setStatus({ kind: "idle" });
+        add({ id: newEntryId(), question: asked, askedAt: new Date().toISOString(),
+              caveats: [], refusal: plan });
+      } else {
+        await run(plan, asked, planned.caveats);
+      }
     } catch (error) {
       if (error instanceof ApiError && error.code === "llm_unavailable") {
         onLlmChange(true, error.message);
       }
-      setView({ kind: "error", message: messageOf(error) });
+      setStatus({ kind: "error", message: messageOf(error) });
     }
   }
 
   function submit(event: FormEvent) {
     event.preventDefault();
     void ask(question);
+  }
+
+  function clear() {
+    clearHistory(datasetId);
+    setEntries([]);
+    setChipPlan(null);
+    setStatus({ kind: "idle" });
   }
 
   return (
@@ -97,44 +122,88 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
         <label htmlFor="question" className="sr-only">Your question</label>
         <input id="question" value={question} onChange={(e) => setQuestion(e.target.value)}
           maxLength={500} placeholder="e.g. rajsthan ka cancellation kitna hai"
-          className="min-w-0 flex-1 rounded-lg border border-line bg-raised px-3 py-2 text-text placeholder:text-muted" />
+          className="min-h-10 min-w-0 flex-1 rounded-lg border border-line bg-raised px-3 py-2 text-text placeholder:text-muted" />
         <button type="submit" disabled={busy || !question.trim()}
-          className="rounded-lg bg-gold px-4 py-2 font-medium text-ink hover:bg-gold-soft disabled:opacity-50">
+          className="min-h-10 rounded-lg bg-gold px-4 py-2 font-medium text-ink hover:bg-gold-soft disabled:opacity-50">
           Ask
         </button>
       </form>
 
+      {firstUse && <p className="text-sm text-text">Try one of these, or type your own.</p>}
       <div className="flex flex-wrap gap-2" aria-label="Example questions" role="group">
         {EXAMPLES.map((example) => (
           <button key={example.question} type="button" disabled={busy}
             onClick={() => { setQuestion(example.question); void run(example.plan, example.question); }}
-            className="rounded-full border border-line px-3 py-1 text-sm text-muted hover:border-gold/60 hover:text-text">
+            className="min-h-10 rounded-full border border-line px-3 py-1 text-sm text-muted hover:border-gold/60 hover:text-text">
             {example.question}
           </button>
         ))}
       </div>
-
-      {view.kind === "loading" && <p role="status" className="text-sm text-muted">{view.label}</p>}
-      {view.kind === "error" && (
-        <p role="alert" className="rounded-lg border border-bad/60 bg-bad/10 p-3 text-sm text-text">
-          {view.message}
+      {firstUse && (
+        <p className="border-l-2 border-gold/60 pl-3 text-xs text-muted">
+          Verified means two separate calculations, SQL and pandas, gave the same result.
         </p>
       )}
-      {view.kind === "clarify" && (
-        <ClarificationCard plan={view.plan}
-          onChoose={(option) => void ask(`${view.question} (${option})`)} />
-      )}
-      {view.kind === "refuse" && <RefusalCard plan={view.plan} onAsk={(q) => void ask(q)} />}
-      {view.kind === "answer" && (view.run.verified
-        ? <AnswerCard answer={view.run} sentence={view.sentence} caveats={view.caveats}
-            onEvidence={() => onEvidence(view.run.card)} />
-        : <UnverifiedCard answer={view.run} onEvidence={() => onEvidence(view.run.card)} />)}
 
-      {chipPlan && (
-        <PlanChips plan={chipPlan} disabled={busy} onChange={(plan) => void run(plan, "")} />
+      {status.kind === "loading" && <p role="status" className="text-sm text-muted">{status.label}</p>}
+      {status.kind === "error" && (
+        <p role="alert" className="rounded-lg border border-bad/60 bg-bad/10 p-3 text-sm text-text">
+          {status.message}
+        </p>
+      )}
+      {status.kind === "clarify" && (
+        <ClarificationCard plan={status.plan}
+          onChoose={(option) => void ask(`${status.question} (${option})`)} />
+      )}
+
+      {chipPlan && entries[0]?.run && (
+        <PlanChips plan={chipPlan} disabled={busy} range={range}
+          onChange={(plan) => void run(plan, "")} />
+      )}
+
+      {entries.length > 0 && (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs uppercase tracking-wider text-muted">
+              Your questions ({entries.length})
+            </h3>
+            <button type="button" onClick={clear}
+              className="min-h-10 rounded px-2 text-xs text-muted hover:text-text">
+              Clear
+            </button>
+          </div>
+          <ol className="flex flex-col gap-4" aria-label="Question history, newest first">
+            {entries.map((entry) => (
+              <li key={entry.id} className="flex flex-col gap-2">
+                <p className="text-sm text-muted">
+                  <span className="sr-only">Question: </span>{entry.question}
+                </p>
+                <EntryCard entry={entry} onEvidence={onEvidence} onAsk={(q) => void ask(q)} />
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </section>
   );
+}
+
+function EntryCard({ entry, onEvidence, onAsk }: {
+  entry: HistoryEntry;
+  onEvidence: (card: Card) => void;
+  onAsk: (question: string) => void;
+}) {
+  if (entry.refusal) return <RefusalCard plan={entry.refusal} onAsk={onAsk} />;
+  const run = entry.run;
+  if (!run) return null;
+  if (!run.verified) return <UnverifiedCard answer={run} onEvidence={() => onEvidence(run.card)} />;
+  const sentence = entry.sentence ?? { status: "done", text: run.sentence, source: run.source };
+  return <AnswerCard answer={run} sentence={sentence} caveats={entry.caveats}
+    onEvidence={() => onEvidence(run.card)} />;
+}
+
+function newestPlan(entries: HistoryEntry[]): Plan | null {
+  return entries[0]?.run?.card.plan ?? null;
 }
 
 /** The LLM sentence, or the template if the writer fails or takes too long. */
