@@ -45,7 +45,7 @@ Source: `eval/results/latest.json` and `eval/results/latest.md`. The NIM run mad
 
 ### Tests
 
-398 backend tests passed and 2 were skipped on 2 Oct 2026 (`eval/results/tests.json`, written by `.\tasks.ps1 test`, which excludes live LLM tests).
+409 backend tests passed and 2 were skipped on 2 Oct 2026 (`eval/results/tests.json`, written by `.\tasks.ps1 test`, which excludes live LLM tests).
 
 ## What "Verified" means
 
