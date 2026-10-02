@@ -4,61 +4,81 @@ Ask questions about your sales file in plain English or Hinglish, and get number
 
 Live: https://saabit.onrender.com (free tier: the first request after a quiet spell can take about a minute while the service wakes up)
 
+[![CI](https://github.com/AnanyaPatel3551/Saabit/actions/workflows/ci.yml/badge.svg)](https://github.com/AnanyaPatel3551/Saabit/actions/workflows/ci.yml)
+
 ![Saabit workspace](docs/screenshots/workspace.png)
 
 ## Results
 
-All numbers below come from `python eval/eval.py`. The 50 golden questions (40 answerable, 10 that should be refused) and the 15 anchors have expected values computed by a separate plain-pandas script that never imports the app (`eval/answer_key/questions.py`, `notebooks/golden_answers.ipynb`). Runs are made with `--no-cache`, so every question goes to the model.
+### Baseline: Saabit and ChatGPT on the same 20 questions
 
-| Measure | Saabit, Groq `openai/gpt-oss-120b` (final run) | Saabit, NIM `nvidia/nemotron-3-super-120b-a12b` | Baseline (code-executing chatbot) |
+| | Answerable correct | Unanswerable refused | Total |
 | --- | --- | --- | --- |
-| Answerable questions correct | _to be filled_ | 38/40 (95%) | _to be filled_ |
-| Unanswerable questions refused | _to be filled_ | 10/10 (100%) | _to be filled_ |
-| Wrong answers marked Verified | _to be filled_ | 0 | not applicable |
-| Golden anchors correct | _to be filled_ | 13/13 answerable, 2/2 refused | _to be filled_ |
-| Latency p50 / p95 (plan and compute) | _to be filled_ | 3.9 s / 25.2 s | not measured |
+| Saabit, planner on NVIDIA NIM `nvidia/nemotron-3-super-120b-a12b`, 2 Oct 2026 | 16 / 17 | 3 / 3 | 19 / 20 |
+| ChatGPT web app with file upload and code execution (model not recorded), 2 Oct 2026 | 2 / 17 | 2 / 3 | 4 / 20 |
 
-The NIM run was made on 2 Oct 2026. Its two misses (x06 "Pondicherry revenue" and x07 "How many orders from New Delhi?") are both a place name read as a city instead of a state; see Limitations. "Wrong answers marked Verified" counts only calculation errors: answers the two engines agreed on that differ from the answer key.
+Method: ChatGPT was used in one conversation. The sample CSV was uploaded once and all 20 questions were sent in one message, worded exactly as in `eval/questions.yaml`, with no hints or corrections. One conversation can only help ChatGPT (it can reuse its own earlier work and keep the file loaded), so the comparison is conservative; the PRD's stricter method is one fresh chat per question. Both sides were scored with the same rules (`eval/scoring.py`) against the same independent answer key. The Saabit side is taken from the full eval run of 2 Oct 2026, made with `--no-cache`.
 
-The baseline uses the same questions and the same scoring rules (`eval/baseline/README.md`): ChatGPT or Claude with code execution on, the file uploaded, one fresh chat per question.
+ChatGPT's misses, each reproduced with plain pandas in `eval/baseline/reproduce.py`:
 
-Time to see the numbers, measured end to end on the sample (`scripts/timing.py`). The answer sentence is written afterwards and fills in when it arrives.
+- Revenue included cancelled orders (s01, s03, s05, s08, b09, t01).
+- Rows were counted instead of orders (s07, t04, x01, b10).
+- State spellings were not merged, such as RJ and Rajsthan for Rajasthan, or Orissa for Odisha (x01, x04, x05, x07).
+- The March partial-month warning was missing (x02).
+- A forecast was given instead of a refusal (u03).
+- One miscount that no reading of the file reproduces (b03).
 
-| Question | Groq: numbers / sentence | NIM: numbers / sentence |
-| --- | --- | --- |
-| revenue by state in April 2022 | 1.9 s / 19.0 s | 3.2 s / 7.5 s |
-| kurta ka cancellation rate in June | 1.8 s / 2.6 s | 8.6 s / 10.0 s |
-| top 3 categories by orders in May 2022 | 1.6 s / 2.8 s | 3.5 s / 8.3 s |
-| Top 5 states by revenue (pre-planned) | not measured | 0.9 s / 27.2 s |
+Saabit's one miss, x07, read "New Delhi" as the city (5,948 orders) instead of the state (6,609).
+
+Full write-up, question by question: [eval/baseline/RESULTS.md](eval/baseline/RESULTS.md). ChatGPT conversation: https://chatgpt.com/share/6abf6a05-3b40-83e8-80b4-279ce6130ea9
+
+### Full eval scorecard
+
+`python eval/eval.py` runs 50 golden questions (40 answerable, 10 that should be refused) and 15 anchors (13 answerable, 2 to refuse). Expected values come from a separate plain-pandas script that never imports the app (`eval/answer_key/questions.py`, `notebooks/golden_answers.ipynb`). Runs use `--no-cache`, so every question goes to the model.
+
+| Run | Answerable correct | Unanswerable refused | Verified but wrong | Anchors correct | Latency p50 / p95 (plan and compute) |
+| --- | --- | --- | --- | --- | --- |
+| NVIDIA NIM `nvidia/nemotron-3-super-120b-a12b`, 2 Oct 2026 | 38/40 (95%) | 10/10 (100%) | 0 | 13/13 answerable, 2/2 refused | 3.91 s / 25.16 s |
+| **Groq `openai/gpt-oss-120b` — final run (pending)** | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+
+Source: `eval/results/latest.json` and `eval/results/latest.md`. The NIM run made 65 planner calls with 0 saved plans. Its two misses, x06 ("Pondicherry revenue") and x07 ("How many orders from New Delhi?"), are both a place name read as a city instead of a state. They are counted as "verified but misread" (2), not as "verified but wrong". "Verified but wrong" counts answers that the two engines agreed on but that differ from the answer key for the same plan.
+
+### Tests
+
+398 backend tests passed and 2 were skipped on 2 Oct 2026 (`eval/results/tests.json`, written by `.\tasks.ps1 test`, which excludes live LLM tests).
+
+## What "Verified" means
+
+Verified means two independent engines, SQL in DuckDB and pandas, ran the same plan and got the same result within rounding tolerance. It catches calculation, compiler and cleaning bugs.
+
+It does not catch a question that was read wrongly. A misread plan gives the same wrong answer in both engines, and both agree. That is why the plan is always shown as editable chips, and why the eval counts "verified but misread" separately.
 
 ## How it works
 
-> Architecture diagram: to be added (`docs/img/architecture.png`)
-
-1. **Upload**: a CSV or XLSX file up to 25 MB, stored unchanged; all work happens on a cleaned copy.
-2. **Detect and confirm**: rules suggest which column is the date, amount, order ID and so on; the user confirms or changes them.
-3. **Clean and check**: state names and city spellings are normalised, dates parsed, cancelled orders marked by one fixed rule, and every change written to a downloadable fix log. A capability report says what the file can and cannot answer.
-4. **Plan**: the LLM turns the question into a small JSON plan (metric, grouping, filters, dates). Code validates it and snaps filter values to real values. The plan is shown to the user as editable chips.
-5. **Compute twice**: the plan runs once as SQL in DuckDB (built with sqlglot) and once in pandas, written separately.
-6. **Verify**: the two results are compared. Only a match (within rounding tolerance) is marked Verified; otherwise both values are shown and no sentence is written.
-7. **Answer**: the numbers and chart appear at once. The LLM then writes one or two sentences, and every number in them must match the result, or a template sentence is used.
-8. **Evidence and insights**: each answer has an evidence card (plan, SQL, pandas code, source rows, caveats). Five insight cards and rule-based recommendations, backtested on a held-out month, are computed when the file is confirmed.
+1. **Upload:** a CSV or XLSX file of up to 25 MB, stored unchanged.
+2. **Detect:** rules suggest the date, amount, order ID and other columns, and the user confirms them.
+3. **Clean:** states, cities, dates and cancellations are normalised, and every change is written to a downloadable fix log.
+4. **Plan:** the LLM turns the question into a small JSON plan, which code validates and shows as editable chips.
+5. **Compute twice:** the plan runs as SQL in DuckDB (built with sqlglot) and, separately, in pandas.
+6. **Verify:** only matching results are marked Verified; otherwise both values are shown.
+7. **Answer:** numbers appear first; the LLM's sentence is kept only if every number in it matches the result.
+8. **Evidence:** each answer links to its plan, SQL, pandas code, source rows and caveats; insights and recommendations are computed when the file is confirmed.
 
 ![A Hinglish question answered with a Verified badge](docs/screenshots/answers.png)
 
-A Hinglish question answered: 14.2% of 2,512 Rajasthan orders, Verified, with its caveats and the plan shown as editable chips.
+A Hinglish question answered and Verified, with its caveats and the plan shown as editable chips.
 
 ![The evidence drawer showing the generated SQL](docs/screenshots/evidences.png)
 
-The evidence drawer: the SQL that produced the number, next to the plan, the pandas code, the source rows and the caveats.
+The evidence drawer: the SQL behind the number, next to the plan, the pandas code, the source rows and the caveats.
 
 ![A refusal with a suggested question](docs/screenshots/refusal.png)
 
-A question the file cannot answer is refused with the reason and a nearby question it can answer.
+A question the file cannot answer is refused, with the reason and a nearby question it can answer.
 
 ![Ranked recommendations with backtest confidence](docs/screenshots/recommendation.png)
 
-Recommendations: each one shows its backtest confidence, an estimated impact with the formula, and links to its evidence cards.
+Recommendations, each with its backtest confidence, estimated impact and links to its evidence.
 
 ## Design decisions
 
@@ -75,28 +95,12 @@ From the PRD's decision table (`docs/PRD.md`, "Design decisions").
 | Recommendations | Rules over evidence, with a backtest | LLM brainstorming | Every recommendation is traceable and its confidence is earned, not asserted |
 | Out-of-format questions | Refuse with the nearest supported question | Free-form SQL fallback | Not enough time to make free SQL safe and verified; refusal keeps the zero-error promise |
 
-## What the build taught me
+## What building it taught me
 
-- **Two engines cannot catch a wrong column.** With the Status column removed, role detection picked `Courier Status` as the order status. Both engines agreed on a 4.4% cancellation rate, so it was marked Verified. The independent robustness check (`eval/robustness.py`) caught it, not the engines. The fix: header words like "courier" now rule a column out of the status role. A second eval failure exposed city names that differed only in case ("NEW DELHI", "New Delhi"); city spellings are now merged during cleaning.
-- **512 MB is small.** The first deploy ran out of memory on Render's 512 MB instance while loading and cleaning the 1.29 lakh-row sample at startup. Scanning and cleaning the sample moved to `docker build` (`python -m app.prepare_sample`), so the running app only reads prepared files. Peak memory is now 265 to 277 MB in a 512 MB container (`scripts/memcheck.py`).
-- **Providers change under you.** The model the PRD was written around, Llama 3.3 70B on Groq, was retired by Groq on 16 Aug 2026. The planner moved to `openai/gpt-oss-120b` on Groq, and NVIDIA NIM was added as a fallback for rate limits, server errors and timeouts. NIM does not serve `openai/gpt-oss-120b`, so the fallback uses Nemotron 3 Super, chosen after a comparison on the golden anchors.
-- **Free tiers have daily limits.** Groq's free tier allows 200,000 tokens a day for this model, and one full eval used about 145,000 before the prompt was trimmed (about 125,000 now). Repeated runs hit the cap in the middle of the eval. Plans are now cached on disk, keyed by prompt version, dataset schema and question, so unchanged questions are not re-asked. A small seed of checked plans for the example and eval questions is loaded into the image at build time.
-
-## Limitations and next steps
-
-- **What Verified means.** Verified means two independent engines ran the same plan and got the same result. It catches calculation and cleaning bugs. It does not catch a question that was read wrongly: a misread plan gives the same wrong answer in both engines. That is why the plan is always shown and editable, and why the eval counts "verified but misread" separately.
-- **No causal claims.** Recommendations describe associations in past data. The fulfilment rule checks that the gap holds inside each of the top four categories, which removes the most obvious confounder, but other causes such as courier, region or SKU mix remain, and the card says so.
-- **Three months of data.** The sample covers 31 Mar to 29 Jun 2022, and March has one day. There is no forecasting, and each backtest uses a single held-out month.
-- **Place names that are both a city and a state.** "New Delhi" and "Pondicherry" can be read as a city or as a state, and the model picks one silently (eval questions x07, and x06 on NIM). The planner should ask instead.
-- **Slow fallback.** When Groq is unavailable, NIM answers, but planner calls take a median of about 3 to 4 seconds with spikes past 25 seconds. If the sentence takes more than 20 seconds, the template sentence is shown.
-- **Single-process state.** Rate limits (30 questions per 10 minutes and 5 uploads per hour per client) and provider cool-downs are kept in memory, so a restart resets them, and more than one worker would count separately. The client address comes from the first `X-Forwarded-For` entry behind the proxy, which a determined client can fake.
-- **No accounts.** Anyone with a dataset id can read that dataset until it expires. Datasets and evidence cards are deleted after 24 hours. Storage is the container's local disk, so a redeploy removes everything except the bundled sample.
-- **Other known gaps** (from `docs/LATER.md`):
-  - the cancelled rule is literal (Status exactly "Cancelled");
-  - CSV downloads do not neutralise cells that start with `=`;
-  - city spellings beyond case and spaces (Bangalore and Bengaluru) are not merged;
-  - the second-file demo and a browser end-to-end test are not done;
-  - an LLM sentence can use a wrong word ("peak") with correct numbers.
+- **Two engines cannot catch a wrong column.** With the Status column removed, role detection picked `Courier Status` as the order status. Both engines agreed on the resulting cancellation rate, so the answer was marked Verified. The independent robustness check (`eval/robustness.py`) caught it, not the engines. Header words like "courier" now rule a column out of the status role (`backend/app/core/detect.py`, test `test_courier_status_is_not_suggested_as_the_order_status`).
+- **512 MB is small.** The first deploy ran out of memory on Render's 512 MB instance while loading and cleaning the sample at startup. Scanning and cleaning moved to `docker build` (`python -m app.prepare_sample` in the `Dockerfile`), so the running app only reads prepared files. `scripts/memcheck.py` checks each scenario against a 300 MB budget inside a 512 MB container.
+- **Providers change under you.** The PRD was written around Llama 3.3 70B on Groq, which Groq retired on 16 Aug 2026. The planner moved to `openai/gpt-oss-120b` on Groq. NVIDIA NIM was added as a fallback for rate limits, server errors and timeouts, using Nemotron 3 Super because NIM does not serve `openai/gpt-oss-120b`.
+- **Free tiers have daily limits.** Groq's free tier has a daily token cap, and repeated full eval runs hit it partway through. For scale, the recorded NIM run sent 111,738 prompt tokens over 65 planner calls (`eval/results/latest.json`). Plans are now cached on disk, keyed by prompt version, dataset schema and question, so unchanged questions are not asked again. A seed of checked plans for the example and eval questions is loaded into the image at build time.
 
 ## Privacy and data
 
@@ -110,6 +114,23 @@ From the PRD's decision table (`docs/PRD.md`, "Design decisions").
 - What the providers do with the data they receive is set by their own policies: [Groq](https://groq.com/privacy-policy/) and [NVIDIA](https://www.nvidia.com/en-us/about-nvidia/privacy-policy/).
 
 The same text is on the app's `/privacy` page.
+
+## Limitations and next steps
+
+- **Place names that are both a city and a state.** "New Delhi" and "Pondicherry" can be read either way, and the model picks one silently: x07 on both the baseline and the full eval, and x06 on NIM. The planner should ask instead.
+- **Slow fallback.** When Groq is unavailable, NIM answers, but its planner latency in the recorded run was p50 3.91 s and p95 25.16 s. If the sentence does not arrive within 10 seconds, the template sentence is shown.
+- **No causal claims.** Recommendations describe associations in past data. The fulfilment rule checks that the gap holds inside each of the top four categories, but other causes such as courier, region or SKU mix remain, and the card says so.
+- **Three months of data.** The sample covers 31 Mar to 29 Jun 2022, and March has one day. There is no forecasting, and each backtest uses a single held-out month.
+- **One file at a time.** Each dataset is answered on its own; files cannot be combined or compared.
+- **Single-process state.** Rate limits (30 questions every 10 minutes and 5 uploads an hour per client) and provider cool-downs are kept in memory. A restart resets them, and more than one worker would count separately.
+- **No accounts.** Anyone with a dataset id can read that dataset until it is deleted. Storage is the container's local disk, so a redeploy removes everything except the bundled sample.
+- **Other known gaps** (from `docs/LATER.md`):
+  - the cancelled rule is literal (Status exactly "Cancelled"), so "voided" or "refunded" count as 0% cancelled;
+  - CSV downloads do not neutralise cells that start with `=`, `+`, `-` or `@`;
+  - city spellings beyond case and spaces (Bangalore and Bengaluru) are not merged;
+  - the second-file demo and a browser end-to-end test are not done;
+  - an LLM sentence can use a wrong word such as "peak" with correct numbers;
+  - the sample's licence should be confirmed with its author before the repository is made public.
 
 ## Run it locally
 
@@ -146,16 +167,22 @@ Get-Content ..\.env | ForEach-Object { if ($_ -match '^([A-Za-z_]+)=(.+)$') { Se
 .\.venv\Scripts\python.exe -m app.cli llm-check
 cd ..
 
-# Eval: about 18 minutes on Groq (about 125,000 of the 200,000 daily free tokens), then robustness checks
+# Eval (uses a large share of Groq's daily free tokens), then robustness checks
 .\tasks.ps1 eval --no-cache
 .\tasks.ps1 eval --provider nim --no-cache    # the NIM fallback instead
 .\tasks.ps1 eval --only s01 x01 u01           # a few questions; saved as eval\results\partial.*
 
-# Score the manual baseline after filling eval\baseline\baseline_results.csv
-backend\.venv\Scripts\python.exe eval\baseline\score_baseline.py
+# Score the manual baseline (writes eval\results\baseline.json)
+backend\.venv\Scripts\python.exe eval\baseline\score_baseline.py eval\baseline\baseline_template.csv
 ```
 
 Live LLM tests run only on request (`.\tasks.ps1 test-live`) because they spend the provider's rate limit.
+
+Docker, as deployed (then open http://localhost:8000):
+
+```powershell
+docker build -t saabit .; docker run --rm -p 8000:8000 -e PORT=8000 --env-file .env saabit
+```
 
 ## Data
 
@@ -166,3 +193,7 @@ Licence: Kaggle lists it as "Other (specified in description)", and the descript
 Credit: Data from the "E-Commerce Sales Dataset" by ANil (data.world/anilsharma87), published on Kaggle by The Devastator.
 
 A second, **synthetic** sample (`data/sample_shopify/shopify_synthetic.csv`) shows a differently shaped export: Shopify-style headers (`Order Number`, `Created at`, `Total`, `Financial Status`, `Shipping Province`) and DD/MM/YYYY dates. Every row is made up by `data/sample_shopify/make_synthetic.py` from a fixed seed; it is not real sales data. The app labels it "Synthetic data", and it goes through the normal confirm screen ("Try a different file format" on the landing page).
+
+## How it was built
+
+Designed, specified and evaluated by me; implemented with AI-assisted coding (Claude Code); every change reviewed and tested.
