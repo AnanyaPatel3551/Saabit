@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from app.api.datasets import get_sample_path, get_storage_root
 from app.api.sample import SHOPIFY_PATH, build_shopify_cache, get_sample_cache_dir
 from app.main import create_app
-from tests.conftest import FIXTURES, SMALL_SAMPLE
+from tests.conftest import FIXTURES, SMALL_SAMPLE, use_key
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def shopify_client(tmp_path: Path, storage_root: Path, sample_cache: Path) -> Te
 
 
 def test_shopify_sample_goes_through_confirm(shopify_client: TestClient) -> None:
-    dataset = shopify_client.post("/api/datasets/sample/shopify").json()
+    dataset = use_key(shopify_client, shopify_client.post("/api/datasets/sample/shopify").json())
 
     roles = {r["role"]: r["column"] for r in dataset["roles"]}
     assert dataset["roles_confirmed"] is False
@@ -116,7 +116,7 @@ def test_how_we_test_route_serves_the_app(tmp_path: Path) -> None:
 def test_deleting_an_upload_removes_its_folder_and_cards(client: TestClient,
                                                           storage_root: Path) -> None:
     files = {"file": ("orders.csv", (FIXTURES / "amazon_300.csv").read_bytes(), "text/csv")}
-    dataset = client.post("/api/datasets", files=files).json()
+    dataset = use_key(client, client.post("/api/datasets", files=files).json())
     roles = {r["role"]: r["column"] for r in dataset["roles"]}
     client.post(f"/api/datasets/{dataset['dataset_id']}/confirm", json={"roles": roles})
     client.post(f"/api/datasets/{dataset['dataset_id']}/run", json={"metric": "orders"})

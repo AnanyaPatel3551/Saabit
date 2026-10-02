@@ -30,6 +30,12 @@ def no_real_llm(
     config.clear_cool_downs()
 
 
+def use_key(client: TestClient, created: dict) -> dict:
+    """Send this upload's access key on the client's later requests; return the body."""
+    client.headers["X-Dataset-Key"] = created["access_key"]
+    return created
+
+
 @pytest.fixture
 def storage_root(tmp_path: Path) -> Path:
     return tmp_path / "storage"

@@ -11,8 +11,9 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
+from app.api.access import KEY_HASH_FIELD, new_key
 from app.api.errors import SampleUnavailable
-from app.api.schemas import DatasetOut
+from app.api.schemas import DatasetOut, UploadOut
 from app.api.shared import clean_loaded, describe
 from app.core import detect, ingest, overview, pipeline, storage
 
@@ -121,8 +122,11 @@ def build_shopify_cache(path: Path, cache_dir: Path) -> DatasetOut:
     return dataset
 
 
-def copy_shopify_sample(cache_dir: Path, root: Path) -> DatasetOut:
-    """A fresh dataset made from the prepared synthetic file, ready for the confirm screen."""
+def copy_shopify_sample(cache_dir: Path, root: Path) -> UploadOut:
+    """A fresh dataset made from the prepared synthetic file, ready for the confirm screen.
+
+    Like an upload, the copy is private: it gets its own access key, returned once.
+    """
     folder = cache_dir / SHOPIFY_DIR
     if not (folder / METADATA_FILE).is_file():
         raise SampleUnavailable("The synthetic Shopify-style sample has not been prepared. "
@@ -132,8 +136,10 @@ def copy_shopify_sample(cache_dir: Path, root: Path) -> DatasetOut:
     shutil.copyfile(storage.raw_path(folder, ".csv"), storage.raw_path(target, ".csv"))
     dataset = prepared.model_copy(update={"dataset_id": dataset_id,
                                           "created_at": datetime.now(UTC)})
-    storage.write_metadata(root, dataset_id, dataset.model_dump(mode="json"))
-    return dataset
+    key, key_hash = new_key()
+    storage.write_metadata(root, dataset_id,
+                           {**dataset.model_dump(mode="json"), KEY_HASH_FIELD: key_hash})
+    return UploadOut(**dataset.model_dump(), access_key=key)
 
 
 NOT_PREPARED = (

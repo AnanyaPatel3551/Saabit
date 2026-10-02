@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { cardRowsCsvUrl, getCard, getCardRows } from "../api/client";
+import { downloadCardRows, getCard, getCardRows } from "../api/client";
 import type { Card, RowsOut } from "../api/types";
 import { formatValue, indianDigits } from "../lib/format";
 import { EvidenceChart, ordersLabel } from "./EvidenceChart";
+import { CsvDownload } from "./CsvDownload";
 import { VerifiedBadge } from "./VerifiedBadge";
 
 const TABS = ["Chart", "Plan", "SQL", "pandas", "Rows", "Caveats"] as const;
@@ -207,9 +208,8 @@ function RowsTab({ card }: { card: Card }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
         <span>{indianDigits(card.row_count)} cleaned rows behind this answer</span>
-        <a href={cardRowsCsvUrl(card.card_id)} download className="text-gold hover:underline">
-          Download all rows (CSV)
-        </a>
+        <CsvDownload label="Download all rows (CSV)" download={() => downloadCardRows(card.card_id)}
+          className="text-gold hover:underline" />
       </div>
       {error && <p role="alert" className="text-sm text-bad">{error}</p>}
       {data && (

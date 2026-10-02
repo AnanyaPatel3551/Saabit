@@ -5,17 +5,32 @@ from typing import Literal
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 
-from app.api.datasets import SampleCache, StorageRoot
+from app.api.datasets import DatasetKey, SampleCache, StorageRoot, check_dataset_key
 from app.api.observe import note
 from app.api.ratelimit import SENTENCES, limit
 from app.api.schemas import CardOut, RowsOut, SentenceIn, SentenceOut
-from app.core import evidence, pipeline
+from app.core import evidence, pipeline, storage
 from app.core.plan import Plan
 
 router = APIRouter(prefix="/api/cards", tags=["cards"])
 
 
-@router.get("/{card_id}", response_model=CardOut)
+def require_card_key(card_id: str, root: StorageRoot, cache_dir: SampleCache,
+                     key: DatasetKey = None) -> None:
+    """Route dependency: a card opens only with its dataset's key (the sample needs none).
+
+    A wrong key gets the same 404 as a card that does not exist.
+    """
+    try:
+        check_dataset_key(evidence.dataset_of(card_id), key, root, cache_dir)
+    except storage.DatasetNotFound as error:
+        raise evidence.CardNotFound(card_id) from error
+
+
+KeyChecked = [Depends(require_card_key)]
+
+
+@router.get("/{card_id}", response_model=CardOut, dependencies=KeyChecked)
 def get_card(card_id: str, root: StorageRoot, cache_dir: SampleCache) -> CardOut:
     """A saved evidence card: plan, SQL, pandas code, result and caveats (FR-8.1)."""
     context = pipeline.load_context(evidence.dataset_of(card_id), root, cache_dir)
@@ -24,7 +39,7 @@ def get_card(card_id: str, root: StorageRoot, cache_dir: SampleCache) -> CardOut
 
 
 @router.post("/{card_id}/sentence", response_model=SentenceOut,
-             dependencies=[Depends(limit(SENTENCES))])
+             dependencies=[Depends(limit(SENTENCES)), *KeyChecked])
 def write_sentence(
     card_id: str, body: SentenceIn, root: StorageRoot, cache_dir: SampleCache, request: Request
 ) -> SentenceOut:
@@ -47,7 +62,7 @@ def write_sentence(
     return SentenceOut(sentence=answer.text, source=answer.source, note=answer.note)
 
 
-@router.get("/{card_id}/rows", response_model=None)
+@router.get("/{card_id}/rows", response_model=None, dependencies=KeyChecked)
 def card_rows(
     card_id: str,
     root: StorageRoot,

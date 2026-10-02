@@ -71,6 +71,7 @@ def run_case(client: TestClient, rows: pd.DataFrame, case: Case) -> list[tuple[s
     if upload.status_code != 200:
         return [("upload", False, upload.text[:200])]
     dataset = upload.json()
+    client.headers["X-Dataset-Key"] = dataset["access_key"]  # this upload's private key
     roles = {r["role"]: r["column"] for r in dataset["roles"]}
     if case.role:
         checks.append((f"role '{case.role}' not detected", roles.get(case.role) is None,

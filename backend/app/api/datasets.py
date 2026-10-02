@@ -3,8 +3,9 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, Request, Response, UploadFile
 
+from app.api.access import KEY_HASH_FIELD, KEY_HEADER, key_matches, new_key
 from app.api.errors import Forbidden, LLMPaused, NotCleaned
 from app.api.observe import note
 from app.api.ratelimit import ANSWERS, QUESTIONS, UPLOADS, limit
@@ -28,6 +29,7 @@ from app.api.schemas import (
     QuestionIn,
     RoleOut,
     RunOut,
+    UploadOut,
 )
 from app.api.shared import FIXES_FILE, clean_dataset, describe, source_file, validate_roles
 from app.core import detect, evidence, explain, ingest, overview, pipeline, storage
@@ -47,14 +49,15 @@ def get_storage_root() -> Path:
 
 StorageRoot = Annotated[Path, Depends(get_storage_root)]
 SampleCache = Annotated[Path, Depends(get_sample_cache_dir)]
+DatasetKey = Annotated[str | None, Header(alias=KEY_HEADER)]
 
 
-@router.post("", response_model=DatasetOut, dependencies=[Depends(limit(UPLOADS))])
-def upload_dataset(file: UploadFile, root: StorageRoot) -> DatasetOut:
-    """Upload a CSV/XLSX; returns the dataset id and suggested roles (not yet confirmed).
+@router.post("", response_model=UploadOut, dependencies=[Depends(limit(UPLOADS))])
+def upload_dataset(file: UploadFile, root: StorageRoot) -> UploadOut:
+    """Upload a CSV/XLSX; returns the dataset id, suggested roles and its access key.
 
     The upload is streamed to disk in chunks and inspected from there; a rejected file
-    leaves nothing behind.
+    leaves nothing behind. The access key is returned only here; just its hash is stored.
     """
     filename = file.filename or ""
     extension = ingest.extension_of(filename)
@@ -69,11 +72,13 @@ def upload_dataset(file: UploadFile, root: StorageRoot) -> DatasetOut:
         )
         del table
         ingest.release_memory()
-        storage.write_metadata(root, dataset_id, dataset.model_dump(mode="json"))
+        key, key_hash = new_key()
+        storage.write_metadata(root, dataset_id,
+                               {**dataset.model_dump(mode="json"), KEY_HASH_FIELD: key_hash})
     except BaseException:
         storage.delete_dataset(root, dataset_id)
         raise
-    return dataset
+    return UploadOut(**dataset.model_dump(), access_key=key)
 
 
 @router.post("/sample", response_model=DatasetOut)
@@ -82,11 +87,12 @@ def load_sample(cache_dir: SampleCache) -> DatasetOut:
     return shared_sample(cache_dir)
 
 
-@router.post("/sample/shopify", response_model=DatasetOut,
+@router.post("/sample/shopify", response_model=UploadOut,
              dependencies=[Depends(limit(UPLOADS))])
-def load_shopify_sample(root: StorageRoot, cache_dir: SampleCache) -> DatasetOut:
+def load_shopify_sample(root: StorageRoot, cache_dir: SampleCache) -> UploadOut:
     """A copy of the synthetic Shopify-style file, with suggested roles to confirm (not real
-    data). It goes through the same confirm and cleaning steps as an upload."""
+    data). It goes through the same confirm and cleaning steps as an upload, and gets its
+    own access key."""
     return copy_shopify_sample(cache_dir, root)
 
 
@@ -94,6 +100,28 @@ def cached_sample_if(dataset_id: str, cache_dir: Path) -> DatasetOut | None:
     """The shared sample's metadata when dataset_id is the sample's id, else None."""
     sample = read_cached_sample(cache_dir)
     return sample if sample is not None and sample.dataset_id == dataset_id else None
+
+
+def check_dataset_key(dataset_id: str, key: str | None, root: Path, cache_dir: Path) -> None:
+    """Raise DatasetNotFound (404) unless this is the shared sample or the key matches.
+
+    A wrong key gets the same answer as an unknown id, so it does not reveal that the
+    dataset exists. An upload stored without a key hash cannot be opened at all.
+    """
+    if cached_sample_if(dataset_id, cache_dir) is not None:
+        return
+    stored = storage.read_metadata(root, dataset_id).get(KEY_HASH_FIELD)
+    if not key_matches(key, stored):
+        raise storage.DatasetNotFound(dataset_id)
+
+
+def require_dataset_key(dataset_id: str, root: StorageRoot, cache_dir: SampleCache,
+                        key: DatasetKey = None) -> None:
+    """Route dependency: the X-Dataset-Key header must unlock this dataset."""
+    check_dataset_key(dataset_id, key, root, cache_dir)
+
+
+KeyChecked = [Depends(require_dataset_key)]
 
 
 def confirmed_role_list(previous: list[RoleOut], roles: dict[str, str]) -> list[RoleOut]:
@@ -110,7 +138,7 @@ def confirmed_role_list(previous: list[RoleOut], roles: dict[str, str]) -> list[
     return result
 
 
-@router.get("/{dataset_id}", response_model=DatasetOut)
+@router.get("/{dataset_id}", response_model=DatasetOut, dependencies=KeyChecked)
 def get_dataset(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> DatasetOut:
     """Metadata and roles for a stored dataset, including the shared sample."""
     sample = cached_sample_if(dataset_id, cache_dir)
@@ -119,7 +147,7 @@ def get_dataset(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> D
     return DatasetOut.model_validate(storage.read_metadata(root, dataset_id))
 
 
-@router.delete("/{dataset_id}")
+@router.delete("/{dataset_id}", dependencies=KeyChecked)
 def delete_dataset(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> dict[str, str]:
     """Delete an uploaded dataset now: its raw file, cleaned data and evidence cards.
 
@@ -132,7 +160,8 @@ def delete_dataset(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -
     return {"deleted": dataset_id}
 
 
-@router.post("/{dataset_id}/confirm", response_model=DataCheckOut)
+@router.post("/{dataset_id}/confirm", response_model=DataCheckOut,
+             dependencies=KeyChecked)
 def confirm_roles(
     dataset_id: str, body: ConfirmIn, root: StorageRoot, cache_dir: SampleCache,
     background: BackgroundTasks,
@@ -164,7 +193,7 @@ def confirm_roles(
     return check
 
 
-@router.get("/{dataset_id}/overview", response_model=OverviewOut)
+@router.get("/{dataset_id}/overview", response_model=OverviewOut, dependencies=KeyChecked)
 def get_overview(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> OverviewOut:
     """Data check, insight cards and recommendations ("computing" until they are ready)."""
     sample = cached_sample_if(dataset_id, cache_dir)
@@ -189,7 +218,7 @@ def get_overview(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> 
 
 
 @router.post("/{dataset_id}/plan", response_model=PlanOut,
-             dependencies=[Depends(limit(QUESTIONS))])
+             dependencies=[Depends(limit(QUESTIONS)), *KeyChecked])
 def plan_question(
     dataset_id: str, body: QuestionIn, root: StorageRoot, cache_dir: SampleCache,
     request: Request,
@@ -213,7 +242,7 @@ def plan_question(
 
 
 @router.post("/{dataset_id}/run", response_model=RunOut,
-             dependencies=[Depends(limit(ANSWERS))])
+             dependencies=[Depends(limit(ANSWERS)), *KeyChecked])
 def run_plan(
     dataset_id: str, plan: Plan, root: StorageRoot, cache_dir: SampleCache, request: Request,
 ) -> RunOut:
@@ -263,7 +292,7 @@ def comparison_for(card: evidence.EvidenceCard, dataset_id: str, root: Path,
                       card_id=overall.card_id)
 
 
-@router.get("/{dataset_id}/fixes", response_class=Response)
+@router.get("/{dataset_id}/fixes", response_class=Response, dependencies=KeyChecked)
 def get_fixes(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> Response:
     """The full fix log as a CSV download (FR-3.4)."""
     if cached_sample_if(dataset_id, cache_dir) is not None:

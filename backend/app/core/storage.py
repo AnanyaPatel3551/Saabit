@@ -14,6 +14,7 @@ DEFAULT_STORAGE_DIR = "storage"
 ID_PATTERN = re.compile(r"^[0-9a-f]{12}$")
 METADATA_FILE = "metadata.json"
 RAW_STEM = "raw"
+KEY_HASH_FIELD = "key_sha256"  # hash of the upload's access key (app/api/access.py)
 
 
 class DatasetNotFound(Exception):
@@ -75,8 +76,16 @@ def create_dataset_dir(root: Path, dataset_id: str) -> Path:
 
 
 def write_metadata(root: Path, dataset_id: str, metadata: dict[str, Any]) -> None:
-    """Write metadata.json for an existing dataset."""
+    """Write metadata.json for an existing dataset.
+
+    An access-key hash already on disk is kept when the new metadata has none, so rewriting
+    the metadata (for example on confirm) never makes an upload unreadable to its owner.
+    """
     path = dataset_dir(root, dataset_id) / METADATA_FILE
+    if KEY_HASH_FIELD not in metadata and path.is_file():
+        stored = json.loads(path.read_text(encoding="utf-8")).get(KEY_HASH_FIELD)
+        if stored:
+            metadata = {**metadata, KEY_HASH_FIELD: stored}
     path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
 
 

@@ -1,7 +1,8 @@
-import { cardRowsCsvUrl } from "../api/client";
+import { downloadCardRows } from "../api/client";
 import type { Plan, ResultRow, RunOut } from "../api/types";
 import { formatValue, indianDigits, keyLabel } from "../lib/format";
 import type { Sentence } from "../lib/history";
+import { CsvDownload } from "./CsvDownload";
 import { reasonWithoutSuggestion, suggestedQuestion } from "../lib/plan";
 import { EvidenceChart, ordersLabel } from "./EvidenceChart";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -123,10 +124,9 @@ export function AnswerCard({ answer, sentence, caveats, onEvidence, collapsed, o
                   </tbody>
                 </table>
               </div>
-              <a href={cardRowsCsvUrl(answer.card.card_id)} download
-                className="mt-1 inline-block min-h-9 text-xs text-gold hover:underline">
-                Download all {indianDigits(answer.card.row_count)} rows (CSV)
-              </a>
+              <CsvDownload label={`Download all ${indianDigits(answer.card.row_count)} rows (CSV)`}
+                download={() => downloadCardRows(answer.card.card_id)}
+                className="mt-1 inline-block min-h-9 text-xs text-gold hover:underline" />
             </section>
           )}
 

@@ -3,12 +3,13 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app.core.overview import mark_computing
-from tests.conftest import FIXTURES
+from tests.conftest import FIXTURES, use_key
 
 
 def upload(client: TestClient) -> dict:
     content = (FIXTURES / "amazon_300.csv").read_bytes()
-    return client.post("/api/datasets", files={"file": ("a.csv", content)}).json()
+    created = client.post("/api/datasets", files={"file": ("a.csv", content)}).json()
+    return use_key(client, created)
 
 
 def confirm(client: TestClient, created: dict) -> None:

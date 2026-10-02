@@ -9,14 +9,14 @@ import yaml
 from fastapi.testclient import TestClient
 
 from app.api.sample import SAMPLE_ROLES
-from tests.conftest import FIXTURES
+from tests.conftest import FIXTURES, use_key
 
 GOLDEN = Path(__file__).resolve().parents[2] / "eval" / "golden.yaml"
 
 
 def upload(client: TestClient, name: str) -> dict:
     content = (FIXTURES / name).read_bytes()
-    return client.post("/api/datasets", files={"file": (name, content)}).json()
+    return use_key(client, client.post("/api/datasets", files={"file": (name, content)}).json())
 
 
 def suggested_roles(body: dict) -> dict[str, str | None]:

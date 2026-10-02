@@ -17,9 +17,17 @@ export function Privacy() {
       <section className="flex flex-col gap-2 text-sm leading-relaxed text-text">
         <h2 className="font-display text-xl text-gold-soft">Your file</h2>
         <p>
-          Files you upload are stored only on this server. They are deleted after 24 hours, or
-          immediately when you choose "Delete my data now" in the workspace. Deleting removes the
-          file, its cleaned copy and the evidence behind every answer.
+          Your file travels to the server over an encrypted connection (HTTPS) and is stored only
+          on this server. It is deleted after 24 hours, or immediately when you choose "Delete
+          my data now" in the workspace. Deleting removes the file, its cleaned copy and the
+          evidence behind every answer.
+        </p>
+        <p>
+          Each upload gets its own private key. Only your browser tab holds it (it is never put in
+          a link), and the server keeps just a fingerprint of it, not the key itself. Without the
+          key, nobody can read the file, its answers or its downloads through Saabit: the server
+          answers as if the data did not exist. Closing the tab forgets the key, so to keep
+          working on the file after that, upload it again.
         </p>
         <p>
           To answer repeated questions faster, Saabit keeps the plan of each question (which
@@ -29,8 +37,8 @@ export function Privacy() {
         <p>
           There are no accounts and no analytics. The server keeps a technical log of each
           request (time, path, outcome, how long it took), never rows, cell values or your
-          questions. A dataset is reached by a random id in the app, with no login, so anyone who
-          has that id can open it until it is deleted.
+          questions. There is no login: the private key above is what keeps an upload yours. The
+          shared sample is public and has no key.
         </p>
       </section>
 

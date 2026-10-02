@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from tests.conftest import FIXTURES
+from tests.conftest import FIXTURES, use_key
 
 
 def sample(client: TestClient) -> str:
@@ -72,8 +72,8 @@ def test_unknown_card_returns_404(client: TestClient) -> None:
 
 def test_run_on_an_unconfirmed_upload_returns_409(client: TestClient) -> None:
     content = (FIXTURES / "amazon_300.csv").read_bytes()
-    dataset_id = client.post("/api/datasets", files={"file": ("a.csv", content)}).json()[
-        "dataset_id"]
+    created = client.post("/api/datasets", files={"file": ("a.csv", content)}).json()
+    dataset_id = use_key(client, created)["dataset_id"]
 
     response = run(client, dataset_id, {"metric": "orders"})
 
@@ -83,7 +83,8 @@ def test_run_on_an_unconfirmed_upload_returns_409(client: TestClient) -> None:
 
 def test_run_works_on_a_confirmed_upload(client: TestClient) -> None:
     content = (FIXTURES / "amazon_300.csv").read_bytes()
-    created = client.post("/api/datasets", files={"file": ("a.csv", content)}).json()
+    uploaded = client.post("/api/datasets", files={"file": ("a.csv", content)}).json()
+    created = use_key(client, uploaded)
     roles = {r["role"]: r["column"] for r in created["roles"]}
     client.post(f"/api/datasets/{created['dataset_id']}/confirm", json={"roles": roles})
 

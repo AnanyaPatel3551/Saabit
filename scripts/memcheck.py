@@ -165,7 +165,8 @@ def run_scenario(name: str, upload: Path | None) -> dict:
             roles = {r["role"]: r["column"] for r in body["roles"]}
             response = httpx.post(
                 f"{base}/api/datasets/{body['dataset_id']}/confirm",
-                json={"roles": roles}, timeout=120,
+                json={"roles": roles}, headers={"X-Dataset-Key": body["access_key"]},
+                timeout=120,
             )
             results.append(f"confirm {response.status_code}, clean rows "
                            f"{response.json().get('rows_out')}")

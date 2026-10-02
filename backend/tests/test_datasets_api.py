@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from app.api.datasets import SAMPLE_ROLES
 from app.api.sample import get_sample_cache_dir
 from app.core.ingest import MAX_BYTES
-from tests.conftest import FIXTURES
+from tests.conftest import FIXTURES, use_key
 
 ID_PATTERN = re.compile(r"^[0-9a-f]{12}$")
 
@@ -68,12 +68,12 @@ def test_uploaded_filename_is_never_used_as_a_path(client: TestClient, storage_r
 
 
 def test_get_dataset_returns_metadata_and_roles(client: TestClient) -> None:
-    created = upload(client, "shopify_orders.csv").json()
+    created = use_key(client, upload(client, "shopify_orders.csv").json())
 
     response = client.get(f"/api/datasets/{created['dataset_id']}")
 
     assert response.status_code == 200
-    assert response.json() == created
+    assert response.json() == {k: v for k, v in created.items() if k != "access_key"}
 
 
 def test_unknown_dataset_returns_404(client: TestClient) -> None:

@@ -104,9 +104,10 @@ From the PRD's decision table (`docs/PRD.md`, "Design decisions").
 
 ## Privacy and data
 
-- **Your file** is stored only on the server. It is deleted after 24 hours, or immediately with "Delete my data now" in the workspace header, which removes the file, its cleaned copy and the evidence behind every answer. The shared sample cannot be deleted.
+- **Your file** travels over HTTPS and is stored only on the server. It is deleted after 24 hours, or immediately with "Delete my data now" in the workspace header, which removes the file, its cleaned copy and the evidence behind every answer. The shared sample cannot be deleted.
+- **A private key for each upload.** The server returns a random key once, at upload, and keeps only its SHA-256 hash. Only the uploader's browser tab holds the key (in memory and sessionStorage, never in a link), and it is sent in a request header. Without it, nobody can read the file, its answers or its downloads through Saabit: the server answers 404, as if the data did not exist. Closing the tab forgets the key. The shared sample is public and has no key.
 - **Saved question plans** (which measure, grouping, filters and dates a question asked for, not rows from your file) are kept for up to 7 days so repeated questions are faster. "Delete my data now" does not remove them.
-- **No accounts and no analytics.** The server keeps a technical log of each request (time, path, outcome, duration), never rows, cell values or questions. A dataset is reached by a random id with no login, so anyone who has that id can open it until it is deleted.
+- **No accounts and no analytics.** The server keeps a technical log of each request (time, path, outcome, duration), never rows, cell values, questions or keys.
 - **What the AI provider receives.** Saabit uses Groq, with NVIDIA as a backup, only to read the question and to phrase the answer; every number is computed on the server by code.
   - To plan a question: the question, the kinds of columns the file has (such as state or category), the short lists of allowed values for columns that have few of them (for example state names), and the file's date range.
   - To write the answer sentence: the question and a table of totals Saabit already computed (at most 20 rows).
@@ -123,7 +124,7 @@ The same text is on the app's `/privacy` page.
 - **Three months of data.** The sample covers 31 Mar to 29 Jun 2022, and March has one day. There is no forecasting, and each backtest uses a single held-out month.
 - **One file at a time.** Each dataset is answered on its own; files cannot be combined or compared.
 - **Single-process state.** Rate limits (30 questions every 10 minutes and 5 uploads an hour per client) and provider cool-downs are kept in memory. A restart resets them, and more than one worker would count separately.
-- **No accounts.** Anyone with a dataset id can read that dataset until it is deleted. Storage is the container's local disk, so a redeploy removes everything except the bundled sample.
+- **No accounts.** An upload is tied to the browser tab that made it: once the tab is closed, its key is gone and the file must be uploaded again. Storage is the container's local disk, so a redeploy removes everything except the bundled sample.
 - **Other known gaps** (from `docs/LATER.md`):
   - the cancelled rule is literal (Status exactly "Cancelled"), so "voided" or "refunded" count as 0% cancelled;
   - CSV downloads do not neutralise cells that start with `=`, `+`, `-` or `@`;

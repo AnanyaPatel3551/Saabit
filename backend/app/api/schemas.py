@@ -82,6 +82,12 @@ class DatasetOut(BaseModel):
     data_check: DataCheckOut | None = None
 
 
+class UploadOut(DatasetOut):
+    """The upload response: the dataset plus its access key, returned this one time only."""
+
+    access_key: str
+
+
 class CardOut(BaseModel):
     """An evidence card (FR-8.1). On a mismatch, sql_result and pandas_result are both set."""
 

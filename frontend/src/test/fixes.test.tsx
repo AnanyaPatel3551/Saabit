@@ -95,7 +95,7 @@ describe("Answer card evidence", () => {
 
     expect(screen.getByText(/Distinct cancelled orders divided by distinct orders/)).toBeTruthy();
     expect(screen.getByText("171-2")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Download all 2,650 rows (CSV)" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Download all 2,650 rows (CSV)" })).toBeTruthy();
   });
 
   it("a collapsed older answer keeps the sentence, number and proof line only", () => {

@@ -1,6 +1,7 @@
-import { fixesCsvUrl } from "../api/client";
+import { downloadFixes } from "../api/client";
 import type { DataCheck } from "../api/types";
 import { indianDigits } from "../lib/format";
+import { CsvDownload } from "./CsvDownload";
 
 /** Left panel: what the file can and cannot answer, and what cleaning fixed (FR-3.4, FR-3.5). */
 export function DataCheckPanel({ check }: { check: DataCheck }) {
@@ -55,9 +56,8 @@ export function DataCheckPanel({ check }: { check: DataCheck }) {
             </li>
           ))}
         </ul>
-        <a href={fixesCsvUrl(check.dataset_id)} download className="mt-3 inline-block text-gold hover:underline">
-          Download the fix log (CSV)
-        </a>
+        <CsvDownload label="Download the fix log (CSV)" download={() => downloadFixes(check.dataset_id)}
+          className="mt-3 inline-block text-gold hover:underline" />
       </details>
 
       {check.partial_months.length > 0 && (
