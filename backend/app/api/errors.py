@@ -46,6 +46,11 @@ class InvalidRoles(ApiError):
     code = "invalid_roles"
 
 
+class Forbidden(ApiError):
+    status_code = 403
+    code = "forbidden"
+
+
 class NotCleaned(ApiError):
     status_code = 409
     code = "not_cleaned"

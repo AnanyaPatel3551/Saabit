@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from app.api.datasets import get_sample_path, get_storage_root
 from app.api.sample import SHOPIFY_PATH, build_shopify_cache, get_sample_cache_dir
 from app.main import create_app
-from tests.conftest import SMALL_SAMPLE
+from tests.conftest import FIXTURES, SMALL_SAMPLE
 
 
 @pytest.fixture
@@ -111,3 +111,43 @@ def test_how_we_test_route_serves_the_app(tmp_path: Path) -> None:
     response = TestClient(create_app(frontend_dist=dist)).get("/how-we-test")
 
     assert response.status_code == 200 and "app" in response.text
+
+
+def test_deleting_an_upload_removes_its_folder_and_cards(client: TestClient,
+                                                          storage_root: Path) -> None:
+    files = {"file": ("orders.csv", (FIXTURES / "amazon_300.csv").read_bytes(), "text/csv")}
+    dataset = client.post("/api/datasets", files=files).json()
+    roles = {r["role"]: r["column"] for r in dataset["roles"]}
+    client.post(f"/api/datasets/{dataset['dataset_id']}/confirm", json={"roles": roles})
+    client.post(f"/api/datasets/{dataset['dataset_id']}/run", json={"metric": "orders"})
+    folder = storage_root / dataset["dataset_id"]
+    assert list((folder / "cards").glob("*.json"))
+
+    response = client.delete(f"/api/datasets/{dataset['dataset_id']}")
+
+    assert response.status_code == 200
+    assert response.json() == {"deleted": dataset["dataset_id"]}
+    assert not folder.exists()
+    assert client.get(f"/api/datasets/{dataset['dataset_id']}").status_code == 404
+
+
+def test_the_shared_sample_cannot_be_deleted(client: TestClient) -> None:
+    sample = client.post("/api/datasets/sample").json()["dataset_id"]
+
+    response = client.delete(f"/api/datasets/{sample}")
+
+    assert response.status_code == 403
+    assert "shared sample" in response.json()["error"]["message"]
+    assert client.post("/api/datasets/sample").status_code == 200
+
+
+def test_deleting_an_unknown_dataset_is_404(client: TestClient) -> None:
+    assert client.delete("/api/datasets/0123456789ab").status_code == 404
+
+
+def test_privacy_route_serves_the_app(tmp_path: Path) -> None:
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "index.html").write_text("<div id=root>app</div>", encoding="utf-8")
+
+    assert TestClient(create_app(frontend_dist=dist)).get("/privacy").status_code == 200

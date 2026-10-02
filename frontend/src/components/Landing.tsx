@@ -120,13 +120,17 @@ export function Landing({ onDataset }: { onDataset: (dataset: Dataset) => void }
       {error && <p role="alert" className="rounded-lg border border-bad/60 bg-bad/10 p-3 text-sm">{error}</p>}
 
       <p className="border-t border-line pt-4 text-xs text-muted">
-        Privacy: your rows never leave this server. The language model only sees column names,
-        allowed values and totals computed by code, never raw rows. No account is needed.
+        Privacy: files stay on this server and are deleted after 24 hours, or right away with
+        "Delete my data now". The AI provider sees your question, the kinds of columns, short
+        lists of allowed values, the date range and totals computed by code, never raw rows. No
+        accounts, no analytics.{" "}
+        <a href="/privacy" className="text-gold hover:underline">Privacy and data</a>
       </p>
 
       <footer className="flex flex-col gap-2 text-xs text-muted sm:flex-row sm:flex-wrap sm:gap-x-6">
         <a href={REPO_URL} className="hover:text-text">Source on GitHub</a>
         <a href="/how-we-test" className="hover:text-text">How we test</a>
+        <a href="/privacy" className="hover:text-text">Privacy</a>
         <span>
           Sample data: "E-Commerce Sales Dataset" by ANil (data.world/anilsharma87), published on
           Kaggle by The Devastator.

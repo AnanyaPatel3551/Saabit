@@ -46,6 +46,7 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
   const busy = status.kind === "loading";
   const firstUse = entries.length === 0 && status.kind === "idle";
   const mounted = useRef(true);
+  const questionBox = useRef<HTMLInputElement>(null);
 
   useEffect(() => () => { mounted.current = false; }, []);
   useEffect(() => saveHistory(datasetId, entries), [datasetId, entries]);
@@ -106,6 +107,11 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
 
   function submit(event: FormEvent) {
     event.preventDefault();
+    if (busy) return;
+    if (!question.trim()) {
+      questionBox.current?.focus();  // nothing to ask yet: point at the box instead
+      return;
+    }
     void ask(question);
   }
 
@@ -123,12 +129,14 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
 
       <form onSubmit={submit} className="flex gap-2">
         <label htmlFor="question" className="sr-only">Your question</label>
-        <input id="question" value={question} onChange={(e) => setQuestion(e.target.value)}
+        <input id="question" ref={questionBox} value={question} onChange={(e) => setQuestion(e.target.value)}
           maxLength={500} placeholder="e.g. rajsthan ka cancellation kitna hai"
           className="min-h-10 min-w-0 flex-1 rounded-lg border border-line bg-raised px-3 py-2 text-text placeholder:text-muted" />
-        <button type="submit" disabled={busy || !question.trim()}
-          className="min-h-10 rounded-lg bg-gold px-4 py-2 font-medium text-ink hover:bg-gold-soft disabled:opacity-50">
-          Ask
+        {/* Always gold. Empty box: a click focuses the box. While asking: ignores clicks. */}
+        <button type="submit" aria-disabled={busy}
+          className={`min-h-10 rounded-lg border border-gold bg-gold px-4 py-2 font-medium text-ink hover:bg-gold-soft ${
+            busy ? "cursor-wait" : ""}`}>
+          {busy ? "Asking…" : "Ask"}
         </button>
       </form>
 

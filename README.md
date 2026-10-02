@@ -98,6 +98,19 @@ From the PRD's decision table (`docs/PRD.md`, "Design decisions").
   - the second-file demo and a browser end-to-end test are not done;
   - an LLM sentence can use a wrong word ("peak") with correct numbers.
 
+## Privacy and data
+
+- **Your file** is stored only on the server. It is deleted after 24 hours, or immediately with "Delete my data now" in the workspace header, which removes the file, its cleaned copy and the evidence behind every answer. The shared sample cannot be deleted.
+- **Saved question plans** (which measure, grouping, filters and dates a question asked for, not rows from your file) are kept for up to 7 days so repeated questions are faster. "Delete my data now" does not remove them.
+- **No accounts and no analytics.** The server keeps a technical log of each request (time, path, outcome, duration), never rows, cell values or questions. A dataset is reached by a random id with no login, so anyone who has that id can open it until it is deleted.
+- **What the AI provider receives.** Saabit uses Groq, with NVIDIA as a backup, only to read the question and to phrase the answer; every number is computed on the server by code.
+  - To plan a question: the question, the kinds of columns the file has (such as state or category), the short lists of allowed values for columns that have few of them (for example state names), and the file's date range.
+  - To write the answer sentence: the question and a table of totals Saabit already computed (at most 20 rows).
+  - Never raw rows from the file.
+- What the providers do with the data they receive is set by their own policies: [Groq](https://groq.com/privacy-policy/) and [NVIDIA](https://www.nvidia.com/en-us/about-nvidia/privacy-policy/).
+
+The same text is on the app's `/privacy` page.
+
 ## Run it locally
 
 Windows, PowerShell, Python 3.11, Node 22 or later.

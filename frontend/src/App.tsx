@@ -3,6 +3,7 @@ import type { DataCheck, Dataset } from "./api/types";
 import { ConfirmColumns } from "./components/ConfirmColumns";
 import { HowWeTest } from "./components/HowWeTest";
 import { Landing } from "./components/Landing";
+import { Privacy } from "./components/Privacy";
 import { Workspace } from "./components/Workspace";
 
 type Stage =
@@ -19,13 +20,14 @@ export function stageFor(dataset: Dataset): Stage {
 
 /**
  * One page app with three stages: landing (S1), confirm columns (S2), workspace (S3). The
- * only other page, /how-we-test, is picked by the URL (no router library).
+ * other pages, /how-we-test and /privacy, are picked by the URL (no router library).
  */
 export default function App() {
   const [stage, setStage] = useState<Stage>({ name: "landing" });
   const restart = () => setStage({ name: "landing" });
 
   if (window.location.pathname === "/how-we-test") return <HowWeTest />;
+  if (window.location.pathname === "/privacy") return <Privacy />;
   if (stage.name === "landing") {
     return <Landing onDataset={(dataset) => setStage(stageFor(dataset))} />;
   }

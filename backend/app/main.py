@@ -26,7 +26,7 @@ from app.llm.config import status_dict
 VERSION = "0.1.0"
 FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 RETENTION_INTERVAL_S = 3600
-PAGES = ("/how-we-test",)
+PAGES = ("/how-we-test", "/privacy")
 logger = logging.getLogger(__name__)
 
 PLACEHOLDER_HTML = (

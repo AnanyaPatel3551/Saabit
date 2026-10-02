@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { getHealth } from "../api/client";
+import { deleteDataset, getHealth } from "../api/client";
+import { clearHistory } from "../lib/history";
 import type { DataCheck, Dataset, Health } from "../api/types";
 import { AiStatus, aiState } from "./AiStatus";
 import { AskPanel } from "./AskPanel";
@@ -9,6 +10,12 @@ import { InsightsPanel } from "./InsightsPanel";
 import { Logo } from "./Logo";
 
 const HEALTH_EVERY_MS = 60_000;
+
+const SAMPLE_FILE = "amazon_sale_report.csv.gz";  // the shared sample, which cannot be deleted
+
+export function isSharedSample(dataset: Dataset): boolean {
+  return dataset.filename === SAMPLE_FILE;
+}
 
 export function isSynthetic(dataset: Dataset): boolean {
   return dataset.filename.toLowerCase().includes("synthetic");
@@ -52,6 +59,8 @@ export function Workspace({ dataset, check, onBack }: {
           )}
           <AiStatus health={health} />
           <a href="/how-we-test" className="text-xs text-muted hover:text-text">How we test</a>
+          <a href="/privacy" className="text-xs text-muted hover:text-text">Privacy</a>
+          {!isSharedSample(dataset) && <DeleteMyData datasetId={dataset.dataset_id} onDeleted={onBack} />}
         </div>
       </header>
       <main className="grid gap-6 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1.2fr)]">
@@ -70,5 +79,48 @@ export function Workspace({ dataset, check, onBack }: {
       </main>
       {evidence && <EvidenceDrawer items={evidence} onClose={() => setEvidence(null)} />}
     </div>
+  );
+}
+
+/** "Delete my data now": deletes this upload on the server and its history in this browser. */
+function DeleteMyData({ datasetId, onDeleted }: { datasetId: string; onDeleted: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function remove() {
+    setBusy(true);
+    setError(null);
+    try {
+      await deleteDataset(datasetId);
+      clearHistory(datasetId);
+      onDeleted();
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  }
+
+  if (!confirming) {
+    return (
+      <button type="button" onClick={() => setConfirming(true)}
+        className="min-h-10 rounded border border-line px-2 text-xs text-muted hover:border-bad/60 hover:text-text">
+        Delete my data now
+      </button>
+    );
+  }
+  return (
+    <span role="group" aria-label="Confirm deleting your data" className="inline-flex flex-wrap items-center gap-2 text-xs">
+      <span className="text-text">Delete this file and its answers from the server?</span>
+      <button type="button" onClick={() => void remove()} disabled={busy}
+        className="min-h-10 rounded border border-bad/70 px-2 text-text hover:bg-bad/10 disabled:opacity-50">
+        {busy ? "Deleting…" : "Yes, delete"}
+      </button>
+      <button type="button" onClick={() => setConfirming(false)} disabled={busy}
+        className="min-h-10 px-2 text-muted hover:text-text">
+        Cancel
+      </button>
+      {error && <span role="alert" className="text-bad">{error}</span>}
+    </span>
   );
 }

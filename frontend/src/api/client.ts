@@ -66,6 +66,11 @@ export function loadShopifySample(): Promise<Dataset> {
   return request("/api/datasets/sample/shopify", { method: "POST" });
 }
 
+/** Delete an uploaded dataset now (raw file, cleaned data, evidence cards). Not the sample. */
+export function deleteDataset(datasetId: string): Promise<{ deleted: string }> {
+  return request(`/api/datasets/${datasetId}`, { method: "DELETE" });
+}
+
 export function getEvalSummary(): Promise<EvalSummary> {
   return request("/api/eval-summary");
 }

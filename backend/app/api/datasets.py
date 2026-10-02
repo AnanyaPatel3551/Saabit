@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, UploadFile
 
-from app.api.errors import LLMPaused, NotCleaned
+from app.api.errors import Forbidden, LLMPaused, NotCleaned
 from app.api.observe import note
 from app.api.ratelimit import ANSWERS, QUESTIONS, UPLOADS, limit
 from app.api.sample import (
@@ -117,6 +117,19 @@ def get_dataset(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> D
     if sample is not None:
         return sample
     return DatasetOut.model_validate(storage.read_metadata(root, dataset_id))
+
+
+@router.delete("/{dataset_id}")
+def delete_dataset(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> dict[str, str]:
+    """Delete an uploaded dataset now: its raw file, cleaned data and evidence cards.
+
+    The shared sample is used by everyone, so it cannot be deleted.
+    """
+    if cached_sample_if(dataset_id, cache_dir) is not None:
+        raise Forbidden("The shared sample cannot be deleted; only your own uploads can.")
+    storage.read_metadata(root, dataset_id)  # 404 when there is no such dataset
+    storage.delete_dataset(root, dataset_id)
+    return {"deleted": dataset_id}
 
 
 @router.post("/{dataset_id}/confirm", response_model=DataCheckOut)

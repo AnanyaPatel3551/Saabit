@@ -62,7 +62,8 @@ def raw_path(folder: Path, extension: str) -> Path:
 
 
 def delete_dataset(root: Path, dataset_id: str) -> None:
-    """Remove a dataset folder and everything in it (used when an upload is rejected)."""
+    """Remove a dataset folder and everything in it: raw file, cleaned data, evidence cards
+    (a rejected upload, or "Delete my data now")."""
     shutil.rmtree(dataset_dir(root, dataset_id), ignore_errors=True)
 
 
