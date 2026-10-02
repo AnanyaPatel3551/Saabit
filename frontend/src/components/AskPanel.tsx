@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { ApiError, planQuestion, runPlan, writeSentence } from "../api/client";
 import type { Card, Plan, RunOut } from "../api/types";
+import type { Coverage } from "../lib/coverage";
 import {
   clearHistory, loadHistory, newEntryId, saveHistory, type HistoryEntry, type Sentence,
 } from "../lib/history";
@@ -8,69 +9,89 @@ import { EXAMPLES } from "../lib/plan";
 import {
   AnswerCard, ClarificationCard, LlmBanner, RefusalCard, UnverifiedCard,
 } from "./AnswerCards";
+import { friendlyError, ErrorNote } from "./ErrorNote";
 import { PlanChips, type DataRange } from "./PlanChips";
 
 export type { Sentence } from "../lib/history";
 
-/** What is happening right now, above the thread of past answers. */
+/** The question being worked on right now, shown as the newest card in the thread. */
 type Status =
   | { kind: "idle" }
-  | { kind: "loading"; label: string }
+  | { kind: "loading"; question: string; label: string }
   | { kind: "clarify"; plan: Plan; question: string }
-  | { kind: "error"; message: string };
+  | { kind: "error"; question: string; message: string; requestId: string | null };
 
 /** After this long the template is shown instead of waiting for the writer. */
 export const SENTENCE_TIMEOUT_MS = 10_000;
 
 /**
- * Centre panel. Owns /plan (typed questions), /run (planned questions, example chips and
- * edited plan chips; returns the numbers first) and the card sentence call that follows.
- * Chip edits never go back through /plan. Answers stay as a thread, newest first, saved in
- * this browser per dataset.
+ * Centre panel. Chips only fill the question box; a question is sent only with Ask or Enter
+ * (Shift+Enter starts a new line), and the box is cleared once it is sent. An example
+ * question sent unchanged runs its ready plan, so it works even when the AI is busy. Typed
+ * questions go through /plan, then /run returns the numbers first and the sentence follows.
+ * Answers stay as a thread, newest first, saved in this browser per dataset.
  */
 export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidence, range,
-  partialMonths = [] }: {
+  coverage = {}, fill }: {
   datasetId: string;
   range?: DataRange;
-  partialMonths?: string[];
+  coverage?: Coverage;
   llmDown: boolean;
   llmReason: string | null;
   onLlmChange: (down: boolean, reason: string | null) => void;
   onEvidence: (card: Card) => void;
+  /** Text to put in the box from outside (month chips); a new object each time. */
+  fill?: { text: string } | null;
 }) {
   const [question, setQuestion] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [entries, setEntries] = useState<HistoryEntry[]>(() => loadHistory(datasetId));
   const [expanded, setExpanded] = useState<Set<string>>(new Set());  // older answers opened
-  const [chipPlan, setChipPlan] = useState<Plan | null>(() => newestPlan(loadHistory(datasetId)));
+  const [editing, setEditing] = useState(false);
   const busy = status.kind === "loading";
-  const firstUse = entries.length === 0 && status.kind === "idle";
+  const empty = !question.trim();
   const mounted = useRef(true);
-  const questionBox = useRef<HTMLInputElement>(null);
+  const questionBox = useRef<HTMLTextAreaElement>(null);
+  const newest = useRef<HTMLLIElement>(null);
 
   useEffect(() => () => { mounted.current = false; }, []);
   useEffect(() => saveHistory(datasetId, entries), [datasetId, entries]);
+  useEffect(() => {
+    newest.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+  }, [status.kind, entries[0]?.id]);
+  useEffect(() => { if (fill) fillBox(fill.text); }, [fill]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Put text in the box and the cursor at its end; never sends anything. */
+  function fillBox(text: string) {
+    setQuestion(text);
+    requestAnimationFrame(() => {
+      const box = questionBox.current;
+      if (!box) return;
+      box.focus();
+      box.setSelectionRange(text.length, text.length);
+    });
+  }
 
   function add(entry: HistoryEntry) {
     setEntries((now) => [entry, ...now]);
+    setExpanded(new Set());
   }
 
   async function run(plan: Plan, asked: string, caveats: string[] = []) {
-    setChipPlan(plan);
-    setStatus({ kind: "loading", label: "Computing with SQL and pandas…" });
+    setEditing(false);
+    setStatus({ kind: "loading", question: asked || "Changed question", label: "Working out the numbers…" });
     let result: RunOut;
     try {
       result = await runPlan(datasetId, plan);
     } catch (error) {
-      setStatus({ kind: "error", message: messageOf(error) });
+      setStatus({ kind: "error", question: asked, ...friendlyError(error) });
       return;
     }
-    setChipPlan(result.card.plan);
     setStatus({ kind: "idle" });
     const template: Sentence = { status: "done", text: result.sentence, source: result.source };
     const waitForWriter = result.sentence_status === "pending" && !llmDown;
     const id = newEntryId();
-    add({ id, question: asked || "Edited plan", askedAt: new Date().toISOString(), run: result,
+    add({ id, question: asked || "Changed question", askedAt: new Date().toISOString(), run: result,
           caveats, sentence: waitForWriter ? { status: "pending" } : template });
     if (!waitForWriter) return;
     const finished = await sentenceOrTemplate(result, asked, template);
@@ -79,11 +100,8 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
     }
   }
 
-  async function ask(text: string) {
-    const asked = text.trim();
-    if (!asked) return;
-    setQuestion(asked);
-    setStatus({ kind: "loading", label: "Understanding the question…" });
+  async function ask(asked: string) {
+    setStatus({ kind: "loading", question: asked, label: "Understanding the question…" });
     try {
       const planned = await planQuestion(datasetId, asked);
       if (llmDown) onLlmChange(false, null);
@@ -101,104 +119,130 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
       if (error instanceof ApiError && error.code === "llm_unavailable") {
         onLlmChange(true, error.message);
       }
-      setStatus({ kind: "error", message: messageOf(error) });
+      setStatus({ kind: "error", question: asked, ...friendlyError(error) });
     }
+  }
+
+  function send() {
+    if (busy || empty) {
+      questionBox.current?.focus();
+      return;
+    }
+    const asked = question.trim();
+    setQuestion("");  // one rule: the box is cleared once a question is sent
+    const example = EXAMPLES.find((e) => e.question.toLowerCase() === asked.toLowerCase());
+    if (example) void run(example.plan, example.question);
+    else void ask(asked);
   }
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (busy) return;
-    if (!question.trim()) {
-      questionBox.current?.focus();  // nothing to ask yet: point at the box instead
-      return;
+    send();
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+      event.preventDefault();
+      send();
     }
-    void ask(question);
   }
 
   function clear() {
     clearHistory(datasetId);
     setEntries([]);
-    setChipPlan(null);
     setStatus({ kind: "idle" });
   }
+
+  const toggle = (id: string) => setExpanded((now) => {
+    const next = new Set(now);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
 
   return (
     <section aria-labelledby="ask-heading" className="flex flex-col gap-4">
       <h2 id="ask-heading" className="font-display text-2xl text-gold-soft">Ask</h2>
       {llmDown && <LlmBanner reason={llmReason} />}
 
-      <form onSubmit={submit} className="flex gap-2">
+      <form onSubmit={submit} className="flex items-start gap-2">
         <label htmlFor="question" className="sr-only">Your question</label>
-        <input id="question" ref={questionBox} value={question} onChange={(e) => setQuestion(e.target.value)}
+        <textarea id="question" ref={questionBox} value={question} rows={1}
+          onChange={(e) => setQuestion(e.target.value)} onKeyDown={onKeyDown}
           maxLength={500} placeholder="e.g. rajsthan ka cancellation kitna hai"
-          className="min-h-10 min-w-0 flex-1 rounded-lg border border-line bg-raised px-3 py-2 text-text placeholder:text-muted" />
-        {/* Always gold. Empty box: a click focuses the box. While asking: ignores clicks. */}
-        <button type="submit" aria-disabled={busy}
+          className="min-h-10 min-w-0 flex-1 resize-none rounded-lg border border-line bg-raised px-3 py-2 text-text placeholder:text-muted" />
+        {/* Gold at all times (as asked); it does nothing while the box is empty or a question is running. */}
+        <button type="submit" aria-disabled={busy || empty}
           className={`min-h-10 rounded-lg border border-gold bg-gold px-4 py-2 font-medium text-ink hover:bg-gold-soft ${
             busy ? "cursor-wait" : ""}`}>
           {busy ? "Asking…" : "Ask"}
         </button>
       </form>
 
-      {firstUse && <p className="text-sm text-text">Try one of these, or type your own.</p>}
       <div className="flex flex-wrap gap-2" aria-label="Example questions" role="group">
         {EXAMPLES.map((example) => (
-          <button key={example.question} type="button" disabled={busy}
-            onClick={() => { setQuestion(example.question); void run(example.plan, example.question); }}
+          <button key={example.question} type="button" onClick={() => fillBox(example.question)}
             className="min-h-10 rounded-full border border-line px-3 py-1 text-sm text-muted hover:border-gold/60 hover:text-text">
             {example.question}
           </button>
         ))}
       </div>
-      {firstUse && (
-        <p className="border-l-2 border-gold/60 pl-3 text-xs text-muted">
-          Verified means two separate calculations, SQL and pandas, gave the same result.
-        </p>
+
+      {entries.length === 0 && status.kind === "idle" && (
+        <div className="rounded-xl border border-dashed border-line p-4 text-sm text-muted">
+          <p className="text-text">Ask your first question — or tap an example.</p>
+          <p className="mt-1 text-xs">
+            Every number marked “✓ Checked twice” was worked out in two separate ways, and both
+            gave the same result.
+          </p>
+        </div>
       )}
 
-      {status.kind === "loading" && <p role="status" className="text-sm text-muted">{status.label}</p>}
-      {status.kind === "error" && (
-        <p role="alert" className="rounded-lg border border-bad/60 bg-bad/10 p-3 text-sm text-text">
-          {status.message}
-        </p>
-      )}
-      {status.kind === "clarify" && (
-        <ClarificationCard plan={status.plan}
-          onChoose={(option) => void ask(`${status.question} (${option})`)} />
-      )}
-
-      {chipPlan && entries[0]?.run && (
-        <PlanChips plan={chipPlan} disabled={busy} range={range}
-          onChange={(plan) => void run(plan, "")} />
-      )}
-
-      {entries.length > 0 && (
+      {(entries.length > 0 || status.kind !== "idle") && (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <h3 className="text-xs uppercase tracking-wider text-muted">
               Your questions ({entries.length})
             </h3>
-            <button type="button" onClick={clear}
-              className="min-h-10 rounded px-2 text-xs text-muted hover:text-text">
-              Clear
-            </button>
+            {entries.length > 0 && (
+              <button type="button" onClick={clear}
+                className="min-h-10 rounded px-2 text-xs text-muted hover:text-text">
+                Clear
+              </button>
+            )}
           </div>
           <ol className="flex flex-col gap-4" aria-label="Question history, newest first">
-            {entries.map((entry, index) => (
-              <li key={entry.id} className="flex flex-col gap-2">
-                <p className="text-sm text-muted">
-                  <span className="sr-only">Question: </span>{entry.question}
-                </p>
-                <EntryCard entry={entry} onEvidence={onEvidence} onAsk={(q) => void ask(q)}
-                  partialMonths={partialMonths}
-                  collapsed={index > 0 && !expanded.has(entry.id)}
-                  onToggle={index > 0 ? () => setExpanded((now) => {
-                    const next = new Set(now);
-                    if (next.has(entry.id)) next.delete(entry.id); else next.add(entry.id);
-                    return next;
-                  }) : undefined} />
+            {status.kind !== "idle" && (
+              <li ref={newest} className="flex flex-col gap-2">
+                <p className="text-sm text-muted"><span className="sr-only">Question: </span>{status.question}</p>
+                <PendingCard status={status} onFill={fillBox} />
               </li>
-            ))}
+            )}
+            {entries.map((entry, index) => {
+              const older = index > 0 || status.kind !== "idle";
+              const open = !older || expanded.has(entry.id);
+              return (
+                <li key={entry.id} ref={index === 0 && status.kind === "idle" ? newest : undefined}
+                  className="flex flex-col gap-2">
+                  {older ? (
+                    <button type="button" onClick={() => toggle(entry.id)} aria-expanded={open}
+                      className="min-h-9 self-start text-left text-sm text-muted hover:text-text">
+                      <span className="sr-only">Question: </span>{entry.question}
+                    </button>
+                  ) : (
+                    <p className="text-sm text-muted"><span className="sr-only">Question: </span>{entry.question}</p>
+                  )}
+                  <EntryCard entry={entry} onEvidence={onEvidence} onFill={fillBox}
+                    coverage={coverage} collapsed={!open}
+                    onToggle={older ? () => toggle(entry.id) : undefined}
+                    editor={!older && entry.run?.verified ? {
+                      open: editing,
+                      toggle: () => setEditing(!editing),
+                      chips: <PlanChips plan={entry.run.card.plan} disabled={busy} range={range}
+                        onChange={(plan) => void run(plan, "")} />,
+                    } : undefined} />
+                </li>
+              );
+            })}
           </ol>
         </div>
       )}
@@ -206,15 +250,33 @@ export function AskPanel({ datasetId, llmDown, llmReason, onLlmChange, onEvidenc
   );
 }
 
-function EntryCard({ entry, onEvidence, onAsk, collapsed, onToggle, partialMonths }: {
+/** The newest card while it is being answered: progress, a needed choice, or a problem. */
+function PendingCard({ status, onFill }: { status: Exclude<Status, { kind: "idle" }>; onFill: (text: string) => void }) {
+  if (status.kind === "loading") {
+    return (
+      <article className="rounded-xl border border-line bg-panel p-4 sm:p-5" aria-busy="true">
+        <p role="status" className="text-sm text-muted">{status.label}</p>
+        <div className="mt-3 h-24 animate-pulse rounded-lg bg-raised motion-reduce:animate-none" />
+      </article>
+    );
+  }
+  if (status.kind === "clarify") {
+    return <ClarificationCard plan={status.plan}
+      onChoose={(option) => onFill(`${status.question} (${option})`)} />;
+  }
+  return <ErrorNote message={status.message} requestId={status.requestId} />;
+}
+
+function EntryCard({ entry, onEvidence, onFill, collapsed, onToggle, coverage, editor }: {
   entry: HistoryEntry;
   onEvidence: (card: Card) => void;
-  onAsk: (question: string) => void;
+  onFill: (question: string) => void;
   collapsed: boolean;
   onToggle?: () => void;
-  partialMonths: string[];
+  coverage: Coverage;
+  editor?: { open: boolean; toggle: () => void; chips: React.ReactNode };
 }) {
-  if (entry.refusal) return <RefusalCard plan={entry.refusal} onAsk={onAsk} />;
+  if (entry.refusal) return <RefusalCard plan={entry.refusal} onAsk={onFill} />;
   const run = entry.run;
   if (!run) return null;
   // the drawer draws the same chart, so the comparison travels with the card
@@ -222,11 +284,7 @@ function EntryCard({ entry, onEvidence, onAsk, collapsed, onToggle, partialMonth
   if (!run.verified) return <UnverifiedCard answer={run} onEvidence={open} />;
   const sentence = entry.sentence ?? { status: "done", text: run.sentence, source: run.source };
   return <AnswerCard answer={run} sentence={sentence} caveats={entry.caveats} onEvidence={open}
-    collapsed={collapsed} onToggle={onToggle} partialMonths={partialMonths} />;
-}
-
-function newestPlan(entries: HistoryEntry[]): Plan | null {
-  return entries[0]?.run?.card.plan ?? null;
+    collapsed={collapsed} onToggle={onToggle} coverage={coverage} editor={editor} />;
 }
 
 /** The LLM sentence, or the template if the writer fails or takes too long. */
@@ -242,8 +300,4 @@ async function sentenceOrTemplate(run: RunOut, asked: string, template: Sentence
   } finally {
     clearTimeout(timer);
   }
-}
-
-function messageOf(error: unknown): string {
-  return error instanceof Error ? error.message : "Something went wrong. Please try again.";
 }

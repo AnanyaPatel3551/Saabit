@@ -2,10 +2,11 @@ import type { Health } from "../api/types";
 
 export type AiState = "groq" | "backup" | "paused";
 
+// No provider or model names: sellers only need to know whether typed questions work.
 const LABELS: Record<AiState, string> = {
-  groq: "AI: Groq",
-  backup: "AI: backup (NVIDIA)",
-  paused: "AI paused: typed questions off",
+  groq: "AI: ready",
+  backup: "AI: using backup",
+  paused: "AI: busy — numbers still exact",
 };
 
 /** Which AI is answering, from /api/health: its last call, else which providers are usable. */

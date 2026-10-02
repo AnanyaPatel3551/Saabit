@@ -12,8 +12,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.core import numcheck, templates
+from app.core.coverage import MonthCoverage
 from app.core.metrics import METRICS
 from app.core.plan import Plan
+
+Partial = dict[str, MonthCoverage]
 
 MAX_TABLE_ROWS = 20  # FR-7.1
 MAX_SENTENCES = 2
@@ -61,6 +64,21 @@ def plan_summary(plan: Plan) -> dict:
     }
 
 
+def partial_notes(plan: Plan, partial: Partial) -> list[str]:
+    """What the writer must say about partial months in this answer, e.g.
+    'Mar 2022 has only 1 day of data (31 Mar)'."""
+    if not partial:
+        return []
+    months = sorted(partial)
+    if plan.date_range is not None:
+        first = plan.date_range.start.strftime("%Y-%m")
+        last = plan.date_range.end.strftime("%Y-%m")
+        months = [m for m in months if first <= m <= last]
+    elif "month" not in plan.group_by and "week" not in plan.group_by:
+        months = []
+    return [f"{partial[m].label} has {partial[m].sentence_note()}" for m in months]
+
+
 def could_not_verify(plan: Plan, sql_rows: list[dict], pandas_rows: list[dict]) -> str:
     """FR-6.2: no sentence, just both engines' values."""
     def summary(rows: list[dict]) -> str:
@@ -82,6 +100,7 @@ def instant_answer(
     verified: bool,
     sql_rows: list[dict] | None = None,
     pandas_rows: list[dict] | None = None,
+    partial: Partial | None = None,
 ) -> Answer:
     """The answer available at once, with no LLM call: the template, or "could not verify".
 
@@ -90,7 +109,7 @@ def instant_answer(
     if not verified:
         return Answer(text=None, source="unverified",
                       note=could_not_verify(plan, sql_rows or [], pandas_rows or []))
-    return Answer(text=templates.template_sentence(plan, rows), source="template")
+    return Answer(text=templates.template_sentence(plan, rows, partial), source="template")
 
 
 def write_answer(
@@ -101,9 +120,15 @@ def write_answer(
     sql_rows: list[dict] | None = None,
     pandas_rows: list[dict] | None = None,
     complete: Complete | None = None,
+    partial: Partial | None = None,
 ) -> Answer:
-    """The answer sentence: the LLM's if every number checks out, else the template."""
-    template = instant_answer(plan, rows, verified, sql_rows, pandas_rows)
+    """The answer sentence: the LLM's if every number checks out, else the template.
+
+    partial lists months the data covers only partly; a sentence that treats one of them
+    as a normal month (or calls it low or high) is replaced by the template.
+    """
+    partial = partial or {}
+    template = instant_answer(plan, rows, verified, sql_rows, pandas_rows, partial)
     if not verified:
         return template
     from app.llm import client  # imported here, never at app startup
@@ -112,7 +137,7 @@ def write_answer(
     ask = complete or client.complete_json
     shown = rows[:MAX_TABLE_ROWS]
     system, user = writer_messages(question, plan_summary(plan), formatted_rows(plan, shown),
-                                   len(rows))
+                                   len(rows), partial_notes(plan, partial))
     try:
         reply = ask(system, user)
     except (client.LLMUnavailable, client.ModelOutputError) as error:
@@ -125,7 +150,11 @@ def write_answer(
     if len(SENTENCE_END.findall(sentence)) > MAX_SENTENCES:
         logger.info("answer had more than %d sentences, using template", MAX_SENTENCES)
         return Answer(text=template.text, source="template", rejected=sentence)
-    ok, unmatched = numcheck.check(sentence, numcheck.allowed_values(shown, plan, question))
+    if numcheck.misleads_on_partial(sentence, partial):
+        logger.info("answer treated a partial month as a full one, using template")
+        return Answer(text=template.text, source="template", rejected=sentence)
+    ok, unmatched = numcheck.check(sentence,
+                                   numcheck.allowed_values(shown, plan, question, partial))
     if not ok:
         numbers = [n.text for n in unmatched]
         # only the count: the numbers themselves may come from the user's data

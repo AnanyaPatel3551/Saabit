@@ -25,7 +25,8 @@ def insight(code: str, title: str, cards: list[EvidenceCard], text: str) -> dict
         "code": code,
         "title": title,
         "status": "ok" if verified else "unverified",
-        "reason": None if verified else "The two engines disagreed on a supporting card.",
+        "reason": None if verified else ("One of the numbers behind this could not be "
+                                         "double-checked, so it is not shown."),
         "card_ids": [card.card_id for card in cards],
         "verified": verified,
         "source": "engines",

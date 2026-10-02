@@ -1,18 +1,22 @@
 import { downloadCardRows } from "../api/client";
 import type { Plan, ResultRow, RunOut } from "../api/types";
+import type { Coverage } from "../lib/coverage";
 import { formatValue, indianDigits, keyLabel } from "../lib/format";
 import type { Sentence } from "../lib/history";
+import type { ReactNode } from "react";
 import { CsvDownload } from "./CsvDownload";
-import { reasonWithoutSuggestion, suggestedQuestion } from "../lib/plan";
+import { describePlan, reasonWithoutSuggestion, suggestedQuestion } from "../lib/plan";
 import { EvidenceChart, ordersLabel } from "./EvidenceChart";
-import { VerifiedBadge } from "./VerifiedBadge";
+import { NOT_CHECKED_HELP, VerifiedBadge } from "./VerifiedBadge";
 
 const card = "rounded-xl border bg-panel p-4 sm:p-5";
 const chipButton = "rounded-full border border-gold/50 px-3 py-1 text-sm text-gold-soft hover:bg-gold/10";
 const PREVIEW_COLUMNS = 8;
 
-/** The number to show big: the single value, the largest group, or the latest period. */
-function headline(plan: Plan, rows: ResultRow[]): { label: string | null; value: string; orders: number } | null {
+/** The number to show big: the single value, the largest group, or the latest period.
+ * A latest month the data covers only partly says so: "Jun 2022 (29 of 30 days)". */
+export function headline(plan: Plan, rows: ResultRow[], coverage: Coverage = {}):
+  { label: string | null; value: string; orders: number } | null {
   if (rows.length === 0) return null;
   if (plan.group_by.length === 0) {
     return { label: null, value: formatValue(plan.metric, rows[0].value), orders: rows[0].orders };
@@ -21,16 +25,51 @@ function headline(plan: Plan, rows: ResultRow[]): { label: string | null; value:
   const pick = overTime ? rows[rows.length - 1]
     : [...rows].sort((a, b) => (b.value ?? 0) - (a.value ?? 0))[0];
   const label = plan.group_by.map((d) => keyLabel(d, pick[d])).join(" · ");
-  return { label: overTime ? `${label} (latest)` : `${label} (highest)`,
+  const cover = plan.group_by[0] === "month" ? coverage[String(pick.month ?? "")] : undefined;
+  const tag = !overTime ? "highest" : cover?.partial ? cover.note : "latest";
+  return { label: `${label} (${tag})`,
            value: formatValue(plan.metric, pick.value), orders: pick.orders };
 }
 
-/** "SQL and pandas both gave 14.2%" or "...the same 5 results". */
+/** "Both ways gave 14.2%" or "Both ways gave the same 5 results". */
 export function proofText(plan: Plan, rows: ResultRow[]): string {
   if (plan.group_by.length === 0 && rows.length === 1) {
-    return `SQL and pandas both gave ${formatValue(plan.metric, rows[0].value)}`;
+    return `Both ways gave ${formatValue(plan.metric, rows[0].value)}`;
   }
-  return `SQL and pandas gave the same ${rows.length} ${rows.length === 1 ? "result" : "results"}`;
+  return `Both ways gave the same ${rows.length} ${rows.length === 1 ? "result" : "results"}`;
+}
+
+const NUMBER = /(₹\s?[\d,]+(?:\.\d+)?(?:\s?(?:Cr|lakh))?|\d[\d,]*(?:\.\d+)?%?)/g;
+
+/** The answer sentence with its numbers in bold. */
+function Emphasised({ text }: { text: string }) {
+  const parts = text.split(NUMBER);
+  return <>{parts.map((part, i) => (i % 2 === 1 ? <strong key={i} className="font-semibold">{part}</strong> : part))}</>;
+}
+
+/** "Understood as: Revenue · by month · all dates · excluding cancelled orders", with an
+ * optional Change button that opens the editable chips (PRD D2: the plan stays editable). */
+export function UnderstoodAs({ plan, editor }: { plan: Plan; editor?: Editor }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted">
+        <span>Understood as: {describePlan(plan)}</span>
+        {editor && (
+          <button type="button" onClick={editor.toggle} aria-expanded={editor.open}
+            className="min-h-8 text-gold hover:underline">
+            {editor.open ? "Done" : "Change"}
+          </button>
+        )}
+      </p>
+      {editor?.open && editor.chips}
+    </div>
+  );
+}
+
+export interface Editor {
+  open: boolean;
+  toggle: () => void;
+  chips: ReactNode;
 }
 
 function cell(value: unknown): string {
@@ -46,29 +85,31 @@ function cell(value: unknown): string {
  * the thread) it keeps only the sentence, the number and the proof line.
  */
 export function AnswerCard({ answer, sentence, caveats, onEvidence, collapsed, onToggle,
-  partialMonths = [] }: {
+  coverage = {}, editor }: {
   answer: RunOut;
   sentence: Sentence;
   caveats: string[];
   onEvidence: () => void;
   collapsed?: boolean;
   onToggle?: () => void;
-  partialMonths?: string[];
+  coverage?: Coverage;
+  editor?: Editor;
 }) {
   const plan = answer.card.plan;
   const rows = answer.card.result;
-  const top = headline(plan, rows);
+  const top = headline(plan, rows, coverage);
   const allCaveats = [...new Set([...caveats, ...answer.card.caveats])];
   const preview = answer.rows_preview ?? [];
   const columns = preview[0] ? Object.keys(preview[0]).slice(0, PREVIEW_COLUMNS) : [];
 
   return (
     <article className={`${card} flex flex-col gap-3 border-line`}>
-      <p className="font-display text-xl leading-snug text-text" aria-live="polite"
+      <UnderstoodAs plan={plan} editor={collapsed ? undefined : editor} />
+      <p className="text-lg leading-relaxed text-text" aria-live="polite"
         aria-busy={sentence.status === "pending"}>
         {sentence.status === "pending"
           ? <span className="text-base text-muted">Writing the answer…</span>
-          : sentence.text}
+          : <Emphasised text={sentence.text ?? ""} />}
       </p>
 
       {top ? (
@@ -89,16 +130,15 @@ export function AnswerCard({ answer, sentence, caveats, onEvidence, collapsed, o
 
       {collapsed ? (
         <button type="button" onClick={onToggle} className="min-h-9 self-start text-xs text-gold hover:underline">
-          Show the evidence
+          Show the details
         </button>
       ) : (
         <>
-          <EvidenceChart plan={plan} rows={rows} comparison={answer.comparison}
-            partialMonths={partialMonths} compact />
+          <EvidenceChart plan={plan} rows={rows} comparison={answer.comparison} coverage={coverage} />
 
           {(answer.explanation ?? []).length > 0 && (
-            <section aria-label="How this was calculated">
-              <h4 className="mb-1 text-xs uppercase tracking-wider text-muted">How this was calculated</h4>
+            <section aria-label="How we worked it out">
+              <h4 className="mb-1 text-xs uppercase tracking-wider text-muted">How we worked it out</h4>
               <ul className="space-y-0.5 text-xs text-text">
                 {answer.explanation?.map((line) => <li key={line}>{line}</li>)}
               </ul>
@@ -106,9 +146,9 @@ export function AnswerCard({ answer, sentence, caveats, onEvidence, collapsed, o
           )}
 
           {preview.length > 0 && (
-            <section aria-label="Source rows">
+            <section aria-label="Rows behind this answer">
               <h4 className="mb-1 text-xs uppercase tracking-wider text-muted">
-                First {preview.length} of {indianDigits(answer.card.row_count)} source rows
+                First {preview.length} of {indianDigits(answer.card.row_count)} rows behind this answer
               </h4>
               <div className="overflow-x-auto rounded border border-line">
                 <table className="w-full text-[11px]">
@@ -131,24 +171,21 @@ export function AnswerCard({ answer, sentence, caveats, onEvidence, collapsed, o
           )}
 
           {allCaveats.length > 0 && (
-            <ul className="space-y-1 text-xs text-amber">
-              {allCaveats.map((c) => <li key={c}>Note: {c}</li>)}
-            </ul>
+            <section aria-label="Good to know">
+              <h4 className="mb-1 text-xs uppercase tracking-wider text-muted">Good to know</h4>
+              <ul className="space-y-1 text-xs text-amber">
+                {allCaveats.map((c) => <li key={c}>{c}</li>)}
+              </ul>
+            </section>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-            <span>
-              {sentence.status === "done" && sentence.source === "template"
-                ? "Sentence written from a template." : ""}
-            </span>
-            <span className="flex items-center gap-3">
-              {onToggle && (
-                <button type="button" onClick={onToggle} className="min-h-9 hover:text-text">Collapse</button>
-              )}
-              <button type="button" onClick={onEvidence} className="min-h-9 text-gold hover:underline">
-                Full evidence: SQL · pandas · plan
-              </button>
-            </span>
+          <div className="flex flex-wrap items-center justify-end gap-3 text-xs text-muted">
+            {onToggle && (
+              <button type="button" onClick={onToggle} className="min-h-9 hover:text-text">Collapse</button>
+            )}
+            <button type="button" onClick={onEvidence} className="min-h-9 text-gold hover:underline">
+              See how we got this
+            </button>
           </div>
         </>
       )}
@@ -156,29 +193,18 @@ export function AnswerCard({ answer, sentence, caveats, onEvidence, collapsed, o
   );
 }
 
-/** "SQL: ₹2,39,53,534. pandas: ₹2,41,93,069." from the could-not-verify note. */
-function bothValues(note: string | null): string {
-  const match = note?.match(/SQL: (.+?)\. pandas: (.+?)\.$/);
-  return match ? `SQL gave ${match[1]}; pandas gave ${match[2]}` : "SQL and pandas gave different results";
-}
-
-/** The engines disagreed: amber, both values, and no sentence (FR-6.4). */
+/** The two ways disagreed: amber, no number and no sentence. Both results stay available
+ * under "Technical details" in the drawer (FR-6.4). */
 export function UnverifiedCard({ answer, onEvidence }: { answer: RunOut; onEvidence: () => void }) {
   return (
     <article className={`${card} flex flex-col gap-2 border-amber/70`} aria-live="polite">
-      <h3 className="font-display text-lg text-amber">Could not verify</h3>
+      <UnderstoodAs plan={answer.card.plan} />
       <p data-testid="proof-line" className="flex flex-wrap items-center gap-2 text-sm text-text">
         <VerifiedBadge verified={false} />
-        <span>{bothValues(answer.note)}</span>
+        <span>{NOT_CHECKED_HELP}</span>
       </p>
-      <p className="text-xs text-muted">{answer.note}</p>
-      {answer.card.mismatches.length > 0 && (
-        <ul className="list-disc pl-5 text-xs text-muted">
-          {answer.card.mismatches.map((m) => <li key={m}>{m}</li>)}
-        </ul>
-      )}
       <button type="button" onClick={onEvidence} className="min-h-9 self-start text-xs text-gold hover:underline">
-        Full evidence: both results, SQL · pandas · plan
+        See the details
       </button>
     </article>
   );
@@ -189,7 +215,7 @@ export function RefusalCard({ plan, onAsk }: { plan: Plan; onAsk: (question: str
   const suggestion = suggestedQuestion(plan.unsupported_reason);
   return (
     <article className={`${card} border-line`} aria-live="polite">
-      <h3 className="mb-1 font-display text-lg text-text">This file cannot answer that</h3>
+      <h3 className="mb-1 text-lg font-medium text-text">Your file can't answer that</h3>
       <p className="text-sm text-muted">
         {reasonWithoutSuggestion(plan.unsupported_reason) || "The question is outside what this data covers."}
       </p>
@@ -212,7 +238,8 @@ export function ClarificationCard({ plan, onChoose }: {
 }) {
   return (
     <article className={`${card} border-line`} aria-live="polite">
-      <h3 className="mb-3 font-display text-lg text-text">{plan.clarification?.question}</h3>
+      <h3 className="mb-1 text-lg font-medium text-text">{plan.clarification?.question}</h3>
+      <p className="mb-3 text-xs text-muted">Tap one to add it to your question, then press Ask.</p>
       <div className="flex flex-wrap gap-2">
         {plan.clarification?.options.map((option) => (
           <button key={option} type="button" className={chipButton} onClick={() => onChoose(option)}>
@@ -224,15 +251,16 @@ export function ClarificationCard({ plan, onChoose }: {
   );
 }
 
-/** The planner's LLM is down: typed questions pause, chips keep working (PRD Degraded mode). */
-export function LlmBanner({ reason }: { reason: string | null }) {
+/** The AI that reads questions is busy: typed questions pause, examples keep working
+ * (PRD Degraded mode). Provider details stay out of the UI. */
+export function LlmBanner({ reason: _reason }: { reason: string | null }) {
   return (
     <div role="status" className="flex gap-2 rounded-lg border border-amber/60 bg-amber/10 p-3 text-sm text-text">
       <span aria-hidden="true" className="text-amber">⚠</span>
       <p>
-        <strong className="font-semibold">The question planner is unavailable right now.</strong>{" "}
-        {reason ? `${reason} ` : ""}The example chips and the plan chips still work, because
-        they skip the planner. Typed questions may fail until it is back.
+        <strong className="font-semibold">Saabit can't read typed questions right now.</strong>{" "}
+        The example questions still work, and every number is still worked out exactly. Please
+        try typing again in a minute.
       </p>
     </div>
   );

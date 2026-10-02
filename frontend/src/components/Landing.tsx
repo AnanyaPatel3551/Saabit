@@ -1,8 +1,11 @@
-import { useCallback, useRef, useState, type DragEvent } from "react";
-import { loadSample, loadShopifySample, uploadDataset } from "../api/client";
+import { useEffect, useRef, useState, type DragEvent } from "react";
+import { getHealth, loadSample, loadShopifySample, uploadDataset } from "../api/client";
 import type { Dataset } from "../api/types";
+import { friendlyError } from "./ErrorNote";
 import { Logo } from "./Logo";
-import { TypingHeadline } from "./TypingHeadline";
+
+/** After this long without a health reply, the free server is probably waking up. */
+export const SLOW_HEALTH_MS = 2_000;
 
 const REPO_URL = "https://github.com/AnanyaPatel3551/Saabit";
 const STEPS = [
@@ -21,14 +24,27 @@ export function fileProblem(file: File): string | null {
 }
 
 /** S1: pitch, steps, drop zone, the two samples, privacy note and footer. */
-export function Landing({ onDataset }: { onDataset: (dataset: Dataset) => void }) {
+export function Landing({ onDataset, notice }: {
+  onDataset: (dataset: Dataset) => void;
+  /** Why the last file could not be reopened (expired, or opened in another tab). */
+  notice?: string;
+}) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [headlineDone, setHeadlineDone] = useState(false);
-  const after = `after-headline ${headlineDone ? "shown" : ""}`;
-  const finishHeadline = useCallback(() => setHeadlineDone(true), []);
+  const [waking, setWaking] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let answered = false;
+    const timer = setTimeout(() => { if (!answered) setWaking(true); }, SLOW_HEALTH_MS);
+    getHealth().catch(() => undefined).finally(() => {
+      answered = true;
+      clearTimeout(timer);
+      setWaking(false);
+    });
+    return () => clearTimeout(timer);
+  }, []);
 
   async function start(label: string, call: () => Promise<Dataset>) {
     setBusy(label);
@@ -36,7 +52,7 @@ export function Landing({ onDataset }: { onDataset: (dataset: Dataset) => void }
     try {
       onDataset(await call());
     } catch (e) {
-      setError((e as Error).message);
+      setError(friendlyError(e).message);
       setBusy(null);
     }
   }
@@ -55,20 +71,30 @@ export function Landing({ onDataset }: { onDataset: (dataset: Dataset) => void }
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-4 py-12">
+    <main className="page-fade mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-4 py-12">
+      {notice && (
+        <p role="status" className="rounded-lg border border-amber/60 bg-amber/10 p-3 text-sm text-text">{notice}</p>
+      )}
+      {waking && (
+        <p role="status" className="self-start rounded-full border border-line px-3 py-1 text-xs text-muted">
+          Waking up the server… (~30s)
+        </p>
+      )}
       <header>
         <div className="mb-6">
           <Logo size={36} wordClass="text-2xl" />
         </div>
-        <TypingHeadline first="Ask your sales data anything." second="Every number checked twice."
-          onDone={finishHeadline} />
-        <p className={`mt-4 text-muted ${after}`}>
+        <h1 className="font-display text-4xl leading-tight text-text sm:text-5xl">
+          Ask your sales data anything.{" "}
+          <span className="text-gold-soft">Every number checked twice.</span>
+        </h1>
+        <p className="mt-4 text-muted">
           Upload your orders file and ask in English or Hinglish. Each answer is computed by code,
-          checked by two separate engines, and linked to the rows behind it.
+          checked in two separate ways, and linked to the rows behind it.
         </p>
       </header>
 
-      <ol className={`grid items-stretch gap-3 sm:grid-cols-3 ${after}`} aria-label="How it works">
+      <ol className="grid items-stretch gap-3 sm:grid-cols-3" aria-label="How it works">
         {STEPS.map((step, i) => (
           <li key={step.title} className="flex h-full flex-col gap-1 rounded-xl border border-line bg-panel p-4">
             <p className="flex items-baseline gap-2">
@@ -121,9 +147,9 @@ export function Landing({ onDataset }: { onDataset: (dataset: Dataset) => void }
 
       <p className="border-t border-line pt-4 text-xs text-muted">
         Privacy: files stay on this server and are deleted after 24 hours, or right away with
-        "Delete my data now". The AI provider sees your question, the kinds of columns, short
-        lists of allowed values, the date range and totals computed by code, never raw rows. No
-        accounts, no analytics.{" "}
+        "Delete my data now". Each upload gets a private key that only your browser holds. The
+        AI sees your question, the kinds of columns, short lists of allowed values, the date range
+        and totals worked out by code, never your rows. No accounts, no analytics.{" "}
         <a href="/privacy" className="text-gold hover:underline">Privacy and data</a>
       </p>
 

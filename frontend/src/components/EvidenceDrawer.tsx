@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { downloadCardRows, getCard, getCardRows } from "../api/client";
 import type { Card, RowsOut } from "../api/types";
+import type { Coverage } from "../lib/coverage";
 import { formatValue, indianDigits } from "../lib/format";
+import { describePlan, dimensionWords, metricWords } from "../lib/plan";
 import { EvidenceChart, ordersLabel } from "./EvidenceChart";
 import { CsvDownload } from "./CsvDownload";
-import { VerifiedBadge } from "./VerifiedBadge";
+import { NOT_CHECKED_HELP, VerifiedBadge } from "./VerifiedBadge";
 
-const TABS = ["Chart", "Plan", "SQL", "pandas", "Rows", "Caveats"] as const;
+// Plain views first; the code and raw plan sit together under one technical tab.
+const TABS = ["Chart", "What we counted", "Rows", "Good to know", "Technical details"] as const;
 type Tab = (typeof TABS)[number];
 
 /** A card already in hand, or the id of one to fetch with GET /api/cards/{id}. */
@@ -16,7 +19,11 @@ export type EvidenceItem = Card | string;
  * S4: everything behind one answer. Escape closes it, Tab stays inside it, and focus goes
  * back to the button that opened it.
  */
-export function EvidenceDrawer({ items, onClose }: { items: EvidenceItem[]; onClose: () => void }) {
+export function EvidenceDrawer({ items, onClose, coverage = {} }: {
+  items: EvidenceItem[];
+  onClose: () => void;
+  coverage?: Coverage;
+}) {
   const [index, setIndex] = useState(0);
   const [tab, setTab] = useState<Tab>("Chart");
   const [card, setCard] = useState<Card | null>(null);
@@ -74,7 +81,7 @@ export function EvidenceDrawer({ items, onClose }: { items: EvidenceItem[]; onCl
     event.preventDefault();
     const next = TABS[(TABS.indexOf(tab) + step + TABS.length) % TABS.length];
     setTab(next);
-    document.getElementById(`tab-${next}`)?.focus();
+    document.getElementById(`tab-${next.replace(/ /g, "-")}`)?.focus();
   }
 
   return (
@@ -84,16 +91,16 @@ export function EvidenceDrawer({ items, onClose }: { items: EvidenceItem[]; onCl
         className="flex h-full w-full max-w-3xl flex-col border-l border-line bg-panel shadow-2xl">
         <header className="flex items-center justify-between gap-3 border-b border-line p-4">
           <div className="flex flex-wrap items-center gap-3">
-            <h2 id="evidence-title" className="font-display text-xl text-gold-soft">Evidence</h2>
+            <h2 id="evidence-title" className="font-display text-xl text-gold-soft">How we got this</h2>
             {card && <VerifiedBadge verified={card.verified} />}
             {items.length > 1 && (
               <span className="flex items-center gap-1 text-xs text-muted">
                 <button type="button" disabled={index === 0} onClick={() => setIndex(index - 1)}
-                  className="rounded border border-line px-2 disabled:opacity-40" aria-label="Previous card">‹</button>
-                Card {index + 1} of {items.length}
+                  className="rounded border border-line px-2 disabled:opacity-40" aria-label="Previous answer">‹</button>
+                {index + 1} of {items.length}
                 <button type="button" disabled={index === items.length - 1}
                   onClick={() => setIndex(index + 1)}
-                  className="rounded border border-line px-2 disabled:opacity-40" aria-label="Next card">›</button>
+                  className="rounded border border-line px-2 disabled:opacity-40" aria-label="Next answer">›</button>
               </span>
             )}
           </div>
@@ -105,60 +112,68 @@ export function EvidenceDrawer({ items, onClose }: { items: EvidenceItem[]; onCl
 
         <div role="tablist" aria-label="Evidence views" className="flex gap-1 overflow-x-auto border-b border-line px-4">
           {TABS.map((t) => (
-            <button key={t} id={`tab-${t}`} role="tab" type="button" aria-selected={tab === t}
+            <button key={t} id={`tab-${t.replace(/ /g, "-")}`} role="tab" type="button" aria-selected={tab === t}
               aria-controls="evidence-panel" tabIndex={tab === t ? 0 : -1}
               onClick={() => setTab(t)} onKeyDown={onTabKey}
               className={`whitespace-nowrap border-b-2 px-3 py-2 text-sm ${tab === t
                 ? "border-gold text-text" : "border-transparent text-muted hover:text-text"}`}>
-              {t}
+              {t === "Technical details" ? <>{t} <span className="text-xs">(for developers)</span></> : t}
             </button>
           ))}
         </div>
 
-        <div id="evidence-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}
+        <div id="evidence-panel" role="tabpanel" aria-labelledby={`tab-${tab.replace(/ /g, "-")}`}
           className="flex-1 overflow-auto p-4">
           {error && <p role="alert" className="text-sm text-bad">{error}</p>}
-          {!card && !error && <p className="text-sm text-muted">Loading the card…</p>}
-          {card && <TabBody tab={tab} card={card} />}
+          {!card && !error && <p className="text-sm text-muted">Loading…</p>}
+          {card && <TabBody tab={tab} card={card} coverage={coverage} />}
         </div>
       </div>
     </div>
   );
 }
 
-function TabBody({ tab, card }: { tab: Tab; card: Card }) {
+function TabBody({ tab, card, coverage }: { tab: Tab; card: Card; coverage: Coverage }) {
   const code = "overflow-auto whitespace-pre rounded-lg border border-line bg-ink p-3 font-mono text-xs text-text";
   switch (tab) {
     case "Chart":
-      return card.verified ? <ChartView card={card} rows={card.result} /> : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div><h3 className="mb-2 text-sm text-muted">SQL result</h3>
-            <ChartView card={card} rows={card.sql_result ?? []} /></div>
-          <div><h3 className="mb-2 text-sm text-muted">pandas result</h3>
-            <ChartView card={card} rows={card.pandas_result ?? []} /></div>
-        </div>
-      );
-    case "Plan":
-      return <pre className={code}>{JSON.stringify(card.plan, null, 2)}</pre>;
-    case "SQL":
-      return <pre className={code}>{card.sql}</pre>;
-    case "pandas":
-      return <pre className={code}>{card.pandas_code}</pre>;
+      return card.verified ? <ChartView card={card} rows={card.result} coverage={coverage} />
+        : <p className="text-sm text-amber">{NOT_CHECKED_HELP}</p>;
+    case "What we counted":
+      return <Counted card={card} />;
     case "Rows":
       return <RowsTab card={card} />;
-    case "Caveats":
+    case "Good to know":
       return (
         <div className="space-y-3 text-sm">
-          {card.caveats.length === 0 && card.mismatches.length === 0
-            && <p className="text-muted">No caveats for this answer.</p>}
+          {card.caveats.length === 0 && <p className="text-muted">Nothing special to know about this answer.</p>}
           <ul className="list-disc space-y-1 pl-5">
             {card.caveats.map((c) => <li key={c}>{c}</li>)}
           </ul>
+        </div>
+      );
+    case "Technical details":
+      return (
+        <div className="space-y-4 text-sm">
+          <p className="text-xs text-muted">
+            For developers: the same plan was run twice, once as SQL in DuckDB and once in
+            pandas, written separately. The answer is shown only when both agree.
+          </p>
+          <section><h3 className="mb-1 text-muted">Plan (JSON)</h3>
+            <pre className={code}>{JSON.stringify(card.plan, null, 2)}</pre></section>
+          <section><h3 className="mb-1 text-muted">SQL</h3><pre className={code}>{card.sql}</pre></section>
+          <section><h3 className="mb-1 text-muted">pandas</h3><pre className={code}>{card.pandas_code}</pre></section>
+          {!card.verified && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div><h3 className="mb-2 text-muted">SQL result</h3>
+                <ChartView card={card} rows={card.sql_result ?? []} coverage={coverage} /></div>
+              <div><h3 className="mb-2 text-muted">pandas result</h3>
+                <ChartView card={card} rows={card.pandas_result ?? []} coverage={coverage} /></div>
+            </div>
+          )}
           {card.mismatches.length > 0 && (
-            <>
-              <h3 className="text-amber">Where the engines disagreed</h3>
-              <ul className="list-disc space-y-1 pl-5">{card.mismatches.map((m) => <li key={m}>{m}</li>)}</ul>
-            </>
+            <section><h3 className="mb-1 text-amber">Where the two engines disagreed</h3>
+              <ul className="list-disc space-y-1 pl-5">{card.mismatches.map((m) => <li key={m}>{m}</li>)}</ul></section>
           )}
           <p className="text-xs text-muted">Card {card.card_id} · created {card.created_at}</p>
         </div>
@@ -166,8 +181,37 @@ function TabBody({ tab, card }: { tab: Tab; card: Card }) {
   }
 }
 
+/** The plan as readable fields, for sellers. */
+function Counted({ card }: { card: Card }) {
+  const plan = card.plan;
+  const fields: [string, string][] = [
+    ["Measure", metricWords(plan.metric)],
+    ["Split by", plan.group_by.length ? plan.group_by.map(dimensionWords).join(" and ") : "Nothing (one total)"],
+    ["Only", plan.filters.length
+      ? plan.filters.map((f) => `${dimensionWords(f.column)} ${f.op === "not_in" ? "is not" : "is"} ${f.values.join(", ")}`).join("; ")
+      : "All orders"],
+    ["Dates", plan.date_range ? describePlan({ ...plan, metric: null, group_by: [], filters: [], limit: null })
+      .split(" · ").slice(1).join(" · ") : "All dates in your file"],
+  ];
+  if (plan.limit) fields.push(["Showing", `Top ${plan.limit}`]);
+  return (
+    <div className="space-y-3 text-sm">
+      <p className="text-muted">{describePlan(plan)}</p>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
+        {fields.map(([name, value]) => (
+          <div key={name} className="contents">
+            <dt className="text-muted">{name}</dt>
+            <dd className="text-text">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="text-xs text-muted">{indianDigits(card.row_count)} rows from your file were used.</p>
+    </div>
+  );
+}
+
 /** The answer's chart; a single number comes with its order and row counts, never alone. */
-function ChartView({ card, rows }: { card: Card; rows: Card["result"] }) {
+function ChartView({ card, rows, coverage }: { card: Card; rows: Card["result"]; coverage: Coverage }) {
   const plan = card.plan;
   if (plan.group_by.length === 0) {
     const row = rows[0];
@@ -179,15 +223,15 @@ function ChartView({ card, rows }: { card: Card; rows: Card["result"] }) {
           </span>
           <span className="text-sm text-muted">
             {row ? `${indianDigits(row.orders)} ${ordersLabel(plan.metric)} · ` : ""}
-            from {indianDigits(card.row_count)} source rows
+            from {indianDigits(card.row_count)} rows of your file
           </span>
         </p>
-        <EvidenceChart plan={plan} rows={rows} comparison={card.comparison} />
+        <EvidenceChart plan={plan} rows={rows} comparison={card.comparison} coverage={coverage} />
       </div>
     );
   }
-  if (rows.length === 0) return <p className="text-sm text-muted">No orders match this plan.</p>;
-  return <EvidenceChart plan={plan} rows={rows} />;
+  if (rows.length === 0) return <p className="text-sm text-muted">No orders match this question.</p>;
+  return <EvidenceChart plan={plan} rows={rows} coverage={coverage} />;
 }
 
 function RowsTab({ card }: { card: Card }) {
@@ -207,7 +251,7 @@ function RowsTab({ card }: { card: Card }) {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
-        <span>{indianDigits(card.row_count)} cleaned rows behind this answer</span>
+        <span>{indianDigits(card.row_count)} rows behind this answer</span>
         <CsvDownload label="Download all rows (CSV)" download={() => downloadCardRows(card.card_id)}
           className="text-gold hover:underline" />
       </div>
@@ -216,7 +260,7 @@ function RowsTab({ card }: { card: Card }) {
         <>
           <div className="max-h-[55vh] overflow-auto rounded-lg border border-line">
             <table className="w-full text-xs">
-              <caption className="sr-only">Source rows, page {data.page} of {data.pages}</caption>
+              <caption className="sr-only">Rows behind this answer, page {data.page} of {data.pages}</caption>
               <thead className="sticky top-0 bg-raised text-left text-muted">
                 <tr>{columns.map((c) => <th key={c} scope="col" className="px-2 py-1 font-normal">{c}</th>)}</tr>
               </thead>

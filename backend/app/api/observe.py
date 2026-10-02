@@ -26,7 +26,7 @@ SECURITY_HEADERS = {
     "Content-Security-Policy": "frame-ancestors 'none'",
 }
 DATASET_IN_PATH = re.compile(r"^/api/(?:datasets|cards)/([0-9a-f]{12})(?:[-/]|$)")
-ALLOWED_FIELDS = {"plan_status", "verified", "source", "llm_provider"}
+ALLOWED_FIELDS = {"plan_status", "verified", "source", "llm_provider", "cached"}
 
 
 def note(request: Request, **fields: Any) -> None:

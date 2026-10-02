@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from datetime import date
 from itertools import permutations
 
+from app.core.coverage import MonthCoverage
 from app.core.plan import Plan
 
 CRORE = 10_000_000
@@ -85,10 +86,17 @@ def date_parts(day: date) -> list[float]:
     return [day.year, day.month, day.day]
 
 
-def allowed_values(rows: list[dict], plan: Plan, question: str) -> list[float]:
+def coverage_numbers(partial: dict[str, MonthCoverage]) -> list[float]:
+    """Days covered, days in the month and the dates named in each partial month's note."""
+    return [n.mantissa for c in partial.values() for n in extract_numbers(c.sentence_note())]
+
+
+def allowed_values(rows: list[dict], plan: Plan, question: str,
+                   partial: dict[str, MonthCoverage] | None = None) -> list[float]:
     """Candidates a sentence may use: cells, differences, ratios, and user-given numbers."""
     cells = numeric_cells(rows)
     allowed = cells + key_numbers(rows) + plan_numbers(plan) + [len(rows)]
+    allowed += coverage_numbers(partial or {})
     allowed += [n.mantissa for n in extract_numbers(question)]
     allowed += [n.value for n in extract_numbers(question)]
     for a, b in permutations(cells, 2):
@@ -105,3 +113,29 @@ def check(text: str, allowed: list[float]) -> tuple[bool, list[Number]]:
     unmatched = [n for n in extract_numbers(text)
                  if not any(n.matches(candidate) for candidate in allowed)]
     return not unmatched, unmatched
+
+
+JUDGEMENT = re.compile(r"\b(low|lower|lowest|weak|weaker|weakest|worst|poor|slow|slump|high|higher|"
+                       r"highest|best|peak|peaked|strong|stronger|strongest)\b", re.IGNORECASE)
+COVERAGE_WORDS = re.compile(r"\b(days?|partial|missing|incomplete)\b", re.IGNORECASE)
+SENTENCE = re.compile(r"[^.!?]+[.!?]?")
+
+
+def month_names(cover: MonthCoverage) -> re.Pattern[str]:
+    """'March', 'Mar' or '2022-03' as whole words."""
+    names = {cover.first.strftime("%B"), cover.first.strftime("%b"), cover.month}
+    return re.compile(r"\b(" + "|".join(sorted(names, key=len, reverse=True)) + r")\b",
+                      re.IGNORECASE)
+
+
+def misleads_on_partial(text: str, partial: dict[str, MonthCoverage]) -> bool:
+    """True when a sentence names a partial month without saying it is partial, or calls it
+    low or high: a one-day March is not a weak month, and a June missing a day did not
+    really "fall" by the whole gap."""
+    for sentence in SENTENCE.findall(text):
+        for cover in partial.values():
+            if not month_names(cover).search(sentence):
+                continue
+            if JUDGEMENT.search(sentence) or not COVERAGE_WORDS.search(sentence):
+                return True
+    return False

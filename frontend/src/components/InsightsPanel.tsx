@@ -59,7 +59,7 @@ export function InsightsPanel({ datasetId, onEvidence }: {
                   {insight.status !== "skipped" && insight.source === "engines"
                     && <VerifiedBadge verified={insight.verified} />}
                   {insight.source === "fix_log" && (
-                    <span className="whitespace-nowrap text-xs text-muted">From the fix log</span>
+                    <span className="whitespace-nowrap text-xs text-muted">From our data clean-up</span>
                   )}
                 </div>
                 <p className="text-sm text-muted">
@@ -67,7 +67,7 @@ export function InsightsPanel({ datasetId, onEvidence }: {
                 </p>
                 {insight.status !== "skipped" && (insight.caveats ?? []).length > 0 && (
                   <ul className="mt-2 space-y-1 text-xs text-amber">
-                    {insight.caveats?.map((c) => <li key={c}>Note: {c}</li>)}
+                    {insight.caveats?.map((c) => <li key={c}>Good to know: {c}</li>)}
                   </ul>
                 )}
                 <div className="mt-2">{evidenceButton(insight.card_ids)}</div>

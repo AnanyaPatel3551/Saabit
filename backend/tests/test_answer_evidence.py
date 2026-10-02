@@ -53,7 +53,7 @@ def test_explanation_says_how_the_number_was_calculated(real) -> None:
     assert "State is Rajasthan" in text
     assert "RJ" in text and "Rajsthan" in text  # merged spellings, from the fix log
     assert "31 Mar 2022 to 29 Jun 2022" in text
-    assert f"{format_count(body['card']['row_count'])} source rows" in text
+    assert f"{format_count(body['card']['row_count'])} rows of your file" in text
 
 
 def test_explanation_names_the_chosen_period(real) -> None:

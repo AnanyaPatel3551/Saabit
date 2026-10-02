@@ -16,6 +16,7 @@ from app.core.recommend import (
     split_months,
 )
 
+MARCH_NOTE = "Mar 2022 is a partial month: only 1 day of data (31 Mar)"
 GOLDEN = Path(__file__).resolve().parents[2] / "eval" / "golden.yaml"
 CATEGORIES = ["Set", "kurta", "Top", "Western Dress"]
 MONTHS = {"2022-04": 30, "2022-05": 31, "2022-06": 30}
@@ -121,7 +122,7 @@ def test_partial_month_is_marked_on_the_e2_card(real_sample_cache: Path) -> None
 
     assert "Mar 2022 (partial, 1 day) " in e2["text"]
     assert "Apr 2022 (partial" not in e2["text"]
-    assert any(c.startswith("2022-03 is a partial month") for c in e2["caveats"])
+    assert any(c.startswith(MARCH_NOTE) for c in e2["caveats"])
 
 
 def test_all_time_totals_do_not_carry_the_partial_month_note(real_sample_cache: Path) -> None:
@@ -134,7 +135,7 @@ def test_partial_month_caveat_is_on_the_e2_card(real_sample_cache: Path) -> None
     e2 = overview_of(real_sample_cache)["insights"][1]
 
     card = evidence.load_card(real_sample_cache / "cards", e2["card_ids"][0])
-    assert any(c.startswith("2022-03 is a partial month") for c in card.caveats)
+    assert any(c.startswith(MARCH_NOTE) for c in card.caveats)
 
 
 def test_rule_decision_uses_only_training_months(tmp_path: Path) -> None:

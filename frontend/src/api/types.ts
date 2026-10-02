@@ -115,6 +115,8 @@ export interface RunOut {
   note: string | null;
   card: Card;
   comparison?: Comparison | null;
+  /** Served from the answer cache: nothing was recomputed (the UI looks the same). */
+  cached?: boolean;
   /** "How this was calculated", written by code from the metric catalogue and the plan. */
   explanation?: string[];
   /** The first source rows behind the card. */

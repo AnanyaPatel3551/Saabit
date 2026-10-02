@@ -6,8 +6,11 @@ always pass the number checker.
 
 from datetime import date, datetime
 
+from app.core.coverage import MonthCoverage
 from app.core.metrics import METRICS
 from app.core.plan import Plan
+
+Partial = dict[str, MonthCoverage]
 
 LISTED = 5  # groups named in a list sentence
 TIME_DIMENSIONS = ("month", "week")
@@ -87,6 +90,24 @@ def group_label(plan: Plan, row: dict) -> str:
     return " / ".join(key_text(d, row.get(d)) for d in plan.group_by)
 
 
+def noted_label(plan: Plan, row: dict, partial: Partial) -> str:
+    """The group label, plus what a partial month holds: 'Mar 2022 (only 1 day of data, 31 Mar)'."""
+    label = group_label(plan, row)
+    cover = partial.get(row.get("month") or "") if "month" in plan.group_by else None
+    return f"{label} ({cover.inline_note()})" if cover is not None else label
+
+
+def range_note(plan: Plan, partial: Partial) -> str:
+    """For a date range touching a partial month: ' Jun 2022 has 29 of 30 days of data (...).'"""
+    if plan.date_range is None or "month" in plan.group_by:
+        return ""
+    first = plan.date_range.start.strftime("%Y-%m")
+    last = plan.date_range.end.strftime("%Y-%m")
+    notes = [f"{c.label} has {c.sentence_note()}" for m, c in sorted(partial.items())
+             if first <= m <= last]
+    return (" " + "; ".join(notes) + ".") if notes else ""
+
+
 def single_value(plan: Plan, row: dict, scope: str) -> str:
     metric = plan.metric or ""
     value = format_value(metric, row.get("value"))
@@ -104,39 +125,45 @@ def single_value(plan: Plan, row: dict, scope: str) -> str:
     return f"The cancellation rate{scope} is {value} of {orders} orders."
 
 
-def ranked(plan: Plan, rows: list[dict], scope: str) -> str:
+def ranked(plan: Plan, rows: list[dict], scope: str, partial: Partial) -> str:
     """Sorted and limited by value: name the leader, or list the top N."""
     metric = plan.metric or ""
     label = METRICS[metric].label.lower()
     word = "highest" if plan.sort is None or plan.sort.dir == "desc" else "lowest"
     if len(rows) == 1:
         value = format_value(metric, rows[0].get("value"))
-        return f"{group_label(plan, rows[0])} has the {word} {label}{scope} at {value}."
-    listed = ", ".join(f"{group_label(plan, r)} ({format_value(metric, r.get('value'))})"
+        return f"{noted_label(plan, rows[0], partial)} has the {word} {label}{scope} at {value}."
+    listed = ", ".join(f"{noted_label(plan, r, partial)}: {format_value(metric, r.get('value'))}"
                        for r in rows)
     order = "Top" if word == "highest" else "Bottom"
     return f"{order} {len(rows)} by {label}{scope}: {listed}."
 
 
-def listing(plan: Plan, rows: list[dict], scope: str) -> str:
+def listing(plan: Plan, rows: list[dict], scope: str, partial: Partial) -> str:
     """Groups in result order (time groupings are already chronological)."""
     metric = plan.metric or ""
     label = METRICS[metric].label
     by = " and ".join(plan.group_by)
-    shown = ", ".join(f"{group_label(plan, r)} {format_value(metric, r.get('value'))}"
+    shown = ", ".join(f"{noted_label(plan, r, partial)} {format_value(metric, r.get('value'))}"
                       for r in rows[:LISTED])
     more = ", and others" if len(rows) > LISTED else ""
     return f"{label} by {by}{scope}: {shown}{more}."
 
 
-def template_sentence(plan: Plan, rows: list[dict]) -> str:
-    """A plain, always-correct answer sentence for any metric and grouping."""
+def template_sentence(plan: Plan, rows: list[dict], partial: Partial | None = None) -> str:
+    """A plain, always-correct answer sentence for any metric and grouping.
+
+    partial (months the data covers only partly) never changes a value: a partial month is
+    named with the days it holds, so it is not read as a weak or strong month.
+    """
+    partial = partial or {}
     scope = scope_text(plan)
     if not rows:
         return f"No orders match this question{scope}."
+    note = range_note(plan, partial)
     if not plan.group_by:
-        return single_value(plan, rows[0], scope)
+        return single_value(plan, rows[0], scope) + note
     is_time = len(plan.group_by) == 1 and plan.group_by[0] in TIME_DIMENSIONS
     if not is_time and plan.sort is not None and plan.sort.by == "value" and plan.limit:
-        return ranked(plan, rows, scope)
-    return listing(plan, rows, scope)
+        return ranked(plan, rows, scope, partial) + note
+    return listing(plan, rows, scope, partial) + note

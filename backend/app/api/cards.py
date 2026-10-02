@@ -9,7 +9,7 @@ from app.api.datasets import DatasetKey, SampleCache, StorageRoot, check_dataset
 from app.api.observe import note
 from app.api.ratelimit import SENTENCES, limit
 from app.api.schemas import CardOut, RowsOut, SentenceIn, SentenceOut
-from app.core import evidence, pipeline, storage
+from app.core import answer_cache, evidence, pipeline, storage
 from app.core.plan import Plan
 
 router = APIRouter(prefix="/api/cards", tags=["cards"])
@@ -54,12 +54,21 @@ def write_sentence(
 
     context = pipeline.load_context(evidence.dataset_of(card_id), root, cache_dir)
     card = evidence.load_card(pipeline.card_dirs(context, cache_dir), card_id)
+    answers_home = context.cards_dir.parent
+    saved = answer_cache.read_sentence(answers_home, card_id)
+    if saved is not None:  # the same cached answer asked again: no new AI call
+        note(request, verified=card.verified, source=saved.get("source"), cached=True)
+        return SentenceOut(**saved)
     served_by.set(None)
     answer = narrate.write_answer(body.question, Plan.model_validate(card.plan), card.result,
-                                  card.verified, card.sql_result, card.pandas_result)
+                                  card.verified, card.sql_result, card.pandas_result,
+                                  partial=pipeline.partial_months_of(context))
     note(request, verified=card.verified, source=answer.source,
          llm_provider=served_by.get() if answer.source == "llm" else None)
-    return SentenceOut(sentence=answer.text, source=answer.source, note=answer.note)
+    out = SentenceOut(sentence=answer.text, source=answer.source, note=answer.note)
+    if answer.source == "llm":
+        answer_cache.write_sentence(answers_home, card_id, out.model_dump())
+    return out
 
 
 @router.get("/{card_id}/rows", response_model=None, dependencies=KeyChecked)

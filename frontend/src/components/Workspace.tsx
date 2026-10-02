@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { deleteDataset, getHealth } from "../api/client";
+import { monthCoverage } from "../lib/coverage";
 import { clearHistory } from "../lib/history";
 import type { DataCheck, Dataset, Health } from "../api/types";
 import { AiStatus, aiState } from "./AiStatus";
@@ -45,6 +46,7 @@ export function Workspace({ dataset, check, onBack }: {
   }, [refresh]);
 
   const llmDown = pausedReason !== null || aiState(health) === "paused";
+  const coverage = monthCoverage(check.date_min, check.date_max);
 
   return (
     <div className="min-h-screen">
@@ -68,7 +70,7 @@ export function Workspace({ dataset, check, onBack }: {
         <div className="rounded-2xl border border-line bg-panel/60 p-4">
           <AskPanel datasetId={dataset.dataset_id} llmDown={llmDown}
             range={{ min: check.date_min ?? null, max: check.date_max ?? null }}
-            partialMonths={check.partial_months}
+            coverage={coverage}
             llmReason={pausedReason ?? health?.llm.reason ?? null}
             onLlmChange={(down, reason) => { setPausedReason(down ? reason : null); refresh(); }}
             onEvidence={(card) => setEvidence([card])} />
@@ -77,7 +79,7 @@ export function Workspace({ dataset, check, onBack }: {
           <InsightsPanel datasetId={dataset.dataset_id} onEvidence={(ids) => setEvidence(ids)} />
         </div>
       </main>
-      {evidence && <EvidenceDrawer items={evidence} onClose={() => setEvidence(null)} />}
+      {evidence && <EvidenceDrawer items={evidence} coverage={coverage} onClose={() => setEvidence(null)} />}
     </div>
   );
 }

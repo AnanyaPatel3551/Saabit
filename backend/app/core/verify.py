@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
+from app.core.coverage import MonthCoverage
 from app.core.metrics import ABS_TOLERANCE, REL_TOLERANCE, SMALL_GROUP_ORDERS
 from app.core.plan import Plan
 
@@ -80,18 +81,29 @@ def months_in(plan: Plan, months: list[str]) -> list[str]:
 
 
 def caveats_for(
-    plan: Plan, rows: list[dict], partial_months: list[str], cleaned_columns: dict[str, str]
+    plan: Plan, rows: list[dict], partial_months: list[str], cleaned_columns: dict[str, str],
+    coverage: dict[str, MonthCoverage] | None = None,
 ) -> list[str]:
-    """FR-6.3: partial months in range, cleaned columns used, and small groups."""
+    """FR-6.3: partial months in range, cleaned columns used, and small groups.
+
+    coverage adds months the data's date range cuts short at either edge, and says how many
+    days each one holds; it only changes the wording, never a value.
+    """
     notes = []
-    for month in months_in(plan, partial_months):
-        notes.append(f"{month} is a partial month in this data, so it is not comparable "
-                     "to full months.")
+    coverage = coverage or {}
+    for month in months_in(plan, sorted(set(partial_months) | set(coverage))):
+        cover = coverage.get(month)
+        if cover is not None:
+            notes.append(f"{cover.label} is a partial month: {cover.sentence_note()}, so it is "
+                         "not comparable to full months.")
+        else:
+            notes.append(f"{month} is a partial month in this data, so it is not comparable "
+                         "to full months.")
     used = list(dict.fromkeys([f.column for f in plan.filters] + list(plan.group_by)))
     for column in used:
         if column in cleaned_columns:
             notes.append(f"{column.capitalize()} values were cleaned before this ran: "
-                         f"{cleaned_columns[column]} (see the fix log).")
+                         f"{cleaned_columns[column]} (see What we cleaned up).")
     small = [r for r in rows if r["orders"] < SMALL_GROUP_ORDERS]
     if small:
         listed = ", ".join(f"{label(tuple(r[k] for k in plan.group_by))} ({r['orders']})"

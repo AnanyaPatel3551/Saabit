@@ -36,6 +36,9 @@ export function HowWeTest() {
       saabit: run ? `${run.served_by.join(", ") || "saved plans"} · ${run.finished_at}` : PENDING },
   ];
 
+  const asked = run ? run.answerable.total + run.refused.total : null;
+  const right = run ? run.answerable.correct + run.refused.correct : null;
+
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 px-4 py-10">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -45,11 +48,28 @@ export function HowWeTest() {
 
       <section aria-labelledby="test-heading" className="flex flex-col gap-3">
         <h1 id="test-heading" className="font-display text-3xl text-text">How we test</h1>
+        <div data-testid="plain-summary" className="flex flex-col gap-1 text-base text-text">
+          {run && asked !== null && right !== null ? (
+            <>
+              <p>We asked Saabit {asked} test questions about the sample file.</p>
+              <p>It got {right} of {asked} right, including saying "I can't answer that" when the file could not.</p>
+              <p>{run.verified_but_wrong === 0
+                ? "It never showed a wrong number as checked."
+                : `It showed ${run.verified_but_wrong} wrong number(s) as checked.`}</p>
+            </>
+          ) : (
+            <p className="text-muted">The latest test results are not available yet.</p>
+          )}
+        </div>
+      </section>
+
+      <section aria-labelledby="judges-heading" className="flex flex-col gap-3">
+        <h2 id="judges-heading" className="font-display text-2xl text-gold-soft">For judges</h2>
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted">
           <li>The expected answers come from a separate script in plain pandas that never uses Saabit's code.</li>
-          <li>Every answer is computed twice, by SQL and by pandas, and marked Verified only when both agree.</li>
+          <li>Every answer is computed twice, by SQL (DuckDB) and by pandas, and marked Verified ("Checked twice") only when both agree.</li>
           <li>"Wrong answers marked Verified" counts calculation errors: both engines agreed but the answer key disagrees.</li>
-          <li>Scores come from 50 questions (10 of them should be refused) asked fresh, without saved plans.</li>
+          <li>Scores come from 50 questions (10 of them should be refused) and 15 anchors, asked fresh, without saved plans.</li>
         </ul>
       </section>
 
@@ -84,8 +104,8 @@ export function HowWeTest() {
         <p className="text-xs text-amber">Note: this run reused saved plans, so it is not a fresh score.</p>
       )}
       <p className="text-xs text-muted">
-        The baseline is ChatGPT or Claude with code execution, given the same file and the same
-        questions, one fresh chat each, scored by the same rules.
+        The baseline is ChatGPT with code execution, given the same file and the same questions
+        in one conversation, scored by the same rules (eval/baseline/RESULTS.md).
       </p>
     </main>
   );

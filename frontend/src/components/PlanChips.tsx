@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Dimension, FilterColumn, MetricName, Plan } from "../api/types";
-import { DIMENSIONS, FILTER_COLUMNS, METRIC_NAMES, humanize } from "../lib/plan";
+import { DIMENSIONS, FILTER_COLUMNS, METRIC_NAMES, dimensionWords, humanize, metricWords } from "../lib/plan";
 
 const chip = "min-h-9 rounded-full border border-line bg-raised px-3 py-1 text-sm text-text";
 const select = `${chip} cursor-pointer appearance-none pr-6`;
@@ -57,12 +57,12 @@ export function PlanChips({ plan, onChange, disabled, range }: {
 
   return (
     <fieldset disabled={disabled} className="flex flex-wrap items-center gap-2 disabled:opacity-60">
-      <legend className="mb-2 text-xs uppercase tracking-wider text-muted">Understood as</legend>
+      <legend className="mb-2 text-xs uppercase tracking-wider text-muted">Change what we counted</legend>
 
-      <label className="sr-only" htmlFor="chip-metric">Metric</label>
+      <label className="sr-only" htmlFor="chip-metric">Measure</label>
       <select id="chip-metric" className={select} value={plan.metric ?? ""}
         onChange={(e) => update({ metric: e.target.value as MetricName })}>
-        {METRIC_NAMES.map((m) => <option key={m} value={m}>{humanize(m)}</option>)}
+        {METRIC_NAMES.map((m) => <option key={m} value={m}>{metricWords(m)}</option>)}
       </select>
 
       {[...plan.group_by, ...(plan.group_by.length < 2 ? [""] : [])].map((dim, index) => (
@@ -71,8 +71,8 @@ export function PlanChips({ plan, onChange, disabled, range }: {
           <label className="sr-only" htmlFor={`chip-group-${index}`}>Group by {index + 1}</label>
           <select id={`chip-group-${index}`} className={select} value={dim}
             onChange={(e) => setGroup(index, e.target.value)}>
-            <option value="">{dim ? "(remove)" : "+ group"}</option>
-            {DIMENSIONS.map((d) => <option key={d} value={d}>{humanize(d)}</option>)}
+            <option value="">{dim ? "(remove)" : "split by…"}</option>
+            {DIMENSIONS.map((d) => <option key={d} value={d}>{dimensionWords(d)}</option>)}
           </select>
         </span>
       ))}
@@ -90,7 +90,7 @@ export function PlanChips({ plan, onChange, disabled, range }: {
 
       {!adding && (
         <button type="button" className={`${chip} text-gold`} onClick={() => setAdding(true)}>
-          + filter
+          only…
         </button>
       )}
       {adding && (

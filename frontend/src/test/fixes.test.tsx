@@ -1,19 +1,19 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { PlanChips } from "../components/PlanChips";
 import type { Plan, ResultRow, RunOut } from "../api/types";
 import { AnswerCard, UnverifiedCard } from "../components/AnswerCards";
-import { TypingHeadline } from "../components/TypingHeadline";
+import { Landing } from "../components/Landing";
 import { okPlan } from "../lib/plan";
 
 describe("Plan chips", () => {
-  it("shows no empty filter row until + filter is clicked", async () => {
+  it("shows no empty filter row until only… is clicked", async () => {
     const user = userEvent.setup();
     render(<PlanChips plan={okPlan({ metric: "revenue" })} onChange={() => undefined} />);
 
     expect(screen.queryByLabelText("Filter value")).toBeNull();
-    await user.click(screen.getByRole("button", { name: "+ filter" }));
+    await user.click(screen.getByRole("button", { name: "only…" }));
     expect(screen.getByLabelText("Filter value")).toBeTruthy();
   });
 
@@ -53,16 +53,17 @@ describe("Answer card evidence", () => {
     render(<AnswerCard answer={runFor(rajasthan, [{ value: 14.2118, orders: 2512 }])}
       sentence={done} caveats={[]} onEvidence={() => undefined} />);
 
-    expect(screen.getByTestId("proof-line").textContent).toContain("SQL and pandas both gave 14.2%");
+    expect(screen.getByTestId("proof-line").textContent).toContain("Both ways gave 14.2%");
   });
 
-  it("shows a proof line with both values when the engines disagree", () => {
+  it("says it could not double-check, with no number, when the two ways disagree", () => {
     const run = runFor(okPlan({ metric: "revenue" }), [], { verified: false, source: "unverified",
       note: "Could not verify this answer: the two calculation engines disagree. SQL: ₹2,39,53,534. pandas: ₹2,41,93,069." });
 
     render(<UnverifiedCard answer={run} onEvidence={() => undefined} />);
 
-    expect(screen.getByTestId("proof-line").textContent).toContain("SQL gave ₹2,39,53,534; pandas gave ₹2,41,93,069");
+    expect(screen.getByTestId("proof-line").textContent).toContain("Couldn't double-check this number, so we're not showing it.");
+    expect(screen.queryByText(/2,39,53,534/)).toBeNull();
   });
 
   it("draws no chart for a single number with nothing to compare", () => {
@@ -105,7 +106,7 @@ describe("Answer card evidence", () => {
 
     expect(screen.getByTestId("proof-line")).toBeTruthy();
     expect(screen.queryByText("Period: every date in the file.")).toBeNull();
-    expect(screen.getByRole("button", { name: "Show the evidence" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Show the details" })).toBeTruthy();
   });
 });
 
@@ -124,16 +125,27 @@ describe("Order counts follow the metric", () => {
 });
 
 describe("Landing headline", () => {
-  it("shows the full headline at once when reduced motion is set", () => {
-    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query.includes("reduce"),
-      media: query, addEventListener() {}, removeEventListener() {} }));
+  it("is plain static text, with no typing effect", () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ status: "ok" })));
 
-    render(<TypingHeadline first="Ask your sales data anything." second="Every number checked twice." />);
+    render(<Landing onDataset={() => undefined} />);
 
-    const heading = screen.getByRole("heading");
-    expect(heading.getAttribute("aria-label")).toBe("Ask your sales data anything. Every number checked twice.");
-    expect(heading.textContent).toContain("Every number checked twice.Every number checked twice.");
-    expect(document.querySelector(".typing-caret")).toBeNull();
+    const heading = screen.getByRole("heading", { level: 1 });
+    expect(heading.textContent).toBe("Ask your sales data anything. Every number checked twice.");
+    expect(document.querySelector(".typing-caret, .after-headline")).toBeNull();
+    vi.unstubAllGlobals();
+  });
+
+  it("says the server is waking up only when the health check is slow", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => undefined)));
+
+    render(<Landing onDataset={() => undefined} />);
+    expect(screen.queryByText(/Waking up the server/)).toBeNull();
+    await act(async () => { await vi.advanceTimersByTimeAsync(2_100); });
+
+    expect(screen.getByText("Waking up the server… (~30s)")).toBeTruthy();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 });

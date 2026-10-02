@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Comparison, Plan, ResultRow } from "../api/types";
 import { formatValue, indianDigits, keyLabel } from "../lib/format";
+import type { Coverage } from "../lib/coverage";
 import { humanize } from "../lib/plan";
 
 const MAX_BARS = 12;
@@ -18,10 +19,16 @@ interface Bar {
   label: string;
   value: number;
   shown: string;
-  partial: boolean;
+  /** "only 1 day" / "29 of 30 days" for a partial month, else null. */
+  partial: string | null;
 }
 
-function bars(plan: Plan, rows: ResultRow[], partialMonths: string[]): Bar[] {
+/** Hatched, outlined fill for a partial month: visibly not a normal (weak) month. */
+const PARTIAL_FILL = {
+  backgroundImage: "repeating-linear-gradient(135deg, rgb(212 175 55 / 0.45) 0 3px, transparent 3px 6px)",
+};
+
+function bars(plan: Plan, rows: ResultRow[], coverage: Coverage): Bar[] {
   return rows.map((row) => {
     const key = plan.group_by.map((d) => String(row[d] ?? "")).join("|");
     const month = plan.group_by[0] === "month" ? String(row.month ?? "") : "";
@@ -30,7 +37,7 @@ function bars(plan: Plan, rows: ResultRow[], partialMonths: string[]): Bar[] {
       label: plan.group_by.map((d) => keyLabel(d, row[d])).join(" · ") || "All",
       value: Math.max(row.value ?? 0, 0),
       shown: formatValue(plan.metric, row.value),
-      partial: partialMonths.includes(month),
+      partial: coverage[month]?.partial ? coverage[month].note : null,
     };
   });
 }
@@ -42,17 +49,17 @@ function filterLabel(plan: Plan): string {
 }
 
 /**
- * The answer's chart: horizontal bars for groups (largest first, values labelled), columns
- * for months and weeks (a partial month lighter and marked), and for a filtered single number
- * a thin bar against all orders. Nothing is drawn when there is nothing to compare, so the
- * card never shows an empty chart area.
+ * The one chart for an answer, used by the answer card and the evidence drawer alike:
+ * horizontal bars for groups (largest first, values labelled), columns for months and weeks,
+ * and for a filtered single number a thin bar against all orders. A partial month is hatched
+ * and outlined, never shorter than 4px, and tagged with the days it holds. Nothing is drawn
+ * when there is nothing to compare, so the card never shows an empty chart area.
  */
-export function EvidenceChart({ plan, rows, comparison, partialMonths = [], compact }: {
+export function EvidenceChart({ plan, rows, comparison, coverage = {} }: {
   plan: Plan;
   rows: ResultRow[];
   comparison?: Comparison | null;
-  partialMonths?: string[];
-  compact?: boolean;
+  coverage?: Coverage;
 }) {
   const [asTable, setAsTable] = useState(false);
   const metric = plan.metric;
@@ -83,7 +90,7 @@ export function EvidenceChart({ plan, rows, comparison, partialMonths = [], comp
   }
 
   if (rows.length === 0) return null;
-  const all = bars(plan, rows, partialMonths);
+  const all = bars(plan, rows, coverage);
   const overTime = plan.group_by.length === 1 && TIME.has(plan.group_by[0]);
   const shown = overTime ? all : [...all].sort((a, b) => b.value - a.value).slice(0, MAX_BARS);
   const max = Math.max(...shown.map((b) => b.value), 1e-9);
@@ -107,7 +114,7 @@ export function EvidenceChart({ plan, rows, comparison, partialMonths = [], comp
             <tbody>
               {rows.map((row, i) => (
                 <tr key={all[i].key} className="border-t border-line">
-                  <td className="py-1 pr-3">{all[i].label}{all[i].partial ? " (partial)" : ""}</td>
+                  <td className="py-1 pr-3">{all[i].label}{all[i].partial ? ` (${all[i].partial})` : ""}</td>
                   <td className="py-1 pr-3 text-right tabular-nums">{all[i].shown}</td>
                   <td className="py-1 text-right tabular-nums">{indianDigits(row.orders)}</td>
                 </tr>
@@ -118,16 +125,27 @@ export function EvidenceChart({ plan, rows, comparison, partialMonths = [], comp
       ) : overTime ? (
         <figure data-testid="evidence-chart" aria-label={`${humanize(metric ?? "value")} by ${plan.group_by[0]}`}
           className="overflow-x-auto">
-          <div className={`flex items-end gap-1.5 ${compact ? "h-28" : "h-40"}`} style={{ minWidth: `${shown.length * 2.5}rem` }}>
-            {shown.map((bar) => (
-              <div key={bar.key} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
-                <span className="text-[10px] tabular-nums text-text">{bar.shown}</span>
-                <span className={`w-full rounded-t ${bar.partial ? "bg-gold/35" : "bg-gold"}`}
-                  style={{ height: `${Math.max((bar.value / max) * 100, 1)}%` }} />
-                <span className="text-[10px] text-muted">{bar.label}</span>
-                {bar.partial && <span className="text-[10px] text-amber">partial</span>}
-              </div>
-            ))}
+          <div style={{ minWidth: `${shown.length * 3}rem` }}>
+            {/* bars stand on one full-width baseline, so a tiny bar never reads as a stray line */}
+            <div className="flex h-40 items-end gap-1.5 border-b border-muted/70">
+              {shown.map((bar) => (
+                <div key={bar.key} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
+                  <span className="text-[10px] tabular-nums text-text">{bar.shown}</span>
+                  <span data-partial={bar.partial ? "true" : undefined}
+                    className={`w-full rounded-t ${bar.partial ? "border border-b-0 border-dashed border-gold" : "bg-gold"}`}
+                    style={{ height: `${(bar.value / max) * 100}%`, minHeight: "4px",
+                             ...(bar.partial ? PARTIAL_FILL : {}) }} />
+                </div>
+              ))}
+            </div>
+            <div className="mt-1 flex gap-1.5">
+              {shown.map((bar) => (
+                <div key={bar.key} className="min-w-0 flex-1 text-center leading-tight">
+                  <span className="block text-[10px] text-muted">{bar.label}</span>
+                  {bar.partial && <span className="block text-[10px] text-amber">{bar.partial}</span>}
+                </div>
+              ))}
+            </div>
           </div>
         </figure>
       ) : (

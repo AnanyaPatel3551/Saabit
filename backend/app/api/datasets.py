@@ -32,7 +32,17 @@ from app.api.schemas import (
     UploadOut,
 )
 from app.api.shared import FIXES_FILE, clean_dataset, describe, source_file, validate_roles
-from app.core import detect, evidence, explain, ingest, overview, pipeline, storage
+from app.core import (
+    answer_cache,
+    coverage,
+    detect,
+    evidence,
+    explain,
+    ingest,
+    overview,
+    pipeline,
+    storage,
+)
 from app.core.plan import Plan
 
 PREVIEW_ROWS = 5  # source rows shown under each answer; the CSV has them all
@@ -179,6 +189,7 @@ def confirm_roles(
     roles = validate_roles(body.roles, dataset.columns)
     folder = storage.dataset_dir(root, dataset_id)
     check = clean_dataset(dataset_id, source_file(folder), roles, folder)
+    answer_cache.clear(folder)  # answers from an earlier confirm no longer apply
     dataset.roles = confirmed_role_list(dataset.roles, roles)
     dataset.roles_confirmed = True
     dataset.missing_required = []
@@ -249,23 +260,46 @@ def run_plan(
     """Run a plan through both engines and return the numbers at once (numbers first).
 
     No LLM call here: the sentence is the template, and POST /api/cards/{id}/sentence writes
-    the LLM sentence afterwards. Questions are never sent in this URL.
+    the LLM sentence afterwards. Questions are never sent in this URL. A verified answer to
+    the same plan on the same columns is served from the answer cache with nothing recomputed.
     """
     from app.core import narrate
+    from app.llm.prompts import WRITER_VERSION
+
+    context = pipeline.load_context(dataset_id, root, cache_dir)
+    answers_home = context.cards_dir.parent  # the dataset's storage folder (retention deletes it)
+    key = answer_cache.answer_key(dataset_id, answer_cache.roles_hash(dataset_metadata(
+        dataset_id, root, cache_dir)), plan.model_dump(mode="json"), WRITER_VERSION)
+    hit = answer_cache.read(answers_home, key, context.cards_dir)
+    if hit is not None:
+        note(request, plan_status=plan.status, verified=True, source=hit.get("source"),
+             cached=True)
+        return RunOut.model_validate({**hit, "cached": True})
 
     card = pipeline.run_plan(dataset_id, plan, root, cache_dir)
-    answer = narrate.instant_answer(Plan.model_validate(card.plan), card.result, card.verified,
-                                    card.sql_result, card.pandas_result)
-    note(request, plan_status=plan.status, verified=card.verified, source=answer.source)
-    context = pipeline.load_context(dataset_id, root, cache_dir)
     info = pipeline.dataset_info(context)
-    return RunOut(verified=card.verified, sentence=answer.text, source=answer.source,
-                  sentence_status="pending" if card.verified else "final",
-                  note=answer.note, card=CardOut.model_validate(card),
-                  comparison=comparison_for(card, dataset_id, root, cache_dir),
-                  explanation=explain.explanation(card, context.folder / FIXES_FILE,
-                                                  info.date_min, info.date_max),
-                  rows_preview=preview_rows(context.query_db, card))
+    partial = coverage.partial_coverage(info.date_min, info.date_max)
+    answer = narrate.instant_answer(Plan.model_validate(card.plan), card.result, card.verified,
+                                    card.sql_result, card.pandas_result, partial)
+    note(request, plan_status=plan.status, verified=card.verified, source=answer.source)
+    out = RunOut(verified=card.verified, sentence=answer.text, source=answer.source,
+                 sentence_status="pending" if card.verified else "final",
+                 note=answer.note, card=CardOut.model_validate(card),
+                 comparison=comparison_for(card, dataset_id, root, cache_dir),
+                 explanation=explain.explanation(card, context.folder / FIXES_FILE,
+                                                 info.date_min, info.date_max),
+                 rows_preview=preview_rows(context.query_db, card))
+    if card.verified:
+        answer_cache.write(answers_home, key, out.model_dump(mode="json"))
+    return out
+
+
+def dataset_metadata(dataset_id: str, root: Path, cache_dir: Path) -> dict:
+    """The stored metadata of an upload, or of the shared sample from its cache."""
+    sample = cached_sample_if(dataset_id, cache_dir)
+    if sample is not None:
+        return sample.model_dump(mode="json")
+    return storage.read_metadata(root, dataset_id)
 
 
 def preview_rows(query_db: Path, card: evidence.EvidenceCard) -> list[dict]:
@@ -302,7 +336,8 @@ def get_fixes(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> Res
         if not (path.parent / storage.METADATA_FILE).is_file():
             raise storage.DatasetNotFound(dataset_id)
     if not path.is_file():
-        raise NotCleaned("The fix log is written when the columns are confirmed. Confirm first.")
+        raise NotCleaned("The clean-up list is ready once your columns are confirmed. "
+                         "Confirm them first.")
     return Response(
         content=path.read_text(encoding="utf-8"),
         media_type="text/csv",

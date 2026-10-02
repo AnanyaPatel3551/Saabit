@@ -34,30 +34,13 @@ body {
 }
 
 
-/* Landing headline caret, and the text that fades in after it. Reduced motion: no blinking,
-   no fade (the headline component also shows the full text at once). */
-.typing-caret {
-  display: inline-block;
-  width: 2px;
-  height: 0.9em;
-  margin-left: 2px;
-  vertical-align: -0.1em;
-  background: var(--color-gold);
-  animation: caret-blink 0.9s steps(1) infinite;
+/* The only page animation: one short fade of the whole page, none with reduced motion. */
+.page-fade {
+  animation: page-fade 200ms ease-out;
 }
-@keyframes caret-blink {
-  50% { opacity: 0; }
-}
-.after-headline {
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
-}
-.after-headline.shown {
-  opacity: 1;
-  transform: none;
+@keyframes page-fade {
+  from { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .typing-caret { animation: none; }
-  .after-headline { opacity: 1; transform: none; transition: none; }
+  .page-fade { animation: none; }
 }

@@ -55,19 +55,32 @@ function renderPanel() {
 
 afterEach(() => vi.unstubAllGlobals());
 
+
+/** Matches an element whose whole text is this (sentences bold their numbers in <strong>). */
+function wholeText(text: string) {
+  return (_: string, el: Element | null) => el?.tagName === "P" && el.textContent === text;
+}
+
+/** Tap an example chip (it only fills the box), then press Ask. */
+async function askExample(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.click(screen.getByRole("button", { name }));
+  await user.click(screen.getByRole("button", { name: "Ask" }));
+}
+
 describe("Ask panel", () => {
   it("editing a plan chip calls /run and not /plan", async () => {
     const user = userEvent.setup();
     const { calls, fetchMock } = fakeBackend();
     renderPanel();
 
-    await user.type(screen.getByLabelText("Your question"), "top 5 states by revenue");
+    await user.type(screen.getByLabelText("Your question"), "which 5 states sell the most");
     await user.click(screen.getByRole("button", { name: "Ask" }));
     await screen.findByText(WRITTEN);
     expect(calls.filter((c) => c.includes("/plan"))).toHaveLength(1);
 
     calls.length = 0;
-    await user.selectOptions(screen.getByLabelText("Metric"), "orders");
+    await user.click(screen.getByRole("button", { name: "Change" }));
+    await user.selectOptions(screen.getByLabelText("Measure"), "orders");
     expect(await screen.findAllByText(WRITTEN)).toHaveLength(2);  // both answers in the thread
 
     expect(calls.filter((c) => c.endsWith("/run"))).toEqual(["/api/datasets/abc/run"]);
@@ -84,10 +97,10 @@ describe("Ask panel", () => {
     fakeBackend(() => new Promise((resolve) => { release = resolve; }));
     renderPanel();
 
-    await user.click(screen.getByRole("button", { name: "Top 5 states by revenue" }));
+    await askExample(user, "Top 5 states by revenue");
 
     expect(await screen.findByText("Writing the answer…")).toBeTruthy();
-    expect(screen.getByText("Verified")).toBeTruthy();
+    expect(screen.getByText("Checked twice")).toBeTruthy();
     expect(screen.queryByText(WRITTEN)).toBeNull();
     release(Response.json({ sentence: WRITTEN, source: "llm", note: null }));
     expect(await screen.findByText(WRITTEN)).toBeTruthy();
@@ -99,10 +112,9 @@ describe("Ask panel", () => {
       { error: { code: "internal_error", message: "x" } }, { status: 500 }));
     renderPanel();
 
-    await user.click(screen.getByRole("button", { name: "Top 5 states by revenue" }));
+    await askExample(user, "Top 5 states by revenue");
 
-    expect(await screen.findByText(TEMPLATE)).toBeTruthy();
-    expect(screen.getByText("Sentence written from a template.")).toBeTruthy();
+    expect(await screen.findByText(wholeText(TEMPLATE))).toBeTruthy();
   });
 });
 
@@ -127,18 +139,18 @@ describe("Refusal card", () => {
 describe("Verified badge", () => {
   it("has a text label, not only a colour", () => {
     const { container } = render(<VerifiedBadge verified />);
-    expect(within(container).getByText("Verified")).toBeTruthy();
+    expect(within(container).getByText("Checked twice")).toBeTruthy();
     expect(container.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
   });
 
-  it("says Not verified in words when the engines disagree", () => {
+  it("says it could not double-check, in words, when the two ways disagree", () => {
     render(<VerifiedBadge verified={false} />);
-    expect(screen.getByText("Not verified")).toBeTruthy();
+    expect(screen.getByText("Couldn't double-check")).toBeTruthy();
   });
 });
 
 describe("Insights panel", () => {
-  it("shows Verified only on two-engine cards, not on the fix-log card", async () => {
+  it("shows Checked twice only on two-engine cards, not on the clean-up card", async () => {
     const insight = { status: "ok", reason: null, card_ids: [], verified: false, caveats: [] };
     const overview = {
       status: "ready", reason: null, computed_at: "now", months: null,
@@ -157,8 +169,8 @@ describe("Insights panel", () => {
     render(<InsightsPanel datasetId="abc" onEvidence={() => undefined} />);
 
     expect(await screen.findByText("Data fixes")).toBeTruthy();
-    expect(screen.getAllByText("Verified")).toHaveLength(1);
-    expect(screen.getByText("From the fix log")).toBeTruthy();
+    expect(screen.getAllByText("Checked twice")).toHaveLength(1);
+    expect(screen.getByText("From our data clean-up")).toBeTruthy();
     expect(screen.getByText(/2022-03 is a partial month/)).toBeTruthy();
   });
 });

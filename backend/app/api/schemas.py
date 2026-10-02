@@ -149,6 +149,7 @@ class RunOut(BaseModel):
     comparison: Comparison | None = None
     explanation: list[str] = []  # "How this was calculated", written by code (core/explain.py)
     rows_preview: list[dict] = []  # the first source rows behind the card
+    cached: bool = False  # served from the answer cache (core/answer_cache.py), nothing recomputed
 
 
 class SentenceIn(BaseModel):

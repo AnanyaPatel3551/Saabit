@@ -72,16 +72,44 @@ describe("Ask button", () => {
     expect(await screen.findByRole("button", { name: "Ask" })).toBeTruthy();
   });
 
-  it("an example chip puts its text in the box and runs it", async () => {
+  it("an example chip only fills the box and focuses it; it never sends", async () => {
     const user = userEvent.setup();
     const backend = slowBackend();
     render(panel());
 
     await user.click(screen.getByRole("button", { name: "Monthly revenue trend" }));
 
-    expect((screen.getByLabelText("Your question") as HTMLInputElement).value).toBe("Monthly revenue trend");
+    const box = screen.getByLabelText("Your question") as HTMLTextAreaElement;
+    expect(box.value).toBe("Monthly revenue trend");
+    await vi.waitFor(() => expect(document.activeElement).toBe(box));
+    expect(box.selectionStart).toBe("Monthly revenue trend".length);
+    expect(backend.calls).toEqual([]);
+  });
+
+  it("an example sent unchanged runs its ready plan, and the box is cleared", async () => {
+    const user = userEvent.setup();
+    const backend = slowBackend();
+    render(panel());
+
+    await user.click(screen.getByRole("button", { name: "Monthly revenue trend" }));
+    const box = screen.getByLabelText("Your question");
+    await vi.waitFor(() => expect(document.activeElement).toBe(box));
+    await user.keyboard("{Enter}");
+
     expect(backend.calls).toEqual(["/api/datasets/abc/run"]);
+    expect((screen.getByLabelText("Your question") as HTMLTextAreaElement).value).toBe("");
     backend.release();
+  });
+
+  it("Shift+Enter starts a new line instead of sending", async () => {
+    const user = userEvent.setup();
+    const backend = slowBackend();
+    render(panel());
+
+    await user.type(screen.getByLabelText("Your question"), "orders{Shift>}{Enter}{/Shift}by state");
+
+    expect((screen.getByLabelText("Your question") as HTMLTextAreaElement).value).toBe("orders\nby state");
+    expect(backend.calls).toEqual([]);
   });
 });
 

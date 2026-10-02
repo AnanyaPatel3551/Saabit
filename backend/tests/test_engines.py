@@ -17,6 +17,8 @@ from app.core.pipeline import dataset_info, load_context, run_plan
 from app.core.plan import Plan, PlanError, UnknownFilterValue
 from app.core.verify import compare
 
+MARCH_NOTE = "Mar 2022 is a partial month: only 1 day of data (31 Mar)"
+
 SEED = 20260930
 FILTERABLE = [name for name, d in DIMENSIONS.items() if d.filterable]
 
@@ -155,7 +157,7 @@ def test_partial_month_adds_caveat(real_sample_cache: Path, tmp_path: Path) -> N
 
     card = run_plan(sample_id(real_sample_cache), plan, tmp_path, real_sample_cache)
 
-    assert any(c.startswith("2022-03 is a partial month") for c in card.caveats)
+    assert any(c.startswith(MARCH_NOTE) for c in card.caveats)
     assert [r["month"] for r in card.result] == ["2022-03", "2022-04", "2022-05", "2022-06"]
 
 
@@ -301,4 +303,4 @@ def test_a_range_inside_march_keeps_the_partial_month_note(
 
     card = run_plan(sample_id(real_sample_cache), plan, tmp_path, real_sample_cache)
 
-    assert any(c.startswith("2022-03 is a partial month") for c in card.caveats)
+    assert any(c.startswith(MARCH_NOTE) for c in card.caveats)

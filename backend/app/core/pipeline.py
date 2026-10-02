@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from app.core import compile_pandas, compile_sql, evidence, storage, verify
+from app.core.coverage import MonthCoverage, partial_coverage
 from app.core.plan import DatasetInfo, Plan, snap_values, validate_plan
 
 CARDS_DIR = "cards"
@@ -102,6 +103,12 @@ def partial_month_days(fixes_csv: Path) -> dict[str, int]:
     return days
 
 
+def partial_months_of(context: DatasetContext) -> dict[str, MonthCoverage]:
+    """Months the data covers only partly (labels for charts and sentences)."""
+    info = dataset_info(context)
+    return partial_coverage(info.date_min, info.date_max)
+
+
 def dataset_info(context: DatasetContext, source: compile_sql.Source | None = None) -> DatasetInfo:
     """What validation needs: confirmed roles, date bounds, and a way to list values."""
     db = source if source is not None else context.query_db
@@ -151,6 +158,7 @@ def run_plan(
     context = load_context(dataset_id, storage_root, sample_cache)
     with compile_sql.connect(context.query_db) as con:  # one read-only connection per run
         info = dataset_info(context, con)
+        coverage = partial_coverage(info.date_min, info.date_max)
         plan, caveats = validate_plan(plan, info)
         plan = snap_values(plan, info)
         columns = compile_sql.table_columns(con)
@@ -159,7 +167,8 @@ def run_plan(
     pandas_result, pandas_code = compile_pandas.run_plan_pandas(context.parquet, plan, columns)
     check = verify.compare(sql_result, pandas_result, list(plan.group_by))
     agreed = check.rows if check.verified else check.sql_rows
-    caveats += verify.caveats_for(plan, agreed, context.partial_months, context.cleaned_columns)
+    caveats += verify.caveats_for(plan, agreed, context.partial_months, context.cleaned_columns,
+                                  coverage)
     card = evidence.EvidenceCard(
         card_id=evidence.new_card_id(dataset_id),
         dataset_id=dataset_id,

@@ -220,16 +220,26 @@ Rules:
    percentages like 14.3%; counts like 1,20,378.
 3. No advice, no recommendations, no causes or guesses about why.
 4. If the table is empty, say that no orders match.
-5. Reply as JSON: {"sentence": "<at most two sentences>"}"""
+5. "partial_months" lists months the data covers only partly. Never call such a month low,
+   high, weak or strong, and never compare it with full months as an equal. Say what it
+   holds, copying the note (for example "March has only 1 day of data (31 Mar)"). If a
+   comparison includes one, say so (for example "June is missing 30 Jun, so part of this
+   drop is the missing day").
+6. Reply as JSON: {"sentence": "<at most two sentences>"}"""
+
+# Part of the answer-cache key: bump whenever WRITER_RULES or the writer payload changes.
+WRITER_VERSION = "2"
 
 
 def writer_messages(
-    question: str, plan_summary: dict, rows: list[dict], total_rows: int
+    question: str, plan_summary: dict, rows: list[dict], total_rows: int,
+    partial_months: list[str] | None = None,
 ) -> tuple[str, str]:
     """(system, user) for the answer writer. rows are already capped and formatted."""
     note = (f"showing the first {len(rows)} of {total_rows} rows" if total_rows > len(rows)
             else f"all {total_rows} rows")
-    payload = {"question": question, "plan": plan_summary, "table": note, "rows": rows}
+    payload = {"question": question, "plan": plan_summary, "table": note, "rows": rows,
+               "partial_months": partial_months or []}
     return WRITER_RULES, json.dumps(payload, ensure_ascii=False)
 
 

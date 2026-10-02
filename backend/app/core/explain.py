@@ -55,6 +55,9 @@ def period_line(plan: Plan, first: date, last: date) -> str:
     return f"Period: every date in the file ({day_text(first)} to {day_text(last)})."
 
 
+DIMENSION_WORDS = {"sku": "product code", "channel": "sales channel"}
+
+
 def explanation(card: EvidenceCard, fixes_csv: Path, first: date, last: date) -> list[str]:
     """Plain sentences: what was measured, which orders, which dates, how many rows."""
     plan = Plan.model_validate(card.plan)
@@ -62,11 +65,12 @@ def explanation(card: EvidenceCard, fixes_csv: Path, first: date, last: date) ->
     lines = [f"{metric.label}: {metric.definition}"]
     lines += filter_lines(plan, fixes_csv)
     if plan.group_by:
-        lines.append("Split by " + " and ".join(plan.group_by) + ".")
+        lines.append("Split by " + " and ".join(DIMENSION_WORDS.get(d, d) for d in plan.group_by)
+                     + ".")
     if plan.limit:
         order = "highest" if plan.sort is None or plan.sort.dir == "desc" else "lowest"
         lines.append(f"Showing the {order} {plan.limit}.")
     lines.append(period_line(plan, first, last))
-    lines.append(f"Computed from {format_count(card.row_count)} source rows, by SQL and by "
-                 "pandas separately.")
+    lines.append(f"Worked out from {format_count(card.row_count)} rows of your file, in two "
+                 "separate ways that gave the same result.")
     return lines

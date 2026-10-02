@@ -41,21 +41,28 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+
+/** Tap an example chip (it only fills the box), then press Ask. */
+async function askExample(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.click(screen.getByRole("button", { name }));
+  await user.click(screen.getByRole("button", { name: "Ask" }));
+}
+
 describe("Question history", () => {
   it("keeps answers after a reload, newest first, and Clear empties it", async () => {
     const user = userEvent.setup();
     fakeBackend();
     const first = render(panel());
-    await user.click(screen.getByRole("button", { name: "Top 5 states by revenue" }));
+    await askExample(user, "Top 5 states by revenue");
     await screen.findByText(WRITTEN);
-    await user.click(screen.getByRole("button", { name: "Monthly revenue trend" }));
+    await askExample(user, "Monthly revenue trend");
     expect(await screen.findAllByText(WRITTEN)).toHaveLength(2);
     first.unmount();
 
     render(panel());  // a reload: the thread comes back from localStorage
 
     const questions = screen.getAllByText(/Top 5 states by revenue|Monthly revenue trend/, {
-      selector: "li > p" });
+      selector: "li > p, li > button" });
     expect(questions.map((q) => q.textContent?.replace("Question: ", ""))).toEqual(
       ["Monthly revenue trend", "Top 5 states by revenue"]);
     await user.click(screen.getByRole("button", { name: "Clear" }));
@@ -74,19 +81,19 @@ describe("Question history", () => {
     expect(() => saveHistory("abc", [])).not.toThrow();
     expect(loadHistory("abc")).toEqual([]);
     render(panel());
-    expect(screen.getByText("Try one of these, or type your own.")).toBeTruthy();
+    expect(screen.getByText("Ask your first question — or tap an example.")).toBeTruthy();
   });
 
-  it("shows the first-use hint and the Verified line only before the first question", async () => {
+  it("shows the first-question hint and what Checked twice means only before the first question", async () => {
     const user = userEvent.setup();
     fakeBackend();
     render(panel());
-    expect(screen.getByText(/Verified means two separate calculations/)).toBeTruthy();
+    expect(screen.getByText(/worked out in two separate ways/)).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: "Top 5 states by revenue" }));
+    await askExample(user, "Top 5 states by revenue");
     await screen.findByText(WRITTEN);
 
-    expect(screen.queryByText("Try one of these, or type your own.")).toBeNull();
+    expect(screen.queryByText("Ask your first question — or tap an example.")).toBeNull();
   });
 });
 
@@ -98,7 +105,7 @@ function health(llm: Partial<Health["llm"]>): Health {
 }
 
 describe("AI status in the header", () => {
-  it("names the provider in words for each state", () => {
+  it("works out the AI state without showing provider names", () => {
     expect(aiState(health({}))).toBe("groq");
     expect(aiState(health({ state: "fallback", provider: "nim" }))).toBe("backup");
     expect(aiState(health({ state: "down", status: "unavailable" }))).toBe("paused");
@@ -107,12 +114,12 @@ describe("AI status in the header", () => {
 
   it("shows text, not only a coloured dot", () => {
     render(<AiStatus health={health({ state: "fallback", provider: "nim" })} />);
-    expect(screen.getByText("AI: backup (NVIDIA)")).toBeTruthy();
+    expect(screen.getByText("AI: using backup")).toBeTruthy();
   });
 
-  it("says typed questions are off when no provider works", () => {
+  it("says the AI is busy but numbers are still exact when no provider works", () => {
     render(<AiStatus health={health({ status: "not_configured", state: "down" })} />);
-    expect(screen.getByText("AI paused: typed questions off")).toBeTruthy();
+    expect(screen.getByText("AI: busy — numbers still exact")).toBeTruthy();
   });
 });
 

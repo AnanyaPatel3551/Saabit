@@ -12,12 +12,15 @@ export const KEY_HEADER = "X-Dataset-Key";
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
+  /** The server's X-Request-ID, shown small under an error so a report can be traced. */
+  readonly requestId: string | null;
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, requestId: string | null = null) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
+    this.requestId = requestId;
   }
 }
 
@@ -49,7 +52,7 @@ async function send(path: string, init?: RequestInit): Promise<Response> {
     } catch {
       // keep the generic message
     }
-    throw new ApiError(response.status, code, message);
+    throw new ApiError(response.status, code, message, response.headers.get("X-Request-ID"));
   }
   return response;
 }
