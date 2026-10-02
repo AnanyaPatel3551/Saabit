@@ -10,7 +10,7 @@
 
 > PS-04: AI Decision Engine for Business Data · Ananya Patel (solo) · BITS Pillani (Scaler School of Technology)
 
-![Saabit workspace](docs/screenshots/workspace.png)
+![Saabit workspace](docs/screenshots/workspace2.png)
 
 ---
 
