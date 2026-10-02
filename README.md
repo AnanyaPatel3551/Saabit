@@ -151,3 +151,5 @@ The sample is the "E-Commerce Sales Dataset" (`Amazon Sale Report.csv`): 128,975
 Licence: Kaggle lists it as "Other (specified in description)", and the description asks only that the original authors be credited. No licence text explicitly grants or forbids redistribution (checked 30 Sep 2026); see `data/sample/README.md`.
 
 Credit: Data from the "E-Commerce Sales Dataset" by ANil (data.world/anilsharma87), published on Kaggle by The Devastator.
+
+A second, **synthetic** sample (`data/sample_shopify/shopify_synthetic.csv`) shows a differently shaped export: Shopify-style headers (`Order Number`, `Created at`, `Total`, `Financial Status`, `Shipping Province`) and DD/MM/YYYY dates. Every row is made up by `data/sample_shopify/make_synthetic.py` from a fixed seed; it is not real sales data. The app labels it "Synthetic data", and it goes through the normal confirm screen ("Try a different file format" on the landing page).

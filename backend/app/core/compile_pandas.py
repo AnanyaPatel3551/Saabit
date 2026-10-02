@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from app.core.metrics import DIMENSIONS, MAX_ROWS, SORT_DECIMALS
+from app.core.metrics import DIMENSIONS, MAX_ROWS, METRICS, SORT_DECIMALS
 from app.core.plan import Plan
 
 METRIC_COLUMNS = {
@@ -120,6 +120,9 @@ def compute(table: pd.DataFrame, plan: Plan) -> pd.DataFrame:
         totals = pd.DataFrame([{name: getattr(table[source], how)()
                                 for name, (source, how) in parts.items()}])
     totals["value"] = metric_value(totals, plan.metric or "")
+    # "orders" counts what the metric counts (metrics.Metric.orders_counted)
+    if METRICS[plan.metric or ""].orders_counted == "not_cancelled":
+        totals["orders"] = totals["live_orders"]
     columns = [*plan.group_by, "value", "orders"]
     return totals[columns]
 

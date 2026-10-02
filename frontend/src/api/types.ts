@@ -34,6 +34,9 @@ export interface DataCheck {
   unknown_states: string[];
   fixes: { rule: string; rows_affected: number; entries: number }[];
   capability: { can_answer: CapabilityItem[]; cannot_answer: CapabilityItem[] };
+  date_min?: string | null;  // first order date, YYYY-MM-DD
+  date_max?: string | null;
+  orders?: number | null;  // distinct order IDs
 }
 
 export interface Dataset {
@@ -152,6 +155,17 @@ export interface Overview {
   insights: Insight[];
   recommendations: Recommendation[];
   rules: Recommendation[];
+  /** Whole-file totals, each a two-engine evidence card. */
+  key_numbers?: KeyNumber[];
+}
+
+export interface KeyNumber {
+  metric: MetricName;
+  label: string;
+  value: number | null;
+  orders: number | null;
+  verified: boolean;
+  card_id: string;
 }
 
 export interface Health {
@@ -164,5 +178,28 @@ export interface Health {
     reason: string | null;
     checked_at: string | null;
     providers?: { name: string; model: string; configured: boolean; cooling_until: string | null }[];
+    /** Last call: "ok" (first provider), "fallback", "down"; "unknown" before any call. */
+    state?: "ok" | "fallback" | "down" | "unknown";
   };
+}
+
+export interface Score {
+  correct: number;
+  total: number;
+}
+
+/** /api/eval-summary: each part is null until its tool has been run. */
+export interface EvalSummary {
+  eval: {
+    answerable: Score;
+    refused: Score;
+    verified_but_wrong: number;
+    anchors_answerable: Score;
+    anchors_refused: Score;
+    served_by: string[];
+    finished_at: string;
+    used_saved_plans: boolean;
+  } | null;
+  baseline: { answerable: Score; refused: Score; product: string | null } | null;
+  tests: { passed: number; skipped: number; date: string } | null;
 }

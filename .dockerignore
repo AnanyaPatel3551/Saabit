@@ -13,17 +13,21 @@ CLAUDE.md
 **/.ruff_cache
 frontend/dist
 
-# Not needed at runtime yet
+# Not needed at runtime, except the eval results the "How we test" page reads
 docs
 notebooks
-eval
+eval/*
+!eval/results
 
 # Uploaded datasets must never be baked into the image; the sample cache is rebuilt inside it
 **/storage
 **/sample_cache
 
-# Only the compressed sample goes into the image
+# Only the compressed sample and the synthetic Shopify-style CSV go into the image
 data/*
 !data/sample
 data/sample/*
 !data/sample/amazon_sale_report.csv.gz
+!data/sample_shopify
+data/sample_shopify/*
+!data/sample_shopify/shopify_synthetic.csv

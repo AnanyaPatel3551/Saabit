@@ -2,7 +2,7 @@
 // carrying the backend's readable message ({"error": {"code", "message"}}).
 
 import type {
-  Card, DataCheck, Dataset, Health, Overview, Plan, PlanOut, RowsOut, RunOut, SentenceOut,
+  Card, DataCheck, Dataset, EvalSummary, Health, Overview, Plan, PlanOut, RowsOut, RunOut, SentenceOut,
 } from "./types";
 
 export class ApiError extends Error {
@@ -59,6 +59,15 @@ export function uploadDataset(file: File): Promise<Dataset> {
 
 export function loadSample(): Promise<Dataset> {
   return request("/api/datasets/sample", { method: "POST" });
+}
+
+/** A copy of the synthetic Shopify-style file, with roles to confirm (not real data). */
+export function loadShopifySample(): Promise<Dataset> {
+  return request("/api/datasets/sample/shopify", { method: "POST" });
+}
+
+export function getEvalSummary(): Promise<EvalSummary> {
+  return request("/api/eval-summary");
 }
 
 export function getDataset(datasetId: string): Promise<Dataset> {

@@ -45,7 +45,20 @@ try {
         'dev-backend'  { & $Python -m uvicorn app.main:app --reload --port 8000 --no-access-log @EnvArgs }
         'dev-frontend' { npm run dev }
         # Never the live LLM tests, even when keys are in the shell: they spend rate limits.
-        'test'         { & $Python -m pytest -m "not live" }
+        'test' {
+            & $Python -m pytest -m "not live" | Tee-Object -Variable testOutput
+            $testCode = $LASTEXITCODE
+            # Record the passed count for the "How we test" page (eval\results\tests.json).
+            $summary = ($testOutput | Select-String -Pattern '(\d+) passed' | Select-Object -Last 1)
+            if ($testCode -eq 0 -and $summary) {
+                $passed = [int]$summary.Matches[0].Groups[1].Value
+                $skippedMatch = [regex]::Match($summary.Line, '(\d+) skipped')
+                $skipped = if ($skippedMatch.Success) { [int]$skippedMatch.Groups[1].Value } else { 0 }
+                $record = @{ passed = $passed; skipped = $skipped; date = (Get-Date -Format 'yyyy-MM-dd') }
+                $record | ConvertTo-Json | Out-File -Encoding ascii (Join-Path $PSScriptRoot 'eval\results\tests.json')
+            }
+            exit $testCode
+        }
         'test-live' {
             Import-EnvFile
             & $Python -m pytest -m live

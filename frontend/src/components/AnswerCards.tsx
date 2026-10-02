@@ -1,5 +1,5 @@
 import type { Plan, RunOut } from "../api/types";
-import type { Sentence } from "./AskPanel";
+import type { Sentence } from "../lib/history";
 import { reasonWithoutSuggestion, suggestedQuestion } from "../lib/plan";
 import { ResultChart } from "./ResultChart";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -11,11 +11,13 @@ const chipButton = "rounded-full border border-gold/50 px-3 py-1 text-sm text-go
  * A verified answer: the numbers, badge, chart and caveats show at once; the sentence fills in
  * when the writer finishes (or the template, if it fails).
  */
-export function AnswerCard({ answer, sentence, caveats, onEvidence }: {
+export function AnswerCard({ answer, sentence, caveats, onEvidence, preview }: {
   answer: RunOut;
   sentence: Sentence;
   caveats: string[];
   onEvidence: () => void;
+  /** Shown for illustration only (the landing page): no evidence button. */
+  preview?: boolean;
 }) {
   const plan = answer.card.plan;
   const allCaveats = [...new Set([...caveats, ...answer.card.caveats])];
@@ -41,9 +43,11 @@ export function AnswerCard({ answer, sentence, caveats, onEvidence }: {
           {sentence.status === "done" && sentence.source === "template"
             ? "Sentence written from a template." : ""}
         </span>
-        <button type="button" onClick={onEvidence} className="text-gold hover:underline">
-          Show evidence
-        </button>
+        {!preview && (
+          <button type="button" onClick={onEvidence} className="min-h-9 text-gold hover:underline">
+            Show evidence
+          </button>
+        )}
       </div>
     </article>
   );

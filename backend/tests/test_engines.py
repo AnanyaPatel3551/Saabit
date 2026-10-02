@@ -261,3 +261,44 @@ def test_invalid_plans_are_refused_with_a_reason(
 ) -> None:
     with pytest.raises(PlanError, match=message):
         run_plan(sample_id(sample_cache), Plan.model_validate(plan), tmp_path, sample_cache)
+
+
+# Order counts follow the metric's definition (metrics.Metric.orders_counted). The notebook's
+# answer key: 17,185 of 120,378 orders are cancelled, so 103,193 are not.
+def test_revenue_orders_count_excludes_cancelled_in_both_engines(
+    real_sample_cache: Path, tmp_path: Path
+) -> None:
+    for metric in ("revenue", "aov", "units"):
+        card = run_plan(sample_id(real_sample_cache), Plan(metric=metric), tmp_path,
+                        real_sample_cache)
+
+        assert card.verified, metric  # SQL and pandas agree on the count too
+        assert card.result[0]["orders"] == 103193, metric
+
+
+def test_cancellation_rate_orders_count_includes_cancelled(
+    real_sample_cache: Path, tmp_path: Path
+) -> None:
+    plan = Plan(metric="cancellation_rate",
+                filters=[{"column": "state", "op": "eq", "values": ["Rajasthan"]}])
+
+    card = run_plan(sample_id(real_sample_cache), plan, tmp_path, real_sample_cache)
+
+    assert card.result[0]["orders"] == 2512  # the PRD's "14.2% of 2,512 orders"
+
+
+def test_all_time_total_has_no_partial_month_note(real_sample_cache: Path, tmp_path: Path) -> None:
+    card = run_plan(sample_id(real_sample_cache), Plan(metric="revenue"), tmp_path,
+                    real_sample_cache)
+
+    assert not any("partial month" in c for c in card.caveats)
+
+
+def test_a_range_inside_march_keeps_the_partial_month_note(
+    real_sample_cache: Path, tmp_path: Path
+) -> None:
+    plan = Plan(metric="orders", date_range={"start": "2022-03-01", "end": "2022-03-31"})
+
+    card = run_plan(sample_id(real_sample_cache), plan, tmp_path, real_sample_cache)
+
+    assert any(c.startswith("2022-03 is a partial month") for c in card.caveats)

@@ -100,7 +100,20 @@ def main(argv: list[str]) -> int:
         print(f"{label:<24}{mine:<16}{theirs}")
     if len(saabit_rows) < len(base_rows):
         print("\nSome questions have no Saabit result: run eval/eval.py (without --only) first.")
+    write_summary(b, next(iter(filled.values())).get("notes", "").strip() or None)
     return 0
+
+
+def write_summary(scores: dict[str, Any], product: str | None) -> None:
+    """eval/results/baseline.json, read by the app's "How we test" page."""
+    out = EVAL_DIR / "results" / "baseline.json"
+    out.parent.mkdir(exist_ok=True)
+    out.write_text(json.dumps({
+        "answerable": {"correct": scores["correct"], "total": scores["answerable"]},
+        "refused": {"correct": scores["refused"], "total": scores["unanswerable"]},
+        "product": product,  # the README asks for the product and model in the first row's notes
+    }, indent=2), encoding="utf-8")
+    print(f"Saved {out.relative_to(EVAL_DIR.parent)}")
 
 
 if __name__ == "__main__":

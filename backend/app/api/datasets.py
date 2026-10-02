@@ -11,6 +11,7 @@ from app.api.ratelimit import ANSWERS, QUESTIONS, UPLOADS, limit
 from app.api.sample import (
     SAMPLE_PATH,
     SAMPLE_ROLES,
+    copy_shopify_sample,
     get_sample_cache_dir,
     get_sample_path,
     read_cached_sample,
@@ -76,6 +77,14 @@ def upload_dataset(file: UploadFile, root: StorageRoot) -> DatasetOut:
 def load_sample(cache_dir: SampleCache) -> DatasetOut:
     """Return the prepared sample with its roles confirmed and data cleaned (FR-1.4)."""
     return shared_sample(cache_dir)
+
+
+@router.post("/sample/shopify", response_model=DatasetOut,
+             dependencies=[Depends(limit(UPLOADS))])
+def load_shopify_sample(root: StorageRoot, cache_dir: SampleCache) -> DatasetOut:
+    """A copy of the synthetic Shopify-style file, with suggested roles to confirm (not real
+    data). It goes through the same confirm and cleaning steps as an upload."""
+    return copy_shopify_sample(cache_dir, root)
 
 
 def cached_sample_if(dataset_id: str, cache_dir: Path) -> DatasetOut | None:
@@ -160,6 +169,7 @@ def get_overview(dataset_id: str, root: StorageRoot, cache_dir: SampleCache) -> 
         insights=saved.get("insights", []),
         recommendations=saved.get("recommendations", []),
         rules=saved.get("rules", []),
+        key_numbers=saved.get("key_numbers", []),
     )
 
 

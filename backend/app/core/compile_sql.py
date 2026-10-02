@@ -11,7 +11,7 @@ import pyarrow as pa
 import pyarrow.csv as pacsv
 from sqlglot import exp
 
-from app.core.metrics import DIMENSIONS, MAX_ROWS, SORT_DECIMALS
+from app.core.metrics import DIMENSIONS, MAX_ROWS, METRICS, SORT_DECIMALS
 from app.core.plan import Plan
 
 TABLE = "clean"
@@ -156,13 +156,21 @@ def where_clause(plan: Plan) -> exp.Expression | None:
     return exp.and_(*conditions) if conditions else None
 
 
+def orders_expression(metric: str, columns: set[str]) -> exp.Expression:
+    """The "orders" column: distinct orders, or only those not cancelled (orders_counted)."""
+    if METRICS[metric].orders_counted == "not_cancelled":
+        live = exp.Not(this=cancelled_flag(columns))
+        return count_distinct(when(live, col("order_id")))
+    return count_distinct(col("order_id"))
+
+
 def compile_plan(plan: Plan, columns: set[str]) -> exp.Select:
     """plan -> one SELECT: group keys, value, orders; sorted and limited (FR-5.1)."""
     keys = [key_expression(d) for d in plan.group_by]
     value = metric_expression(plan.metric or "", columns)
     projections = [exp.alias_(k.copy(), d) for k, d in zip(keys, plan.group_by, strict=True)]
     projections += [exp.alias_(value.copy(), "value"),
-                    exp.alias_(count_distinct(col("order_id")), "orders")]
+                    exp.alias_(orders_expression(plan.metric or "", columns), "orders")]
     query = exp.select(*projections).from_(TABLE)
     where = where_clause(plan)
     if where is not None:

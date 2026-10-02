@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Plan, RunOut } from "../api/types";
+import type { Overview, Plan, RunOut } from "../api/types";
 import { RefusalCard } from "../components/AnswerCards";
 import { AskPanel } from "../components/AskPanel";
 import { InsightsPanel } from "../components/InsightsPanel";
@@ -68,7 +68,7 @@ describe("Ask panel", () => {
 
     calls.length = 0;
     await user.selectOptions(screen.getByLabelText("Metric"), "orders");
-    await screen.findByText(WRITTEN);
+    expect(await screen.findAllByText(WRITTEN)).toHaveLength(2);  // both answers in the thread
 
     expect(calls.filter((c) => c.endsWith("/run"))).toEqual(["/api/datasets/abc/run"]);
     expect(calls.some((c) => c.includes("/plan"))).toBe(false);
@@ -152,9 +152,8 @@ describe("Insights panel", () => {
           text: "Cleaning kept 128,975 rows." },
       ],
     };
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json(overview)));
-
-    render(<InsightsPanel datasetId="abc" onEvidence={() => undefined} />);
+    render(<InsightsPanel overview={overview as unknown as Overview} error={null}
+      onEvidence={() => undefined} />);
 
     expect(await screen.findByText("Data fixes")).toBeTruthy();
     expect(screen.getAllByText("Verified")).toHaveLength(1);

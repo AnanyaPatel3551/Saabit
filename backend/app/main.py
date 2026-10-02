@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -17,6 +17,7 @@ from app.api.cards import router as cards_router
 from app.api.datasets import get_storage_root
 from app.api.datasets import router as datasets_router
 from app.api.errors import register_error_handlers
+from app.api.evalsummary import router as eval_router
 from app.api.ratelimit import RateLimiter
 from app.api.sample import get_sample_cache_dir, log_sample_status, read_cached_sample
 from app.core import retention, storage
@@ -25,6 +26,7 @@ from app.llm.config import status_dict
 VERSION = "0.1.0"
 FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 RETENTION_INTERVAL_S = 3600
+PAGES = ("/how-we-test",)
 logger = logging.getLogger(__name__)
 
 PLACEHOLDER_HTML = (
@@ -90,7 +92,12 @@ def placeholder() -> HTMLResponse:
 
 def mount_frontend(app: FastAPI, dist: Path) -> None:
     """Serve the built frontend at /, or a placeholder page if it is not built."""
-    if (dist / "index.html").is_file():
+    index = dist / "index.html"
+    if index.is_file():
+        # Pages the app draws itself, so a reload or a shared link still finds them.
+        for page in PAGES:
+            app.add_api_route(page, lambda: FileResponse(index), methods=["GET"],
+                              include_in_schema=False)
         app.mount("/", StaticFiles(directory=dist, html=True), name="frontend")
     else:
         app.add_api_route("/", placeholder, methods=["GET"], include_in_schema=False)
@@ -134,6 +141,7 @@ def create_app(frontend_dist: Path = FRONTEND_DIST) -> FastAPI:
     app.add_api_route("/api/health", health, methods=["GET"], response_model=Health)
     app.include_router(datasets_router)
     app.include_router(cards_router)
+    app.include_router(eval_router)
     mount_frontend(app, frontend_dist)
     return app
 

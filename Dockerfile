@@ -19,6 +19,9 @@ COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 COPY backend/ backend/
 COPY data/sample/amazon_sale_report.csv.gz data/sample/amazon_sale_report.csv.gz
+COPY data/sample_shopify/shopify_synthetic.csv data/sample_shopify/shopify_synthetic.csv
+# Read-only results for the "How we test" page (written by eval.py, score_baseline.py, tasks.ps1)
+COPY eval/results/ eval/results/
 WORKDIR /app/backend
 # Scan the sample now so the running app only reads a small metadata.json.
 RUN python -m app.prepare_sample
